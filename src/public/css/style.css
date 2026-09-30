@@ -1,0 +1,94 @@
+:root {
+  --cor-fundo: #fbfaf8;
+  --cor-texto: #1f1d24;
+  --cor-suave: #5f5a6b;
+  --cor-destaque: #6b3fa0;
+  --cor-borda: #e4e0ea;
+  --altura-topo: 3.5rem;
+  --altura-rodape: 2.5rem;
+  --fonte: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--cor-destaque);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--altura-topo);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--cor-borda);
+  background: #fff;
+}
+
+.topo nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.marca {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.principal {
+  flex: 1;
+}
+
+.principal--texto {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.mapa {
+  height: calc(100vh - var(--altura-topo) - var(--altura-rodape));
+  min-height: 20rem;
+}
+
+.rodape {
+  display: flex;
+  align-items: center;
+  height: var(--altura-rodape);
+  padding: 0 1rem;
+  border-top: 1px solid var(--cor-borda);
+  color: var(--cor-suave);
+  font-size: 0.875rem;
+}
+
+.rodape p {
+  margin: 0;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

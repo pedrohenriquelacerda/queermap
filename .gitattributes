@@ -1,0 +1,5 @@
+# Evita diferenças de fim de linha entre Windows e Linux/macOS
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

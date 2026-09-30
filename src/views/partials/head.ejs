@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= locals.title ? `${title} · ${siteName}` : siteName %></title>
+    <% if (locals.usaMapa) { %>
+    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+    <% } %>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header class="topo">
+      <a class="marca" href="/"><%= siteName %></a>
+      <nav aria-label="Principal">
+        <a href="/">Mapa</a>
+      </nav>
+    </header>

@@ -1,0 +1,22 @@
+# Postgres para desenvolvimento local. Suba com: npm run db:up
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: queermap-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: queermap
+      POSTGRES_PASSWORD: queermap
+      POSTGRES_DB: queermap
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U queermap -d queermap']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
