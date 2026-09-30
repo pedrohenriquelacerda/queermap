@@ -27,6 +27,7 @@ cp .env.example .env      # no PowerShell: Copy-Item .env.example .env
 npm install               # também gera o Prisma Client
 npm run db:up             # sobe o Postgres no Docker
 npm run db:migrate        # aplica as migrations
+npm run db:seed           # categorias e características iniciais
 npm run dev               # http://localhost:3000
 ```
 
@@ -38,26 +39,27 @@ Se o Docker não estiver disponível, o Prisma tem um Postgres embutido que roda
 npm run db:local          # no lugar de npm run db:up
 ```
 
-No `.env`, troque o `DATABASE_URL` pela linha da **Opção B** do `.env.example`, depois siga com `npm run db:migrate` e `npm run dev`. Para parar: `npm run db:local:stop`.
+No `.env`, troque o `DATABASE_URL` e descomente o `SHADOW_DATABASE_URL` da **Opção B** do `.env.example`, depois siga com `npm run db:migrate` e `npm run dev`. Para parar: `npm run db:local:stop`.
 
 Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Antes de entregar, teste também no Postgres real (Docker).
 
 ## Scripts
 
-| Comando                 | O que faz                                         |
-| ----------------------- | ------------------------------------------------- |
-| `npm run dev`           | Servidor com recarga automática ao salvar         |
-| `npm start`             | Servidor sem recarga (produção)                   |
-| `npm test`              | Roda os testes (não precisa do banco)             |
-| `npm run lint`          | Verifica o código com ESLint                      |
-| `npm run format`        | Formata o código com Prettier                     |
-| `npm run db:up`         | Sobe o Postgres no Docker                         |
-| `npm run db:down`       | Para o Postgres (os dados ficam salvos no volume) |
-| `npm run db:local`      | Sobe o Postgres embutido do Prisma (sem Docker)   |
-| `npm run db:local:stop` | Para o Postgres embutido                          |
-| `npm run db:migrate`    | Cria/aplica migrations depois de alterar o schema |
-| `npm run db:deploy`     | Aplica migrations existentes (produção)           |
-| `npm run db:studio`     | Abre o Prisma Studio para ver e editar os dados   |
+| Comando                 | O que faz                                          |
+| ----------------------- | -------------------------------------------------- |
+| `npm run dev`           | Servidor com recarga automática ao salvar          |
+| `npm start`             | Servidor sem recarga (produção)                    |
+| `npm test`              | Roda os testes (não precisa do banco)              |
+| `npm run lint`          | Verifica o código com ESLint                       |
+| `npm run format`        | Formata o código com Prettier                      |
+| `npm run db:up`         | Sobe o Postgres no Docker                          |
+| `npm run db:down`       | Para o Postgres (os dados ficam salvos no volume)  |
+| `npm run db:local`      | Sobe o Postgres embutido do Prisma (sem Docker)    |
+| `npm run db:local:stop` | Para o Postgres embutido                           |
+| `npm run db:migrate`    | Cria/aplica migrations depois de alterar o schema  |
+| `npm run db:seed`       | Insere categorias e características (pode repetir) |
+| `npm run db:deploy`     | Aplica migrations existentes (produção)            |
+| `npm run db:studio`     | Abre o Prisma Studio para ver e editar os dados    |
 
 ## Estrutura
 
@@ -85,7 +87,14 @@ Para mudar o banco, edite `prisma/schema.prisma` e rode `npm run db:migrate`. O 
 
 Ao puxar alterações de colegas que incluam migrations novas, rode `npm run db:migrate` de novo.
 
-Para apagar tudo e recomeçar do zero: `npx prisma migrate reset`.
+Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed no final).
+
+### Modelo de dados
+
+- **Local**: serviço no mapa, com uma **Categoria** (ambulatório trans, ONG, saúde sexual, abrigo, casa de acolhimento) e várias **Características** ("respeita o nome social", "oferece PrEP"...). Só aparece no mapa com `publicado = true`; exclusão é lógica (`arquivadoEm`).
+- **Envio**: sugestão de local ou relato (elogio, reclamação, discriminação) enviado pelo público. Vai só para o painel. O e-mail só é salvo se a pessoa pedir contato.
+- **VerificacaoEmail** / **RegistroEnvio**: código de confirmação e limite de envios por pessoa, guardando apenas o hash do e-mail. Os registros são apagados após 30 dias e não têm ligação com os envios.
+- **Admin** / **LogAuditoria**: pessoas da ONG com acesso ao painel e registro de cada ação feita nele.
 
 ## Observações
 

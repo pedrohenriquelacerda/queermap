@@ -20,8 +20,9 @@
     "db:down": "docker compose down",
     "db:local": "prisma dev --name queermap --detach",
     "db:local:stop": "prisma dev stop queermap",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate dev && prisma generate",
     "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"

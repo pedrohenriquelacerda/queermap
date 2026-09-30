@@ -1,5 +1,8 @@
 // Schema do banco. Depois de alterar, rode: npm run db:migrate
 // Docs: https://pris.ly/d/prisma-schema
+//
+// Convenção: modelos e campos em português/camelCase no código; tabelas e
+// colunas em snake_case no banco (@@map / @map).
 
 generator client {
   provider = "prisma-client"
@@ -9,6 +12,208 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─── Painel administrativo ──────────────────────────────────────────────────
+
+enum PapelAdmin {
+  ADMIN // gerencia pessoas do painel, além de tudo que o editor faz
+  EDITOR // cadastra locais e lê envios
+
+  @@map("papel_admin")
+}
+
+// Pessoas da ONG com acesso ao painel. Não há cadastro público.
+model Admin {
+  id            Int        @id @default(autoincrement())
+  nome          String
+  email         String     @unique
+  senhaHash     String     @map("senha_hash")
+  papel         PapelAdmin @default(EDITOR)
+  ativo         Boolean    @default(true)
+  ultimoLoginEm DateTime?  @map("ultimo_login_em")
+  criadoEm      DateTime   @default(now()) @map("criado_em")
+  atualizadoEm  DateTime   @updatedAt @map("atualizado_em")
+
+  locaisCriados     Local[]        @relation("LocalCriadoPor")
+  locaisAtualizados Local[]        @relation("LocalAtualizadoPor")
+  logs              LogAuditoria[]
+
+  @@map("admin")
+}
+
+// Registro de todas as ações feitas no painel.
+model LogAuditoria {
+  id         Int      @id @default(autoincrement())
+  adminId    Int?     @map("admin_id")
+  acao       String // ex.: "local.criar", "local.publicar", "envio.resolver"
+  entidade   String // ex.: "Local", "Envio"
+  entidadeId Int?     @map("entidade_id")
+  detalhes   Json?
+  criadoEm   DateTime @default(now()) @map("criado_em")
+
+  admin Admin? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([entidade, entidadeId])
+  @@index([criadoEm])
+  @@map("log_auditoria")
+}
+
+// ─── Mapa ───────────────────────────────────────────────────────────────────
+
+// Tipo do serviço: ambulatório trans, ONG, saúde sexual (SAE/PEP/PrEP),
+// abrigo, casa de acolhimento... Tabela (e não enum) para a ONG poder ajustar.
+model Categoria {
+  id     Int     @id @default(autoincrement())
+  nome   String  @unique
+  slug   String  @unique
+  icone  String? // nome do ícone/cor do marcador no mapa
+  ordem  Int     @default(0)
+  ativa  Boolean @default(true)
+  locais Local[]
+
+  @@map("categoria")
+}
+
+// Características informadas pela ONG ("respeita o nome social", "oferece PrEP"...).
+// A lista final será definida junto com a ONG.
+model Caracteristica {
+  id        Int     @id @default(autoincrement())
+  nome      String  @unique
+  slug      String  @unique
+  descricao String?
+  ativa     Boolean @default(true)
+  locais    Local[]
+
+  @@map("caracteristica")
+}
+
+model Local {
+  id          Int     @id @default(autoincrement())
+  nome        String
+  slug        String  @unique
+  descricao   String?
+  categoriaId Int     @map("categoria_id")
+
+  // Endereço
+  logradouro  String
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String  @default("Porto Alegre")
+  uf          String  @default("RS") @db.Char(2)
+  cep         String? @db.VarChar(9)
+  latitude    Float
+  longitude   Float
+
+  // Contato e funcionamento
+  telefone             String?
+  whatsapp             String?
+  email                String?
+  site                 String?
+  horarioFuncionamento String? @map("horario_funcionamento")
+
+  // Só aparece no mapa quando publicado pela ONG.
+  publicado       Boolean   @default(false)
+  publicadoEm     DateTime? @map("publicado_em")
+  arquivadoEm     DateTime? @map("arquivado_em") // exclusão lógica
+  criadoPorId     Int?      @map("criado_por_id")
+  atualizadoPorId Int?      @map("atualizado_por_id")
+  criadoEm        DateTime  @default(now()) @map("criado_em")
+  atualizadoEm    DateTime  @updatedAt @map("atualizado_em")
+
+  categoria       Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  caracteristicas Caracteristica[]
+  criadoPor       Admin?           @relation("LocalCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  atualizadoPor   Admin?           @relation("LocalAtualizadoPor", fields: [atualizadoPorId], references: [id], onDelete: SetNull)
+  envios          Envio[]
+
+  @@index([publicado, arquivadoEm])
+  @@index([categoriaId])
+  @@map("local")
+}
+
+// ─── Envios do público ──────────────────────────────────────────────────────
+
+enum TipoEnvio {
+  SUGESTAO_LOCAL
+  ELOGIO
+  RECLAMACAO
+  DISCRIMINACAO
+
+  @@map("tipo_envio")
+}
+
+enum StatusEnvio {
+  NOVO
+  EM_ANALISE
+  RESOLVIDO
+  ARQUIVADO
+
+  @@map("status_envio")
+}
+
+// Sugestões e relatos. Chegam só ao painel da ONG; nada é público.
+// Não guarda o e-mail de quem enviou, a não ser que a pessoa peça contato.
+model Envio {
+  id       Int         @id @default(autoincrement())
+  tipo     TipoEnvio
+  status   StatusEnvio @default(NOVO)
+  localId  Int?        @map("local_id") // relato sobre um local já cadastrado
+  mensagem String
+
+  // Preenchidos quando tipo = SUGESTAO_LOCAL
+  nomeLocalSugerido     String? @map("nome_local_sugerido")
+  enderecoLocalSugerido String? @map("endereco_local_sugerido")
+
+  // Contato opcional: só é salvo se a pessoa marcar que deseja ser contatada.
+  desejaContato Boolean @default(false) @map("deseja_contato")
+  emailContato  String? @map("email_contato")
+
+  // Resultado do filtro automático de conteúdo.
+  sinalizado   Boolean @default(false)
+  motivoFiltro String? @map("motivo_filtro")
+
+  notasInternas String?   @map("notas_internas") // anotações da ONG
+  lidoEm        DateTime? @map("lido_em")
+  resolvidoEm   DateTime? @map("resolvido_em")
+  criadoEm      DateTime  @default(now()) @map("criado_em")
+  atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
+
+  local Local? @relation(fields: [localId], references: [id], onDelete: SetNull)
+
+  @@index([status, criadoEm])
+  @@index([tipo])
+  @@map("envio")
+}
+
+// Código de confirmação enviado por e-mail antes de um envio.
+// O e-mail é guardado só como hash (HMAC com segredo do servidor).
+model VerificacaoEmail {
+  id         Int       @id @default(autoincrement())
+  emailHash  String    @map("email_hash")
+  codigoHash String    @map("codigo_hash")
+  tentativas Int       @default(0)
+  expiraEm   DateTime  @map("expira_em")
+  usadoEm    DateTime? @map("usado_em")
+  criadoEm   DateTime  @default(now()) @map("criado_em")
+
+  @@index([emailHash, criadoEm])
+  @@index([expiraEm])
+  @@map("verificacao_email")
+}
+
+// Conta envios por e-mail (hash) para o limite por pessoa. Apagado após 30 dias.
+// Propositalmente sem ligação com Envio: não dá para saber quem enviou o quê.
+model RegistroEnvio {
+  id        Int      @id @default(autoincrement())
+  emailHash String   @map("email_hash")
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@index([emailHash, criadoEm])
+  @@map("registro_envio")
+}
+
+// ─── Infraestrutura ─────────────────────────────────────────────────────────
 
 // Sessões do painel administrativo (usada pelo connect-pg-simple).
 // Colunas e índice seguem o formato esperado pela biblioteca.
