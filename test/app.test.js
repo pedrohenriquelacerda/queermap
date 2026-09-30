@@ -29,3 +29,8 @@ test('envia cabeçalhos de segurança', async () => {
   assert.ok(res.headers['content-security-policy']);
   assert.equal(res.headers['x-powered-by'], undefined);
 });
+
+test('envia Referer de origem para os tiles do OpenStreetMap', async () => {
+  const res = await request(app).get('/');
+  assert.equal(res.headers['referrer-policy'], 'strict-origin-when-cross-origin');
+});

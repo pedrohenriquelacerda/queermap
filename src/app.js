@@ -30,6 +30,9 @@ export function createApp({ sessionStore } = {}) {
           'img-src': ["'self'", 'data:', OSM_TILES],
         },
       },
+      // O OpenStreetMap bloqueia (403) tiles pedidos sem Referer. Assim enviamos
+      // só a origem do site para outros domínios, nunca o caminho da página.
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   );
 
