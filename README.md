@@ -28,6 +28,7 @@ npm install               # também gera o Prisma Client
 npm run db:up             # sobe o Postgres no Docker
 npm run db:migrate        # aplica as migrations
 npm run db:seed           # categorias e características iniciais
+npm run db:seed:exemplos  # opcional: locais fictícios para ver o mapa funcionando
 npm run dev               # http://localhost:3000
 ```
 
@@ -45,21 +46,22 @@ Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Ant
 
 ## Scripts
 
-| Comando                 | O que faz                                          |
-| ----------------------- | -------------------------------------------------- |
-| `npm run dev`           | Servidor com recarga automática ao salvar          |
-| `npm start`             | Servidor sem recarga (produção)                    |
-| `npm test`              | Roda os testes (não precisa do banco)              |
-| `npm run lint`          | Verifica o código com ESLint                       |
-| `npm run format`        | Formata o código com Prettier                      |
-| `npm run db:up`         | Sobe o Postgres no Docker                          |
-| `npm run db:down`       | Para o Postgres (os dados ficam salvos no volume)  |
-| `npm run db:local`      | Sobe o Postgres embutido do Prisma (sem Docker)    |
-| `npm run db:local:stop` | Para o Postgres embutido                           |
-| `npm run db:migrate`    | Cria/aplica migrations depois de alterar o schema  |
-| `npm run db:seed`       | Insere categorias e características (pode repetir) |
-| `npm run db:deploy`     | Aplica migrations existentes (produção)            |
-| `npm run db:studio`     | Abre o Prisma Studio para ver e editar os dados    |
+| Comando                    | O que faz                                               |
+| -------------------------- | ------------------------------------------------------- |
+| `npm run dev`              | Servidor com recarga automática ao salvar               |
+| `npm start`                | Servidor sem recarga (produção)                         |
+| `npm test`                 | Roda os testes (não precisa do banco)                   |
+| `npm run lint`             | Verifica o código com ESLint                            |
+| `npm run format`           | Formata o código com Prettier                           |
+| `npm run db:up`            | Sobe o Postgres no Docker                               |
+| `npm run db:down`          | Para o Postgres (os dados ficam salvos no volume)       |
+| `npm run db:local`         | Sobe o Postgres embutido do Prisma (sem Docker)         |
+| `npm run db:local:stop`    | Para o Postgres embutido                                |
+| `npm run db:migrate`       | Cria/aplica migrations depois de alterar o schema       |
+| `npm run db:seed`          | Insere categorias e características (pode repetir)      |
+| `npm run db:seed:exemplos` | Insere locais fictícios de teste (`-- --remover` apaga) |
+| `npm run db:deploy`        | Aplica migrations existentes (produção)                 |
+| `npm run db:studio`        | Abre o Prisma Studio para ver e editar os dados         |
 
 ## Estrutura
 
@@ -102,3 +104,5 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - O Prisma 7 gera o client em TypeScript (`src/generated/prisma`). O Node 24 executa esses arquivos direto, sem etapa de build.
 - O Leaflet é servido pelo próprio servidor (`/vendor/leaflet`), sem CDN, por causa da política de segurança de conteúdo (CSP).
 - `GET /health` verifica se o servidor e o banco estão respondendo.
+- `GET /api/locais` devolve os locais publicados (só campos públicos) que o mapa exibe.
+- Os locais de exemplo começam com "[Exemplo]" e não podem ser inseridos com `NODE_ENV=production`.

@@ -7,6 +7,14 @@
   --altura-topo: 3.5rem;
   --altura-rodape: 2.5rem;
   --fonte: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Cores dos marcadores por categoria (campo "icone" da Categoria) */
+  --cat-padrao: #5f5a6b;
+  --cat-ambulatorio: #6b3fa0;
+  --cat-ong: #c2185b;
+  --cat-saude-sexual: #00796b;
+  --cat-abrigo: #d84315;
+  --cat-acolhimento: #1565c0;
 }
 
 *,
@@ -91,4 +99,151 @@ a {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* ─── Marcadores ─────────────────────────────────────────────────────────── */
+
+.marcador {
+  --cor-marcador: var(--cat-padrao);
+}
+
+.marcador--ambulatorio {
+  --cor-marcador: var(--cat-ambulatorio);
+}
+
+.marcador--ong {
+  --cor-marcador: var(--cat-ong);
+}
+
+.marcador--saude-sexual {
+  --cor-marcador: var(--cat-saude-sexual);
+}
+
+.marcador--abrigo {
+  --cor-marcador: var(--cat-abrigo);
+}
+
+.marcador--acolhimento {
+  --cor-marcador: var(--cat-acolhimento);
+}
+
+/* Pino em forma de gota: quadrado com três cantos arredondados, girado 45° */
+.marcador__pino {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--cor-marcador);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 40%);
+  transform: rotate(-45deg);
+}
+
+.marcador__pino::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.marcador:focus-visible .marcador__pino {
+  outline: 3px solid var(--cor-texto);
+  outline-offset: 2px;
+}
+
+/* ─── Popup ──────────────────────────────────────────────────────────────── */
+
+.popup {
+  font-family: var(--fonte);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.popup p {
+  margin: 0 0 0.5rem;
+}
+
+.popup__categoria {
+  color: var(--cor-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.popup__titulo {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.popup__horario {
+  color: var(--cor-suave);
+}
+
+.popup__caracteristicas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.popup__caracteristicas li {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #efeaf6;
+  font-size: 0.75rem;
+}
+
+.popup__contatos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+/* ─── Legenda e avisos ───────────────────────────────────────────────────── */
+
+.legenda {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: #fff;
+  font-size: 0.8125rem;
+}
+
+.legenda__titulo {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.legenda[open] .legenda__titulo {
+  margin-bottom: 0.25rem;
+}
+
+.legenda__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.125rem 0;
+  cursor: pointer;
+}
+
+.legenda__cor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cor-marcador);
+}
+
+.aviso-mapa {
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  font-size: 0.875rem;
 }
