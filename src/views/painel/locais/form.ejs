@@ -1,0 +1,146 @@
+<%- include('../../partials/head') %>
+<%
+  const campo = (dados) => include('../../partials/campo', { erros, ...dados });
+  const opcoesCategoria = [
+    { valor: '', texto: 'Escolha…' },
+    ...categorias.map((c) => ({ valor: c.id, texto: c.nome })),
+  ];
+  const situacoes = {
+    rascunho: ['aviso', 'Rascunho', 'Não aparece no mapa. Publique quando as informações estiverem conferidas.'],
+    publicado: ['sucesso', 'Publicado', 'Visível para todo mundo no mapa.'],
+    arquivado: ['neutra', 'Arquivado', 'Fora do mapa e da lista principal. Pode ser restaurado.'],
+  };
+  const [corSituacao, rotuloSituacao, textoSituacao] = situacoes[situacao];
+  const temErros = Object.keys(erros).length > 0;
+  const acao = editando ? `/painel/locais/${local.id}` : '/painel/locais';
+%>
+<main id="conteudo" class="painel-conteudo">
+  <p><a class="voltar" href="/painel/locais">← Locais</a></p>
+  <div class="cabecalho-pagina">
+    <h1><%= editando ? local.nome : 'Novo local' %></h1>
+    <% if (editando && situacao === 'publicado') { %>
+    <a class="botao botao--fantasma" href="/locais/<%= local.slug %>" target="_blank" rel="noopener">Ver no site ↗</a>
+    <% } %>
+  </div>
+
+  <% if (temErros) { %>
+  <div class="alerta alerta--erro" role="alert">
+    <p><strong>Revise os campos marcados.</strong> Nada foi salvo ainda.</p>
+  </div>
+  <% } %>
+
+  <div class="form-local">
+    <form class="form-local__principal" method="post" action="<%= acao %>" id="form-local" novalidate>
+      <section class="cartao">
+        <h2>Identificação</h2>
+        <%- campo({ nome: 'nome', rotulo: 'Nome do local', valor: local.nome, attrs: { required: true, maxlength: 150 } }) %>
+        <%- campo({ nome: 'categoriaId', rotulo: 'Tipo de serviço', tipo: 'select', valor: local.categoriaId ?? '', opcoes: opcoesCategoria, attrs: { required: true } }) %>
+        <%- campo({ nome: 'descricao', rotulo: 'Descrição', tipo: 'textarea', valor: local.descricao, opcional: true, ajuda: 'O que o local oferece, para quem, como é o atendimento. Até 1.000 caracteres.', attrs: { maxlength: 1000, rows: 4 } }) %>
+      </section>
+
+      <section class="cartao">
+        <h2>Endereço e localização</h2>
+        <div class="grade-campos">
+          <div class="grade-campos__largo"><%- campo({ nome: 'logradouro', rotulo: 'Rua ou avenida', valor: local.logradouro, attrs: { required: true, autocomplete: 'off' } }) %></div>
+          <%- campo({ nome: 'numero', rotulo: 'Número', valor: local.numero, opcional: true, attrs: { inputmode: 'numeric' } }) %>
+          <%- campo({ nome: 'complemento', rotulo: 'Complemento', valor: local.complemento, opcional: true }) %>
+          <%- campo({ nome: 'bairro', rotulo: 'Bairro', valor: local.bairro, opcional: true }) %>
+          <%- campo({ nome: 'cep', rotulo: 'CEP', valor: local.cep, opcional: true, attrs: { inputmode: 'numeric', maxlength: 9, placeholder: '90000-000' } }) %>
+          <div class="grade-campos__largo"><%- campo({ nome: 'cidade', rotulo: 'Cidade', valor: local.cidade, attrs: { required: true } }) %></div>
+          <%- campo({ nome: 'uf', rotulo: 'UF', valor: local.uf, attrs: { required: true, maxlength: 2 } }) %>
+        </div>
+
+        <div class="posicionar">
+          <div class="posicionar__cabecalho">
+            <span class="campo__rotulo">Posição no mapa</span>
+            <button type="button" class="botao botao--secundario botao--pequeno" id="buscar-endereco" hidden>
+              Buscar endereço no mapa
+            </button>
+          </div>
+          <p class="campo__ajuda" id="posicionar-ajuda">
+            Busque pelo endereço preenchido acima e ajuste arrastando o pino ou clicando no mapa.
+          </p>
+          <div id="resultados-endereco" class="resultados-endereco" role="status" aria-live="polite"></div>
+          <div
+            id="mapa-form"
+            class="mapa-form"
+            role="application"
+            aria-label="Mapa para posicionar o local"
+            aria-describedby="posicionar-ajuda"
+          ></div>
+          <details class="coordenadas" <%= erros.latitude || erros.longitude ? 'open' : '' %>>
+            <summary>Coordenadas</summary>
+            <div class="grade-campos">
+              <%- campo({ nome: 'latitude', rotulo: 'Latitude', valor: local.latitude ?? '', attrs: { inputmode: 'decimal', autocomplete: 'off' } }) %>
+              <%- campo({ nome: 'longitude', rotulo: 'Longitude', valor: local.longitude ?? '', attrs: { inputmode: 'decimal', autocomplete: 'off' } }) %>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="cartao">
+        <h2>Contato e horário</h2>
+        <div class="grade-campos">
+          <%- campo({ nome: 'telefone', rotulo: 'Telefone', valor: local.telefone, opcional: true, tipo: 'tel', attrs: { placeholder: '(51) 3000-0000' } }) %>
+          <%- campo({ nome: 'whatsapp', rotulo: 'WhatsApp', valor: local.whatsapp, opcional: true, attrs: { inputmode: 'tel', placeholder: '(51) 90000-0000' } }) %>
+          <%- campo({ nome: 'email', rotulo: 'E-mail', tipo: 'email', valor: local.email, opcional: true }) %>
+          <%- campo({ nome: 'site', rotulo: 'Site', tipo: 'url', valor: local.site, opcional: true, attrs: { placeholder: 'https://' } }) %>
+        </div>
+        <%- campo({ nome: 'horarioFuncionamento', rotulo: 'Horário de funcionamento', valor: local.horarioFuncionamento, opcional: true, ajuda: 'Ex.: Seg a sex, 8h às 17h. Sáb, 8h às 12h.', attrs: { maxlength: 300 } }) %>
+      </section>
+
+      <fieldset class="cartao">
+        <legend><h2>Características</h2></legend>
+        <p class="campo__ajuda">Marque só o que a ONG conferiu.</p>
+        <div class="grade-opcoes">
+          <% for (const c of caracteristicas) { %>
+          <label class="opcao">
+            <input type="checkbox" name="caracteristicas" value="<%= c.id %>" <%= local.caracteristicas?.includes(c.id) ? 'checked' : '' %> />
+            <span><%= c.nome %><% if (c.descricao) { %><br /><span class="campo__ajuda"><%= c.descricao %></span><% } %></span>
+          </label>
+          <% } %>
+        </div>
+      </fieldset>
+
+      <div class="barra-salvar">
+        <button type="submit" class="botao"><%= editando ? 'Salvar alterações' : 'Salvar como rascunho' %></button>
+        <a class="botao botao--fantasma" href="/painel/locais">Cancelar</a>
+      </div>
+    </form>
+
+    <aside class="form-local__lateral">
+      <div class="cartao">
+        <h2>Situação</h2>
+        <p><span class="etiqueta etiqueta--<%= corSituacao %>"><%= rotuloSituacao %></span></p>
+        <p class="campo__ajuda"><%= textoSituacao %></p>
+        <% if (editando) { %>
+        <div class="pilha-acoes">
+          <% if (situacao === 'rascunho') { %>
+          <form method="post" action="/painel/locais/<%= local.id %>/publicar"><button class="botao">Publicar no mapa</button></form>
+          <% } %>
+          <% if (situacao === 'publicado') { %>
+          <form method="post" action="/painel/locais/<%= local.id %>/despublicar"><button class="botao botao--secundario">Tirar do mapa</button></form>
+          <% } %>
+          <% if (situacao !== 'arquivado') { %>
+          <form method="post" action="/painel/locais/<%= local.id %>/arquivar"><button class="botao botao--fantasma">Arquivar</button></form>
+          <% } else { %>
+          <form method="post" action="/painel/locais/<%= local.id %>/restaurar"><button class="botao botao--secundario">Restaurar</button></form>
+          <% } %>
+        </div>
+        <% if (situacao === 'rascunho') { %>
+        <p class="campo__ajuda">Salve as alterações do formulário antes de publicar.</p>
+        <% } %>
+        <% } %>
+      </div>
+      <% if (editando) { %>
+      <dl class="cartao dados dados--pequeno">
+        <dt>Criado</dt>
+        <dd><%= fmt.data(local.criadoEm) %><%= local.criadoPor ? ` por ${local.criadoPor.nome}` : '' %></dd>
+        <dt>Atualizado</dt>
+        <dd><%= fmt.data(local.atualizadoEm) %><%= local.atualizadoPor ? ` por ${local.atualizadoPor.nome}` : '' %></dd>
+      </dl>
+      <% } %>
+    </aside>
+  </div>
+</main>
+<%- include('../../partials/foot') %>

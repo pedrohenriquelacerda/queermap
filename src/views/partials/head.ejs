@@ -37,11 +37,11 @@
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <% } %>
     <link rel="stylesheet" href="/css/base.css" />
+    <% if (leaflet || locals.painel) { %>
+    <link rel="stylesheet" href="/css/mapa.css" />
+    <% } %>
     <% if (locals.painel) { %>
     <link rel="stylesheet" href="/css/painel.css" />
-    <% } %>
-    <% if (leaflet) { %>
-    <link rel="stylesheet" href="/css/mapa.css" />
     <% } %>
   </head>
   <body>

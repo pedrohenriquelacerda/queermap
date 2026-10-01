@@ -6,8 +6,13 @@ import * as sessao from '../controllers/painel/sessaoController.js';
 import * as conta from '../controllers/painel/contaController.js';
 import * as inicio from '../controllers/painel/inicioController.js';
 import * as pessoas from '../controllers/painel/pessoasController.js';
+import * as locais from '../controllers/painel/locaisController.js';
+import * as classificacao from '../controllers/painel/classificacaoController.js';
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
+
+// Só ids numéricos; o resto cai no 404.
+const soNumeros = (req, res, next, valor) => (/^\d+$/.test(valor) ? next() : next('router'));
 
 // Tentativas de login: só as que falham contam.
 const opcoesLimite = {
@@ -53,8 +58,7 @@ router.post('/conta', conta.trocarSenha);
 
 const rotasPessoas = Router();
 rotasPessoas.use(exigirPapelAdmin);
-// Só ids numéricos; o resto cai no 404.
-rotasPessoas.param('id', (req, res, next, id) => (/^\d+$/.test(id) ? next() : next('router')));
+rotasPessoas.param('id', soNumeros);
 rotasPessoas.get('/', pessoas.listar);
 rotasPessoas.get('/nova', pessoas.nova);
 rotasPessoas.post('/', pessoas.criar);
@@ -62,5 +66,27 @@ rotasPessoas.get('/:id', pessoas.editar);
 rotasPessoas.post('/:id', pessoas.salvar);
 rotasPessoas.post('/:id/senha', pessoas.redefinirSenha);
 router.use('/pessoas', rotasPessoas);
+
+const rotasLocais = Router();
+rotasLocais.param('id', soNumeros);
+rotasLocais.get('/', locais.listar);
+rotasLocais.get('/novo', locais.novo);
+rotasLocais.get('/geocodificar', locais.geocodificar);
+rotasLocais.post('/', locais.criar);
+rotasLocais.get('/:id', locais.editar);
+rotasLocais.post('/:id', locais.salvar);
+rotasLocais.post('/:id/:acao', locais.mudarSituacao);
+router.use('/locais', rotasLocais);
+
+const rotasClassificacao = Router();
+rotasClassificacao.use(exigirPapelAdmin);
+rotasClassificacao.param('id', soNumeros);
+rotasClassificacao.param('tipo', (req, res, next, tipo) =>
+  ['categoria', 'caracteristica'].includes(tipo) ? next() : next('router'),
+);
+rotasClassificacao.get('/', classificacao.listar);
+rotasClassificacao.post('/:tipo', classificacao.criar);
+rotasClassificacao.post('/:tipo/:id', classificacao.salvar);
+router.use('/classificacao', rotasClassificacao);
 
 export default router;

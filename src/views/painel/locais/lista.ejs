@@ -1,0 +1,73 @@
+<%- include('../../partials/head') %>
+<%
+  const abas = [
+    { valor: 'ativos', texto: 'Todos', n: contagens.rascunho + contagens.publicado },
+    { valor: 'publicado', texto: 'Publicados', n: contagens.publicado },
+    { valor: 'rascunho', texto: 'Rascunhos', n: contagens.rascunho },
+    { valor: 'arquivado', texto: 'Arquivados', n: contagens.arquivado },
+  ];
+  const etiquetas = {
+    publicado: ['sucesso', 'Publicado'],
+    rascunho: ['aviso', 'Rascunho'],
+    arquivado: ['neutra', 'Arquivado'],
+  };
+%>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Locais</h1>
+    <a class="botao" href="/painel/locais/novo">Novo local</a>
+  </div>
+
+  <nav class="abas" aria-label="Situação">
+    <% for (const a of abas) { %>
+    <a href="?situacao=<%= a.valor %><%= busca ? `&q=${encodeURIComponent(busca)}` : '' %>" <% if (filtro === a.valor) { %>aria-current="page"<% } %>>
+      <%= a.texto %> <span class="abas__n"><%= a.n %></span>
+    </a>
+    <% } %>
+  </nav>
+
+  <form class="busca-painel" method="get" role="search">
+    <input type="hidden" name="situacao" value="<%= filtro %>" />
+    <label class="visualmente-oculto" for="q">Buscar por nome ou bairro</label>
+    <input type="search" id="q" name="q" value="<%= busca %>" placeholder="Buscar por nome ou bairro" />
+    <button type="submit" class="botao botao--secundario">Buscar</button>
+  </form>
+
+  <% if (locais.length === 0) { %>
+  <div class="cartao estado-vazio">
+    <p><%= busca ? 'Nenhum local encontrado para essa busca.' : 'Nenhum local nesta lista.' %></p>
+    <% if (!busca && filtro !== 'arquivado') { %><a class="botao" href="/painel/locais/novo">Cadastrar o primeiro</a><% } %>
+  </div>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th scope="col">Nome</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Bairro</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Atualizado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const l of locais) { const [cor, rotulo] = etiquetas[l.situacao]; %>
+        <tr>
+          <td><a href="/painel/locais/<%= l.id %>"><%= l.nome %></a></td>
+          <td>
+            <span class="tipo-celula">
+              <span class="bolinha <%= fmt.classeCategoria(l.categoria) %>" aria-hidden="true"></span>
+              <%= l.categoria.nome %>
+            </span>
+          </td>
+          <td><%= l.bairro || '—' %></td>
+          <td><span class="etiqueta etiqueta--<%= cor %>"><%= rotulo %></span></td>
+          <td><%= fmt.data(l.atualizadoEm) %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</main>
+<%- include('../../partials/foot') %>

@@ -19,7 +19,7 @@ export default [
   {
     files: ['src/public/js/**/*.js'],
     languageOptions: {
-      sourceType: 'script',
+      sourceType: 'module',
       globals: { ...globals.browser, L: 'readonly' },
     },
   },

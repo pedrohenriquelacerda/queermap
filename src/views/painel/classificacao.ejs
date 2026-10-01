@@ -1,0 +1,105 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Tipos e características</h1>
+  </div>
+  <p class="campo__ajuda">
+    Itens desativados deixam de aparecer no formulário de locais e nos filtros do mapa, mas o
+    histórico é mantido. O endereço usado nos links de filtro não muda ao renomear.
+  </p>
+
+  <section class="cartao">
+    <h2>Tipos de serviço</h2>
+    <div class="tabela-rolagem">
+      <table class="tabela tabela--edicao">
+        <thead>
+          <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Cor no mapa</th>
+            <th scope="col">Ordem</th>
+            <th scope="col">Ativo</th>
+            <th scope="col">Locais</th>
+            <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const c of categorias) { const f = `cat-${c.id}`; %>
+          <tr>
+            <td><input form="<%= f %>" name="nome" value="<%= c.nome %>" aria-label="Nome" required maxlength="80" /></td>
+            <td>
+              <span class="tipo-celula">
+                <span class="bolinha marcador--<%= c.icone || 'padrao' %>" aria-hidden="true"></span>
+                <select form="<%= f %>" name="icone" aria-label="Cor no mapa">
+                  <% for (const cor of cores) { %>
+                  <option value="<%= cor.valor %>" <%= c.icone === cor.valor ? 'selected' : '' %>><%= cor.texto %></option>
+                  <% } %>
+                </select>
+              </span>
+            </td>
+            <td><input form="<%= f %>" name="ordem" type="number" min="0" max="99" value="<%= c.ordem %>" aria-label="Ordem" class="entrada-curta" /></td>
+            <td><input form="<%= f %>" name="ativa" type="checkbox" <%= c.ativa ? 'checked' : '' %> aria-label="Ativo" /></td>
+            <td><%= c._count.locais %></td>
+            <td>
+              <form id="<%= f %>" method="post" action="/painel/classificacao/categoria/<%= c.id %>">
+                <button class="botao botao--secundario botao--pequeno">Salvar</button>
+              </form>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <form class="form-inline" method="post" action="/painel/classificacao/categoria" novalidate>
+      <h3>Novo tipo de serviço</h3>
+      <div class="form-inline__campos">
+        <%- include('../partials/campo', { id: 'nova-categoria-nome', nome: 'nome', rotulo: 'Nome', valor: novo_categoria.nome, erros: erros_categoria, attrs: { required: true, maxlength: 80 } }) %>
+        <%- include('../partials/campo', { id: 'nova-categoria-icone', nome: 'icone', rotulo: 'Cor no mapa', tipo: 'select', valor: novo_categoria.icone, opcoes: cores, erros: erros_categoria }) %>
+        <%- include('../partials/campo', { id: 'nova-categoria-ordem', nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: novo_categoria.ordem ?? categorias.length, erros: erros_categoria, attrs: { min: 0, max: 99 } }) %>
+      </div>
+      <button class="botao">Adicionar</button>
+    </form>
+  </section>
+
+  <section class="cartao">
+    <h2>Características</h2>
+    <div class="tabela-rolagem">
+      <table class="tabela tabela--edicao">
+        <thead>
+          <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Descrição</th>
+            <th scope="col">Ativa</th>
+            <th scope="col">Locais</th>
+            <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const c of caracteristicas) { const f = `car-${c.id}`; %>
+          <tr>
+            <td><input form="<%= f %>" name="nome" value="<%= c.nome %>" aria-label="Nome" required maxlength="80" /></td>
+            <td><input form="<%= f %>" name="descricao" value="<%= c.descricao ?? '' %>" aria-label="Descrição" maxlength="200" /></td>
+            <td><input form="<%= f %>" name="ativa" type="checkbox" <%= c.ativa ? 'checked' : '' %> aria-label="Ativa" /></td>
+            <td><%= c._count.locais %></td>
+            <td>
+              <form id="<%= f %>" method="post" action="/painel/classificacao/caracteristica/<%= c.id %>">
+                <button class="botao botao--secundario botao--pequeno">Salvar</button>
+              </form>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <form class="form-inline" method="post" action="/painel/classificacao/caracteristica" novalidate>
+      <h3>Nova característica</h3>
+      <div class="form-inline__campos">
+        <%- include('../partials/campo', { id: 'nova-car-nome', nome: 'nome', rotulo: 'Nome', valor: novo_caracteristica.nome, erros: erros_caracteristica, attrs: { required: true, maxlength: 80 } }) %>
+        <%- include('../partials/campo', { id: 'nova-car-descricao', nome: 'descricao', rotulo: 'Descrição', valor: novo_caracteristica.descricao, opcional: true, erros: erros_caracteristica, ajuda: 'Explica o critério, se precisar.', attrs: { maxlength: 200 } }) %>
+      </div>
+      <button class="botao">Adicionar</button>
+    </form>
+  </section>
+</main>
+<%- include('../partials/foot') %>

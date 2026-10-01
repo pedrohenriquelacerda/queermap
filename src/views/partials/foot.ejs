@@ -20,7 +20,10 @@
     </div>
     <% if (locals.usaMapa || locals.usaLeaflet) { %>
     <script src="/vendor/leaflet/leaflet.js" defer></script>
-    <script src="/js/mapa.js" defer></script>
+    <script src="/js/mapa.js" type="module"></script>
+    <% } %>
+    <% for (const s of locals.scripts || []) { %>
+    <script src="<%= s %>" type="module"></script>
     <% } %>
   </body>
 </html>

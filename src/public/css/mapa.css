@@ -8,6 +8,9 @@
   --cat-saude-sexual: #00796b;
   --cat-abrigo: #d84315;
   --cat-acolhimento: #1565c0;
+
+  /* Cor usada quando nenhuma classe marcador--* define outra (herdada) */
+  --cor-marcador: var(--cat-padrao);
 }
 
 .mapa {
@@ -38,7 +41,8 @@
 
 /* ─── Marcadores ─────────────────────────────────────────────────────────── */
 
-.marcador {
+.marcador,
+.marcador--padrao {
   --cor-marcador: var(--cat-padrao);
 }
 

@@ -3,7 +3,13 @@
   const links = locals.admin && !admin.precisaTrocarSenha
     ? [
         { href: '/painel', texto: 'Início', exato: true },
-        ...(ehAdmin ? [{ href: '/painel/pessoas', texto: 'Pessoas' }] : []),
+        { href: '/painel/locais', texto: 'Locais' },
+        ...(ehAdmin
+          ? [
+              { href: '/painel/classificacao', texto: 'Tipos e características' },
+              { href: '/painel/pessoas', texto: 'Pessoas' },
+            ]
+          : []),
       ]
     : [];
   const ativo = (l) => (l.exato ? caminho === l.href : caminho.startsWith(l.href));

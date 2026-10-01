@@ -56,6 +56,8 @@ O comando mostra uma senha provisória; no primeiro acesso o painel pede uma sen
 
 Em desenvolvimento, `npm run db:seed:exemplos` cria duas contas de teste (`admin@queermap.test` e `editor@queermap.test`); as senhas estão em `prisma/seed-exemplos.js`.
 
+No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStreetMap (Nominatim, no máximo 1 consulta por segundo, feita pelo servidor) e o pino pode ser ajustado arrastando no mapa. Todo local nasce como **rascunho** e só aparece no site depois de **publicado**; arquivar tira do mapa sem apagar. Em **Tipos e características** (só administração) dá para criar, renomear e desativar itens; o endereço usado nos links de filtro não muda ao renomear.
+
 Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
 ## Scripts

@@ -46,7 +46,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 - `npm run admin:criar` para a primeira conta.
 - Trocar a própria senha; admins gerenciam pessoas.
 
-### F4 · Cadastro de locais
+### F4 · Cadastro de locais ✅
 
 - Lista com filtros (rascunho / publicado / arquivado).
 - Formulário com minimapa, busca de endereço e pino arrastável.

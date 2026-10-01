@@ -1,78 +1,29 @@
-import { test, before, beforeEach, afterEach } from 'node:test';
+import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { env } from '../src/config/env.js';
 import { prisma } from '../src/db/prisma.js';
-import { gerarHash } from '../src/utils/senha.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
+import { prepararAdmins, enviar, logar as logarNoApp, SENHA } from './helpers/painel.js';
 
 const app = createApp();
-const SENHA = 'senha-de-teste-123';
-let hash;
 let admins; // "tabela" em memória
 let auditoria;
+let hash;
 
-before(async () => {
-  hash = await gerarHash(SENHA);
-});
-
-beforeEach(() => {
-  admins = [
-    pessoa(1, 'admin@teste.test', 'ADMIN'),
-    pessoa(2, 'editor@teste.test', 'EDITOR'),
-    pessoa(3, 'provisoria@teste.test', 'EDITOR', { precisaTrocarSenha: true }),
-    pessoa(4, 'limite@teste.test', 'EDITOR'),
-  ];
-  auditoria = [];
-  const achar = ({ where }) =>
-    admins.find((a) => (where.id ? a.id === where.id : a.email === where.email)) ?? null;
-  mockPrisma(prisma.admin, 'findUnique', async (args) => achar(args));
-  mockPrisma(prisma.admin, 'findMany', async () => admins);
-  mockPrisma(
-    prisma.admin,
-    'count',
-    async ({ where }) =>
-      admins.filter((a) => a.papel === 'ADMIN' && a.ativo && a.id !== where.id.not).length,
-  );
-  mockPrisma(prisma.admin, 'update', async ({ where, data }) =>
-    Object.assign(achar({ where }), data),
-  );
-  mockPrisma(prisma.admin, 'create', async ({ data }) => {
-    const nova = { id: admins.length + 1, ativo: true, ...data };
-    admins.push(nova);
-    return nova;
-  });
-  mockPrisma(prisma.logAuditoria, 'create', async ({ data }) => auditoria.push(data));
+beforeEach(async () => {
+  ({ admins, auditoria } = await prepararAdmins([
+    { email: 'provisoria@teste.test', precisaTrocarSenha: true },
+    { email: 'limite@teste.test' },
+  ]));
+  hash = admins[0].senhaHash;
   mockPrisma(prisma.local, 'count', async () => 0);
   mockPrisma(prisma.envio, 'count', async () => 0);
 });
 
 afterEach(restaurarPrisma);
 
-function pessoa(id, email, papel, extra = {}) {
-  return {
-    id,
-    nome: `Pessoa ${id}`,
-    email,
-    papel,
-    ativo: true,
-    precisaTrocarSenha: false,
-    senhaHash: hash,
-    ...extra,
-  };
-}
-
-// Envio de formulário como o navegador faria (com Origin do próprio site).
-const enviar = (agente, url, dados) =>
-  agente.post(url).type('form').set('Origin', env.siteUrl).send(dados);
-
-async function logar(email) {
-  const agente = request.agent(app);
-  const res = await enviar(agente, '/painel/entrar', { email, senha: SENHA });
-  assert.equal(res.status, 302, 'login deveria funcionar');
-  return agente;
-}
+const logar = (email) => logarNoApp(app, email);
 
 test('painel exige login e lembra a página pedida', async () => {
   const res = await request(app).get('/painel/pessoas');
