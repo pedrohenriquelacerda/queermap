@@ -1,0 +1,45 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Pessoas com acesso</h1>
+    <a class="botao" href="/painel/pessoas/nova">Nova pessoa</a>
+  </div>
+
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th scope="col">Nome</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Papel</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Último acesso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const p of pessoas) { %>
+        <tr>
+          <td>
+            <a href="/painel/pessoas/<%= p.id %>"><%= p.nome %></a>
+            <% if (p.id === admin.id) { %><span class="campo__opcional">(você)</span><% } %>
+          </td>
+          <td><%= p.email %></td>
+          <td><%= p.papel === 'ADMIN' ? 'Administração' : 'Edição' %></td>
+          <td>
+            <% if (!p.ativo) { %><span class="etiqueta etiqueta--neutra">Desativada</span>
+            <% } else if (p.precisaTrocarSenha) { %><span class="etiqueta etiqueta--aviso">Senha provisória</span>
+            <% } else { %><span class="etiqueta etiqueta--sucesso">Ativa</span><% } %>
+          </td>
+          <td><%= p.ultimoLoginEm ? fmt.data(p.ultimoLoginEm) : 'Nunca' %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="campo__ajuda">
+    <strong>Administração</strong> gerencia pessoas, categorias e características.
+    <strong>Edição</strong> cadastra locais e lê os envios.
+  </p>
+</main>
+<%- include('../../partials/foot') %>

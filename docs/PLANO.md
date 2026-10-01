@@ -39,7 +39,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 - Celular: alternância Mapa / Lista.
 - Página de cada local (`/locais/:slug`) com "Informações conferidas em [data]".
 
-### F3 · Login do painel
+### F3 · Login do painel ✅
 
 - Login/logout com senha em `scrypt` (nativo do Node).
 - Bloqueio por tentativas e proteção CSRF.

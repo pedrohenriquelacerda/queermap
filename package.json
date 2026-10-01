@@ -26,7 +26,8 @@
     "db:seed:exemplos": "node prisma/seed-exemplos.js",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "admin:criar": "node scripts/admin-criar.js"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.3.0",
@@ -40,7 +41,8 @@
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
     "leaflet": "^1.9.4",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

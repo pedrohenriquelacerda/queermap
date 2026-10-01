@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Olá, <%= admin.nome.split(' ')[0] %></h1>
+  </div>
+
+  <ul class="indicadores">
+    <li class="cartao indicador">
+      <span class="indicador__numero"><%= enviosNovos %></span>
+      <span class="indicador__rotulo"><%= enviosNovos === 1 ? 'envio novo' : 'envios novos' %></span>
+    </li>
+    <li class="cartao indicador">
+      <span class="indicador__numero"><%= publicados %></span>
+      <span class="indicador__rotulo"><%= publicados === 1 ? 'local publicado' : 'locais publicados' %></span>
+    </li>
+    <li class="cartao indicador">
+      <span class="indicador__numero"><%= rascunhos %></span>
+      <span class="indicador__rotulo"><%= rascunhos === 1 ? 'rascunho' : 'rascunhos' %></span>
+    </li>
+  </ul>
+</main>
+<%- include('../partials/foot') %>

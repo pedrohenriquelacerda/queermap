@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import routes from './routes/index.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { verificarOrigem } from './middlewares/origem.js';
 import * as fmt from './utils/formatadores.js';
 
 const require = createRequire(import.meta.url);
@@ -85,6 +86,7 @@ export function createApp({ sessionStore } = {}) {
     }),
   );
 
+  app.use(verificarOrigem); // CSRF: envios só a partir do próprio site
   app.use(routes);
 
   app.use(notFound);

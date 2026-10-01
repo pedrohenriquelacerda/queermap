@@ -1,0 +1,29 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
+  <div class="cabecalho-pagina">
+    <h1><%= title %></h1>
+  </div>
+
+  <div class="cartao">
+    <p>
+      Repasse estes dados para <strong><%= pessoa.nome %></strong> por um canal seguro (de
+      preferência pessoalmente ou por mensagem que some depois de lida):
+    </p>
+    <dl class="dados">
+      <dt>Endereço</dt>
+      <dd><%= siteUrl %>/painel</dd>
+      <dt>E-mail</dt>
+      <dd><%= pessoa.email %></dd>
+      <dt>Senha provisória</dt>
+      <dd><code class="senha-provisoria"><%= senha %></code></dd>
+    </dl>
+    <div class="alerta alerta--aviso">
+      <p>
+        Esta senha aparece <strong>só agora</strong>. No primeiro acesso, o painel pede para criar
+        uma senha nova.
+      </p>
+    </div>
+    <a class="botao" href="/painel/pessoas">Concluir</a>
+  </div>
+</main>
+<%- include('../../partials/foot') %>

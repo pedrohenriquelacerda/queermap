@@ -28,7 +28,7 @@ npm install               # também gera o Prisma Client
 npm run db:up             # sobe o Postgres no Docker
 npm run db:migrate        # aplica as migrations
 npm run db:seed           # categorias e características iniciais
-npm run db:seed:exemplos  # opcional: locais fictícios para ver o mapa funcionando
+npm run db:seed:exemplos  # opcional: locais fictícios + contas de teste do painel
 npm run dev               # http://localhost:3000
 ```
 
@@ -43,6 +43,20 @@ npm run db:local          # no lugar de npm run db:up
 No `.env`, troque o `DATABASE_URL` e descomente o `SHADOW_DATABASE_URL` da **Opção B** do `.env.example`, depois siga com `npm run db:migrate` e `npm run dev`. Para parar: `npm run db:local:stop`.
 
 Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Antes de entregar, teste também no Postgres real (Docker).
+
+## Painel da ONG
+
+O painel fica em `/painel`. Não há cadastro público: a primeira conta é criada pelo terminal.
+
+```bash
+npm run admin:criar -- --nome "Nome da Pessoa" --email pessoa@exemplo.org
+```
+
+O comando mostra uma senha provisória; no primeiro acesso o painel pede uma senha nova. Depois disso, quem tem papel de **administração** cadastra as outras pessoas pelo próprio painel (em _Pessoas_).
+
+Em desenvolvimento, `npm run db:seed:exemplos` cria duas contas de teste (`admin@queermap.test` e `editor@queermap.test`); as senhas estão em `prisma/seed-exemplos.js`.
+
+Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
 ## Scripts
 
@@ -60,6 +74,7 @@ Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Ant
 | `npm run db:migrate`       | Cria/aplica migrations depois de alterar o schema       |
 | `npm run db:seed`          | Insere categorias e características (pode repetir)      |
 | `npm run db:seed:exemplos` | Insere locais fictícios de teste (`-- --remover` apaga) |
+| `npm run admin:criar`      | Cria uma conta do painel (veja acima)                   |
 | `npm run db:deploy`        | Aplica migrations existentes (produção)                 |
 | `npm run db:studio`        | Abre o Prisma Studio para ver e editar os dados         |
 

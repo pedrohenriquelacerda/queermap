@@ -12,7 +12,11 @@
     <title><%= tituloCompleto %></title>
     <meta name="description" content="<%= descricao %>" />
     <meta name="theme-color" content="#6b3fa0" />
+    <% if (locals.painel) { %>
+    <meta name="robots" content="noindex, nofollow" />
+    <% } else { %>
     <link rel="canonical" href="<%= url %>" />
+    <% } %>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <meta property="og:type" content="website" />
@@ -33,6 +37,9 @@
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <% } %>
     <link rel="stylesheet" href="/css/base.css" />
+    <% if (locals.painel) { %>
+    <link rel="stylesheet" href="/css/painel.css" />
+    <% } %>
     <% if (leaflet) { %>
     <link rel="stylesheet" href="/css/mapa.css" />
     <% } %>
@@ -40,4 +47,4 @@
   <body>
     <div class="pagina<%= locals.usaMapa ? ' pagina--mapa' : '' %>">
       <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
-      <%- include('topo') %>
+      <%- include(locals.painel ? 'topo-painel' : 'topo') %>

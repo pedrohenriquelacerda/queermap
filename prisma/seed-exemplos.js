@@ -3,6 +3,7 @@
 // Para removê-los: npm run db:seed:exemplos -- --remover
 
 import { prisma } from '../src/db/prisma.js';
+import { gerarHash } from '../src/utils/senha.js';
 
 if (process.env.NODE_ENV === 'production') {
   console.error('Dados de exemplo não podem ser inseridos em produção.');
@@ -10,6 +11,22 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const PREFIXO = 'exemplo-';
+
+// Contas FICTÍCIAS do painel para desenvolvimento (domínio .test nunca existe de verdade).
+const CONTAS_TESTE = [
+  {
+    nome: 'Admin de Teste',
+    email: 'admin@queermap.test',
+    papel: 'ADMIN',
+    senha: 'admin-desenvolvimento',
+  },
+  {
+    nome: 'Editor de Teste',
+    email: 'editor@queermap.test',
+    papel: 'EDITOR',
+    senha: 'editor-desenvolvimento',
+  },
+];
 
 const exemplos = [
   {
@@ -139,6 +156,20 @@ async function inserir() {
     });
   }
   console.log(`${exemplos.length} locais de exemplo inseridos/atualizados.`);
+
+  // Contas de teste do painel (só desenvolvimento).
+  for (const conta of CONTAS_TESTE) {
+    const { senha, ...dados } = conta;
+    const senhaHash = await gerarHash(senha);
+    await prisma.admin.upsert({
+      where: { email: conta.email },
+      update: { ...dados, senhaHash, precisaTrocarSenha: false, ativo: true },
+      create: { ...dados, senhaHash },
+    });
+  }
+  console.log(
+    `Contas de teste: ${CONTAS_TESTE.map((c) => c.email).join(', ')} (senhas neste arquivo).`,
+  );
 }
 
 try {

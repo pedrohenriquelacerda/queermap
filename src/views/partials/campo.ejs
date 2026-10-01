@@ -1,0 +1,34 @@
+<%#
+  Campo de formulário acessível. Uso:
+  include('partials/campo', { nome: 'email', rotulo: 'E-mail', tipo: 'email', valor, erros,
+    ajuda: 'texto de ajuda', opcional: true, opcoes: [{ valor, texto }], attrs: { required: true } })
+%><%
+  const id = locals.id || `campo-${nome}`;
+  const tipoCampo = locals.tipo || 'text';
+  const valorCampo = locals.valor ?? '';
+  const erro = locals.erros?.[nome];
+  const descritores = [locals.ajuda && `${id}-ajuda`, erro && `${id}-erro`].filter(Boolean).join(' ');
+  const atributos = Object.entries(locals.attrs || {})
+    .filter(([, v]) => v !== false && v != null)
+    .map(([k, v]) => (v === true ? k : `${k}="${String(v).replace(/"/g, '&quot;')}"`))
+    .join(' ');
+  const comuns = `id="${id}" name="${nome}"${descritores ? ` aria-describedby="${descritores}"` : ''}${erro ? ' aria-invalid="true"' : ''} ${atributos}`;
+%>
+<div class="campo<%= erro ? ' campo--invalido' : '' %>">
+  <label class="campo__rotulo" for="<%= id %>">
+    <%= rotulo %><% if (locals.opcional) { %> <span class="campo__opcional">(opcional)</span><% } %>
+  </label>
+  <% if (tipoCampo === 'textarea') { %>
+  <textarea <%- comuns %>><%= valorCampo %></textarea>
+  <% } else if (tipoCampo === 'select') { %>
+  <select <%- comuns %>>
+    <% for (const o of locals.opcoes || []) { %>
+    <option value="<%= o.valor %>" <%= String(o.valor) === String(valorCampo) ? 'selected' : '' %>><%= o.texto %></option>
+    <% } %>
+  </select>
+  <% } else { %>
+  <input type="<%= tipoCampo %>" value="<%= valorCampo %>" <%- comuns %> />
+  <% } %>
+  <% if (locals.ajuda) { %><span class="campo__ajuda" id="<%= id %>-ajuda"><%= ajuda %></span><% } %>
+  <% if (erro) { %><span class="campo__erro" id="<%= id %>-erro"><%= erro %></span><% } %>
+</div>

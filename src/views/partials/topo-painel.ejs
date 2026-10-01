@@ -1,0 +1,44 @@
+<%
+  const ehAdmin = locals.admin?.papel === 'ADMIN';
+  const links = locals.admin && !admin.precisaTrocarSenha
+    ? [
+        { href: '/painel', texto: 'Início', exato: true },
+        ...(ehAdmin ? [{ href: '/painel/pessoas', texto: 'Pessoas' }] : []),
+      ]
+    : [];
+  const ativo = (l) => (l.exato ? caminho === l.href : caminho.startsWith(l.href));
+%>
+<header class="topo topo--painel">
+  <div class="topo__conteudo">
+    <a class="marca" href="/painel">
+      <%- include('logo') %>
+      <span>Mapa <strong>SerQueer</strong></span>
+      <span class="etiqueta etiqueta--neutra">Painel</span>
+    </a>
+    <% if (locals.admin) { %>
+    <div class="topo-painel__conta">
+      <a href="/painel/conta" class="topo-painel__nome" <% if (caminho === '/painel/conta') { %>aria-current="page"<% } %>>
+        <%= admin.nome %>
+      </a>
+      <form method="post" action="/painel/sair">
+        <button type="submit" class="botao botao--fantasma botao--pequeno">Sair</button>
+      </form>
+    </div>
+    <% } else { %>
+    <a class="botao botao--fantasma botao--pequeno" href="/">Ver o site</a>
+    <% } %>
+  </div>
+  <% if (links.length > 0) { %>
+  <nav class="nav-painel" aria-label="Painel">
+    <% for (const l of links) { %>
+    <a href="<%= l.href %>" <% if (ativo(l)) { %>aria-current="page"<% } %>><%= l.texto %></a>
+    <% } %>
+    <a href="/" class="nav-painel__site">Ver o site ↗</a>
+  </nav>
+  <% } %>
+</header>
+<% if (locals.flash) { %>
+<div class="painel-flash">
+  <div class="alerta alerta--<%= flash.tipo %>" role="status"><p><%= flash.texto %></p></div>
+</div>
+<% } %>

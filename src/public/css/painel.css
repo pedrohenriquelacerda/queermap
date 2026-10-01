@@ -1,0 +1,217 @@
+/* Mapa SerQueer · painel da ONG (usa os tokens e componentes de base.css) */
+
+.topo--painel .marca .etiqueta {
+  margin-left: var(--esp-1);
+}
+
+.topo-painel__conta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-width: 0;
+}
+
+.topo-painel__nome {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-painel {
+  display: flex;
+  gap: var(--esp-1);
+  overflow-x: auto;
+  padding: 0 var(--esp-3);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.nav-painel a {
+  padding: var(--esp-3);
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-painel a:hover {
+  color: var(--cor-primaria);
+}
+
+.nav-painel a[aria-current='page'] {
+  color: var(--cor-primaria);
+  box-shadow: inset 0 -3px 0 var(--cor-primaria);
+}
+
+.nav-painel__site {
+  margin-left: auto;
+}
+
+.painel-flash {
+  max-width: 64rem;
+  margin: var(--esp-4) auto 0;
+  padding: 0 var(--esp-4);
+}
+
+.painel-flash .alerta {
+  margin-bottom: 0;
+}
+
+/* Conteúdo */
+.painel-conteudo {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--esp-5) var(--esp-4) var(--esp-7);
+}
+
+.painel-conteudo--estreito {
+  max-width: 40rem;
+}
+
+.cabecalho-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  margin-bottom: var(--esp-5);
+}
+
+.cabecalho-pagina h1 {
+  margin: 0;
+  font-size: var(--titulo-2);
+}
+
+.painel-conteudo .cartao + .cartao,
+.painel-conteudo .cartao + .tabela-rolagem,
+.painel-conteudo .tabela-rolagem + * {
+  margin-top: var(--esp-4);
+}
+
+.painel-conteudo .cartao h2 {
+  font-size: var(--titulo-3);
+}
+
+/* Lista de dados (termo: valor) */
+.dados {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--esp-2) var(--esp-4);
+  margin: 0 0 var(--esp-5);
+}
+
+.dados dt {
+  color: var(--cor-suave);
+  font-weight: 700;
+}
+
+.dados dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.senha-provisoria {
+  padding: var(--esp-1) var(--esp-2);
+  border-radius: var(--raio);
+  background: var(--cor-primaria-clara);
+  font-size: var(--texto-grande);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  user-select: all;
+}
+
+.zona-perigo {
+  border-color: var(--cor-borda-forte);
+}
+
+/* Indicadores do início */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--esp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-1);
+}
+
+.indicador__numero {
+  color: var(--cor-primaria);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.indicador__rotulo {
+  color: var(--cor-suave);
+  font-weight: 700;
+}
+
+a.indicador {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.indicador:hover {
+  border-color: var(--cor-primaria);
+}
+
+/* Login */
+.entrar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--esp-6) var(--esp-4);
+}
+
+.entrar__cartao {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.entrar__cartao h1 {
+  margin-bottom: var(--esp-1);
+  font-size: var(--titulo-2);
+}
+
+.entrar__cartao > .campo__ajuda {
+  display: block;
+  margin-bottom: var(--esp-5);
+}
+
+.entrar__botao {
+  width: 100%;
+}
+
+.entrar__rodape {
+  max-width: 24rem;
+  margin-top: var(--esp-4);
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .topo--painel .marca > span:not(.etiqueta) {
+    display: none; /* no celular, só o logo + "Painel" */
+  }
+
+  .dados {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .dados dd {
+    margin-bottom: var(--esp-2);
+  }
+}

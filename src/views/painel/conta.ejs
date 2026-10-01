@@ -1,0 +1,34 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
+  <div class="cabecalho-pagina">
+    <h1>Minha conta</h1>
+  </div>
+
+  <% if (admin.precisaTrocarSenha) { %>
+  <div class="alerta alerta--aviso" role="alert">
+    <p>
+      <strong>Sua senha é provisória.</strong> Crie uma senha nova para continuar usando o
+      painel.
+    </p>
+  </div>
+  <% } %>
+
+  <dl class="dados">
+    <dt>Nome</dt>
+    <dd><%= admin.nome %></dd>
+    <dt>E-mail</dt>
+    <dd><%= admin.email %></dd>
+    <dt>Papel</dt>
+    <dd><%= admin.papel === 'ADMIN' ? 'Administração' : 'Edição' %></dd>
+  </dl>
+
+  <form class="cartao" method="post" action="/painel/conta" novalidate>
+    <h2>Trocar senha</h2>
+    <input type="text" name="usuario" value="<%= admin.email %>" autocomplete="username" hidden />
+    <%- include('../partials/campo', { nome: 'atual', rotulo: admin.precisaTrocarSenha ? 'Senha provisória' : 'Senha atual', tipo: 'password', erros, attrs: { required: true, autocomplete: 'current-password' } }) %>
+    <%- include('../partials/campo', { nome: 'nova', rotulo: 'Nova senha', tipo: 'password', erros, ajuda: `Pelo menos ${minimo} caracteres. Uma frase com espaços é fácil de lembrar e segura.`, attrs: { required: true, autocomplete: 'new-password', minlength: minimo } }) %>
+    <%- include('../partials/campo', { nome: 'confirmacao', rotulo: 'Repita a nova senha', tipo: 'password', erros, attrs: { required: true, autocomplete: 'new-password' } }) %>
+    <button type="submit" class="botao">Salvar nova senha</button>
+  </form>
+</main>
+<%- include('../partials/foot') %>

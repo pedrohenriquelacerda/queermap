@@ -609,6 +609,10 @@ textarea {
   white-space: nowrap;
 }
 
+.tabela .etiqueta {
+  white-space: nowrap;
+}
+
 .tabela tbody tr:last-child td {
   border-bottom: 0;
 }

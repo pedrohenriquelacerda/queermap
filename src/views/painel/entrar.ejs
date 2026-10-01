@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="entrar">
+  <div class="cartao entrar__cartao">
+    <h1>Entrar no painel</h1>
+    <p class="campo__ajuda">Acesso restrito à equipe da ONG Somos.</p>
+
+    <% if (erroGeral) { %>
+    <div class="alerta alerta--erro" role="alert"><p><%= erroGeral %></p></div>
+    <% } %>
+
+    <form method="post" action="/painel/entrar" novalidate>
+      <input type="hidden" name="volta" value="<%= volta %>" />
+      <%- include('../partials/campo', { nome: 'email', rotulo: 'E-mail', tipo: 'email', valor: email, erros, attrs: { required: true, autocomplete: 'username', autofocus: !email } }) %>
+      <%- include('../partials/campo', { nome: 'senha', rotulo: 'Senha', tipo: 'password', valor: '', erros, attrs: { required: true, autocomplete: 'current-password', autofocus: !!email } }) %>
+      <button type="submit" class="botao entrar__botao">Entrar</button>
+    </form>
+  </div>
+  <p class="entrar__rodape">
+    Esqueceu a senha? Peça para uma pessoa administradora do painel redefinir.
+  </p>
+</main>
+<%- include('../partials/foot') %>

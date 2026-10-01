@@ -24,15 +24,17 @@ enum PapelAdmin {
 
 // Pessoas da ONG com acesso ao painel. Não há cadastro público.
 model Admin {
-  id            Int        @id @default(autoincrement())
-  nome          String
-  email         String     @unique
-  senhaHash     String     @map("senha_hash")
-  papel         PapelAdmin @default(EDITOR)
-  ativo         Boolean    @default(true)
-  ultimoLoginEm DateTime?  @map("ultimo_login_em")
-  criadoEm      DateTime   @default(now()) @map("criado_em")
-  atualizadoEm  DateTime   @updatedAt @map("atualizado_em")
+  id                 Int        @id @default(autoincrement())
+  nome               String
+  email              String     @unique
+  senhaHash          String     @map("senha_hash")
+  // true quando a senha é provisória (criada por outra pessoa): obriga a trocar no login.
+  precisaTrocarSenha Boolean    @default(false) @map("precisa_trocar_senha")
+  papel              PapelAdmin @default(EDITOR)
+  ativo              Boolean    @default(true)
+  ultimoLoginEm      DateTime?  @map("ultimo_login_em")
+  criadoEm           DateTime   @default(now()) @map("criado_em")
+  atualizadoEm       DateTime   @updatedAt @map("atualizado_em")
 
   locaisCriados     Local[]        @relation("LocalCriadoPor")
   locaisAtualizados Local[]        @relation("LocalAtualizadoPor")

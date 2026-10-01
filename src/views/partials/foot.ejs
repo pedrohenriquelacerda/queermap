@@ -5,6 +5,7 @@
     { href: '/privacidade', texto: 'Privacidade' },
   ];
 %>
+      <% if (!locals.painel) { %>
       <footer class="rodape">
         <div class="rodape__conteudo">
           <p>Um projeto da ONG Somos com a UFCSPA.</p>
@@ -15,6 +16,7 @@
           </nav>
         </div>
       </footer>
+      <% } %>
     </div>
     <% if (locals.usaMapa || locals.usaLeaflet) { %>
     <script src="/vendor/leaflet/leaflet.js" defer></script>

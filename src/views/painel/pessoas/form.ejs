@@ -1,0 +1,66 @@
+<%- include('../../partials/head') %>
+<%
+  const opcoesPapel = [
+    { valor: 'EDITOR', texto: 'Edição: cadastra locais e lê envios' },
+    { valor: 'ADMIN', texto: 'Administração: tudo, inclusive pessoas' },
+  ];
+  const ehVoce = editando && pessoa.id === admin.id;
+%>
+<main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
+  <p><a class="voltar" href="/painel/pessoas">← Pessoas</a></p>
+  <div class="cabecalho-pagina">
+    <h1><%= editando ? pessoa.nome : 'Nova pessoa' %></h1>
+  </div>
+
+  <% if (erroGeral) { %>
+  <div class="alerta alerta--erro" role="alert"><p><%= erroGeral %></p></div>
+  <% } %>
+
+  <form class="cartao" method="post" action="/painel/pessoas<%= editando ? `/${pessoa.id}` : '' %>" novalidate>
+    <%- include('../../partials/campo', { nome: 'nome', rotulo: 'Nome', valor: pessoa.nome, erros, attrs: { required: true, maxlength: 120 } }) %>
+    <% if (editando) { %>
+    <div class="campo">
+      <span class="campo__rotulo">E-mail</span>
+      <span><%= pessoa.email %></span>
+    </div>
+    <% } else { %>
+    <%- include('../../partials/campo', { nome: 'email', rotulo: 'E-mail', tipo: 'email', valor: pessoa.email, erros, ajuda: 'Usado para entrar no painel.', attrs: { required: true } }) %>
+    <% } %>
+    <%- include('../../partials/campo', { nome: 'papel', rotulo: 'Papel', tipo: 'select', valor: pessoa.papel, opcoes: opcoesPapel, erros, attrs: { disabled: ehVoce } }) %>
+    <% if (ehVoce) { %><input type="hidden" name="papel" value="<%= pessoa.papel %>" /><% } %>
+
+    <% if (editando) { %>
+    <div class="campo">
+      <label class="opcao">
+        <input type="checkbox" name="ativo" <%= pessoa.ativo ? 'checked' : '' %> <%= ehVoce ? 'disabled' : '' %> />
+        Acesso ativo
+      </label>
+      <% if (ehVoce) { %>
+      <input type="hidden" name="ativo" value="on" />
+      <span class="campo__ajuda">Você não pode desativar nem mudar o papel da sua própria conta.</span>
+      <% } else { %>
+      <span class="campo__ajuda">Desmarque para bloquear o acesso sem apagar o histórico.</span>
+      <% } %>
+    </div>
+    <% } else { %>
+    <p class="campo__ajuda">
+      O sistema vai gerar uma senha provisória para você repassar. No primeiro acesso, a pessoa
+      cria a própria senha.
+    </p>
+    <% } %>
+
+    <div class="acoes">
+      <button type="submit" class="botao"><%= editando ? 'Salvar' : 'Cadastrar e gerar senha' %></button>
+      <a class="botao botao--fantasma" href="/painel/pessoas">Cancelar</a>
+    </div>
+  </form>
+
+  <% if (editando && !ehVoce) { %>
+  <form class="cartao zona-perigo" method="post" action="/painel/pessoas/<%= pessoa.id %>/senha">
+    <h2>Redefinir senha</h2>
+    <p>Gera uma nova senha provisória e a senha atual deixa de funcionar.</p>
+    <button type="submit" class="botao botao--secundario">Gerar nova senha provisória</button>
+  </form>
+  <% } %>
+</main>
+<%- include('../../partials/foot') %>
