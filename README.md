@@ -105,5 +105,6 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - O Leaflet é servido pelo próprio servidor (`/vendor/leaflet`), sem CDN, por causa da política de segurança de conteúdo (CSP).
 - Visual: cores, espaços e fontes ficam em variáveis no topo de `src/public/css/base.css`. Em desenvolvimento, `/dev/componentes` mostra todos os componentes.
 - `GET /health` verifica se o servidor e o banco estão respondendo.
-- `GET /api/locais` devolve os locais publicados (só campos públicos) que o mapa exibe.
+- A página inicial já vem com a lista de locais pronta do servidor (funciona sem JavaScript); o `mapa.js` só filtra e desenha os marcadores. Os filtros ficam na URL, então dá para compartilhar um link como `/?car=oferece-prep`.
+- Cada local publicado tem sua página em `/locais/<slug>`.
 - Os locais de exemplo começam com "[Exemplo]" e não podem ser inseridos com `NODE_ENV=production`.

@@ -1,6 +1,101 @@
 <%- include('partials/head') %>
-<main id="conteudo">
-  <h1 class="visualmente-oculto">Espaços de cuidado em saúde LGBTQIA+ em Porto Alegre</h1>
+<main id="conteudo" class="explorar" data-modo="mapa">
+  <div class="explorar__alternar" role="group" aria-label="Modo de visualização">
+    <button type="button" class="explorar__botao" data-ir-para="mapa" aria-pressed="true">Mapa</button>
+    <button type="button" class="explorar__botao" data-ir-para="lista" aria-pressed="false">
+      Lista e filtros
+    </button>
+  </div>
+
+  <aside class="lateral" aria-labelledby="titulo-lista">
+    <div class="lateral__topo">
+      <h1 id="titulo-lista" class="lateral__titulo">Espaços de cuidado em Porto Alegre</h1>
+
+      <% if (locais.length > 0) { %>
+      <form class="filtros" role="search" action="/" id="filtros">
+        <div class="campo campo--busca">
+          <label class="visualmente-oculto" for="busca">Buscar por nome, bairro ou serviço</label>
+          <input
+            type="search"
+            id="busca"
+            name="q"
+            placeholder="Buscar por nome, bairro ou serviço"
+            autocomplete="off"
+          />
+        </div>
+
+        <details class="filtros__grupo">
+          <summary>Tipo de serviço <span class="filtros__contador" data-contador="tipo"></span></summary>
+          <% for (const c of categorias) { %>
+          <label class="opcao">
+            <input type="checkbox" name="tipo" value="<%= c.slug %>" />
+            <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
+            <%= c.nome %>
+          </label>
+          <% } %>
+        </details>
+
+        <% if (caracteristicas.length > 0) { %>
+        <details class="filtros__grupo">
+          <summary>Características <span class="filtros__contador" data-contador="car"></span></summary>
+          <% for (const c of caracteristicas) { %>
+          <label class="opcao">
+            <input type="checkbox" name="car" value="<%= c.slug %>" />
+            <%= c.nome %>
+          </label>
+          <% } %>
+        </details>
+        <% } %>
+      </form>
+
+      <div class="resultado">
+        <p id="contagem" role="status" aria-live="polite">
+          <%= locais.length %> <%= locais.length === 1 ? 'local' : 'locais' %>
+        </p>
+        <button type="button" class="botao botao--fantasma botao--pequeno" id="limpar" hidden>
+          Limpar filtros
+        </button>
+      </div>
+      <% } %>
+    </div>
+
+    <% if (locais.length === 0) { %>
+    <p class="lateral__vazio">Nenhum local cadastrado ainda.</p>
+    <% } else { %>
+    <ul class="lista-locais" id="lista-locais">
+      <% for (const l of locais) { %>
+      <li
+        class="cartao-local"
+        data-id="<%= l.id %>"
+        data-tipo="<%= l.categoria.slug %>"
+        data-car="<%= l.caracteristicas.map((c) => c.slug).join(' ') %>"
+        data-busca="<%= fmt.normalizar([l.nome, l.bairro, l.categoria.nome, ...l.caracteristicas.map((c) => c.nome)].join(' ')) %>"
+      >
+        <p class="rotulo-categoria <%= fmt.classeCategoria(l.categoria) %>"><%= l.categoria.nome %></p>
+        <h2 class="cartao-local__nome"><a href="/locais/<%= l.slug %>"><%= l.nome %></a></h2>
+        <p class="cartao-local__endereco"><%= fmt.endereco(l) %></p>
+        <% if (l.caracteristicas.length > 0) { %>
+        <ul class="etiquetas">
+          <% for (const c of l.caracteristicas.slice(0, 3)) { %>
+          <li class="etiqueta"><%= c.nome %></li>
+          <% } %> <% if (l.caracteristicas.length > 3) { %>
+          <li class="etiqueta etiqueta--neutra">+<%= l.caracteristicas.length - 3 %></li>
+          <% } %>
+        </ul>
+        <% } %>
+        <button type="button" class="botao botao--secundario botao--pequeno" data-mostrar="<%= l.id %>">
+          Ver no mapa
+        </button>
+      </li>
+      <% } %>
+    </ul>
+    <p class="lateral__vazio" id="lista-vazia" hidden>
+      Nenhum local encontrado com esses filtros.
+    </p>
+    <% } %>
+  </aside>
+
   <div id="mapa" class="mapa" role="region" aria-label="Mapa de Porto Alegre"></div>
 </main>
+<script type="application/json" id="dados-mapa"><%- fmt.jsonSeguro(dadosMapa) %></script>
 <%- include('partials/foot') %>

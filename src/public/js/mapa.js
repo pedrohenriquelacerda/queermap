@@ -1,62 +1,179 @@
+// Mapa SerQueer · mapa da página inicial (com busca/filtros) e mapa da página do local.
+// Os dados e a lista vêm prontos do servidor; aqui só filtramos e desenhamos marcadores.
+
 const PORTO_ALEGRE = [-30.0346, -51.2177];
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATRIBUICAO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const celular = window.matchMedia('(max-width: 47.99rem)');
 
-const elemento = document.getElementById('mapa');
+const dados = document.getElementById('dados-mapa');
+if (dados) iniciarExplorar(JSON.parse(dados.textContent));
 
-if (elemento) {
-  const mapa = L.map(elemento).setView(PORTO_ALEGRE, 13);
+const mapaLocal = document.getElementById('mapa-local');
+if (mapaLocal) iniciarMapaLocal(mapaLocal);
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(mapa);
+// ─── Página inicial ─────────────────────────────────────────────────────────
 
-  carregarLocais(mapa);
-}
+function iniciarExplorar(locais) {
+  const mapa = criarMapa('mapa');
+  const camada = L.featureGroup().addTo(mapa);
 
-async function carregarLocais(mapa) {
-  let locais;
-  try {
-    const resposta = await fetch('/api/locais', { headers: { Accept: 'application/json' } });
-    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-    ({ locais } = await resposta.json());
-  } catch (err) {
-    console.error('Não foi possível carregar os locais:', err);
-    avisar(mapa, 'Não foi possível carregar os locais. Tente recarregar a página.');
-    return;
-  }
-
-  if (locais.length === 0) {
-    avisar(mapa, 'Nenhum local cadastrado ainda.');
-    return;
-  }
-
-  // Um grupo de marcadores por categoria, para a legenda poder ligar/desligar.
-  const grupos = new Map();
+  const marcadores = new Map();
   for (const local of locais) {
-    const { slug } = local.categoria;
-    if (!grupos.has(slug)) {
-      grupos.set(slug, { categoria: local.categoria, camada: L.featureGroup().addTo(mapa) });
-    }
-    L.marker([local.latitude, local.longitude], {
-      icon: iconeDaCategoria(local.categoria),
+    const marcador = L.marker([local.lat, local.lng], {
+      icon: icone(local.categoria.classe),
       title: local.nome,
       alt: `${local.nome} (${local.categoria.nome})`,
-    })
-      .bindPopup(() => montarPopup(local), { maxWidth: 300 })
-      .addTo(grupos.get(slug).camada);
+    }).bindPopup(() => montarPopup(local), { maxWidth: 280 });
+    marcadores.set(String(local.id), marcador);
+    marcador.addTo(camada);
   }
 
-  const todos = L.featureGroup([...grupos.values()].map((g) => g.camada));
-  // Sem animação: em aba de fundo o navegador pausa animações e o zoom ficaria pela metade.
-  const enquadrar = () =>
-    mapa.fitBounds(todos.getBounds(), { padding: [40, 40], maxZoom: 15, animate: false });
+  const enquadrar = () => {
+    if (camada.getLayers().length === 0) return;
+    // Sem animação: em aba de fundo o navegador pausa animações e o zoom ficaria pela metade.
+    mapa.fitBounds(camada.getBounds(), { padding: [40, 40], maxZoom: 15, animate: false });
+  };
   enquadrar();
-  reajustarAoRedimensionar(mapa, enquadrar);
+  const marcarInteracao = reajustarAoRedimensionar(mapa, enquadrar);
 
-  adicionarLegenda(mapa, grupos);
+  const alternarModo = configurarModos();
+  configurarFiltros({ marcadores, camada, enquadrar });
+
+  // "Ver no mapa": abre o popup do local (no celular, troca para o modo mapa antes).
+  document.getElementById('lista-locais')?.addEventListener('click', (evento) => {
+    const botao = evento.target.closest('[data-mostrar]');
+    if (!botao) return;
+    const marcador = marcadores.get(botao.dataset.mostrar);
+    marcarInteracao(); // senão o reenquadramento automático tiraria o local de vista
+    if (celular.matches) {
+      alternarModo('mapa');
+      mapa.invalidateSize(); // o mapa estava escondido: recalcula o tamanho antes de centralizar
+    }
+    mapa.setView(marcador.getLatLng(), Math.max(mapa.getZoom(), 15), { animate: false });
+    marcador.openPopup();
+  });
 }
 
-// Se a área do mapa muda de tamanho (girar o celular, barra do navegador, janela),
+function configurarModos() {
+  const principal = document.querySelector('.explorar');
+  const botoes = document.querySelectorAll('[data-ir-para]');
+  const alternar = (modo) => {
+    principal.dataset.modo = modo;
+    for (const b of botoes) b.setAttribute('aria-pressed', String(b.dataset.irPara === modo));
+  };
+  for (const b of botoes) b.addEventListener('click', () => alternar(b.dataset.irPara));
+  return alternar;
+}
+
+function configurarFiltros({ marcadores, camada, enquadrar }) {
+  const form = document.getElementById('filtros');
+  if (!form) return;
+  const busca = form.elements.q;
+  const itens = [...document.querySelectorAll('.cartao-local')];
+  const contagem = document.getElementById('contagem');
+  const vazio = document.getElementById('lista-vazia');
+  const limpar = document.getElementById('limpar');
+
+  // Restaura filtros da URL (link compartilhável).
+  const params = new URLSearchParams(location.search);
+  busca.value = params.get('q') ?? '';
+  for (const caixa of form.querySelectorAll('input[type=checkbox]')) {
+    caixa.checked = params.getAll(caixa.name).includes(caixa.value);
+  }
+
+  const aplicar = ({ reenquadrar = true } = {}) => {
+    const termos = normalizar(busca.value).split(/\s+/).filter(Boolean);
+    const tipos = marcados('tipo');
+    const caracteristicas = marcados('car');
+
+    let visiveis = 0;
+    for (const item of itens) {
+      const { id, tipo, car, busca: texto } = item.dataset;
+      const lista = car.split(' ');
+      const mostra =
+        termos.every((t) => texto.includes(t)) &&
+        (tipos.length === 0 || tipos.includes(tipo)) &&
+        caracteristicas.every((c) => lista.includes(c));
+
+      item.hidden = !mostra;
+      const marcador = marcadores.get(id);
+      if (mostra) {
+        visiveis++;
+        camada.addLayer(marcador);
+      } else {
+        camada.removeLayer(marcador);
+      }
+    }
+
+    contagem.textContent = `${visiveis} ${visiveis === 1 ? 'local' : 'locais'}`;
+    vazio.hidden = visiveis > 0;
+    const temFiltro = termos.length > 0 || tipos.length > 0 || caracteristicas.length > 0;
+    limpar.hidden = !temFiltro;
+    atualizarContador('tipo', tipos.length);
+    atualizarContador('car', caracteristicas.length);
+    atualizarUrl(busca.value.trim(), tipos, caracteristicas);
+    if (reenquadrar) enquadrar();
+  };
+
+  const marcados = (nome) =>
+    [...form.querySelectorAll(`input[name=${nome}]:checked`)].map((c) => c.value);
+
+  form.addEventListener('submit', (e) => e.preventDefault());
+  form.addEventListener('change', () => aplicar());
+  // Na digitação, não reenquadra a cada letra (o mapa ficaria pulando).
+  busca.addEventListener('input', () => aplicar({ reenquadrar: false }));
+  busca.addEventListener('search', () => aplicar());
+  limpar.addEventListener('click', () => {
+    form.reset();
+    busca.value = '';
+    for (const caixa of form.querySelectorAll('input[type=checkbox]')) caixa.checked = false;
+    aplicar();
+    busca.focus();
+  });
+
+  // Abre os grupos que já vêm com filtro marcado pela URL.
+  for (const grupo of form.querySelectorAll('details')) {
+    if (grupo.querySelector('input:checked')) grupo.open = true;
+  }
+  aplicar({ reenquadrar: params.size > 0 });
+}
+
+function atualizarContador(nome, quantidade) {
+  const el = document.querySelector(`[data-contador="${nome}"]`);
+  if (el) el.textContent = quantidade > 0 ? `(${quantidade})` : '';
+}
+
+function atualizarUrl(q, tipos, caracteristicas) {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  for (const t of tipos) params.append('tipo', t);
+  for (const c of caracteristicas) params.append('car', c);
+  const busca = params.toString();
+  history.replaceState(null, '', busca ? `?${busca}` : location.pathname);
+}
+
+// ─── Página do local ────────────────────────────────────────────────────────
+
+function iniciarMapaLocal(el) {
+  const posicao = [Number(el.dataset.lat), Number(el.dataset.lng)];
+  const mapa = criarMapa(el, { scrollWheelZoom: false });
+  mapa.setView(posicao, 16);
+  L.marker(posicao, { icon: icone(el.dataset.classe), keyboard: false, interactive: false }).addTo(
+    mapa,
+  );
+  reajustarAoRedimensionar(mapa, () => mapa.setView(posicao, 16, { animate: false }));
+}
+
+// ─── Comum ──────────────────────────────────────────────────────────────────
+
+function criarMapa(elemento, opcoes = {}) {
+  const mapa = L.map(elemento, opcoes).setView(PORTO_ALEGRE, 13);
+  L.tileLayer(TILES, { maxZoom: 19, attribution: ATRIBUICAO }).addTo(mapa);
+  return mapa;
+}
+
+// Se a área do mapa muda de tamanho (girar o celular, trocar Mapa/Lista, janela),
 // o Leaflet precisa recalcular. Reenquadra só enquanto a pessoa não mexeu no mapa.
 function reajustarAoRedimensionar(mapa, enquadrar) {
   let pessoaInteragiu = false;
@@ -64,22 +181,17 @@ function reajustarAoRedimensionar(mapa, enquadrar) {
   for (const evento of ['pointerdown', 'wheel', 'keydown']) {
     container.addEventListener(evento, () => (pessoaInteragiu = true), { once: true });
   }
-
   new ResizeObserver(() => {
+    if (container.offsetWidth === 0) return; // escondido (modo lista no celular)
     mapa.invalidateSize();
     if (!pessoaInteragiu) enquadrar();
   }).observe(container);
+  return () => (pessoaInteragiu = true);
 }
 
-// Só letras minúsculas, números e hífen viram classe CSS.
-function classeSegura(texto) {
-  return String(texto ?? '').replace(/[^a-z0-9-]/g, '');
-}
-
-function iconeDaCategoria(categoria) {
-  const classe = classeSegura(categoria.icone || categoria.slug);
+function icone(classe) {
   return L.divIcon({
-    className: `marcador marcador--${classe}`,
+    className: `marcador ${classe}`,
     html: '<span class="marcador__pino" aria-hidden="true"></span>',
     iconSize: [28, 36],
     iconAnchor: [14, 34],
@@ -89,93 +201,22 @@ function iconeDaCategoria(categoria) {
 
 // Monta o popup com DOM + textContent: nenhum dado do banco vira HTML.
 function montarPopup(local) {
-  const classe = classeSegura(local.categoria.icone || local.categoria.slug);
-  const raiz = criar('div', `popup marcador--${classe}`);
-
-  raiz.append(criar('p', 'popup__categoria', local.categoria.nome));
+  const raiz = criar('div', 'popup');
+  raiz.append(criar('p', `rotulo-categoria ${local.categoria.classe}`, local.categoria.nome));
   raiz.append(criar('h2', 'popup__titulo', local.nome));
-  if (local.descricao) raiz.append(criar('p', 'popup__descricao', local.descricao));
-
-  raiz.append(criar('p', 'popup__endereco', formatarEndereco(local)));
-  if (local.horarioFuncionamento) {
-    raiz.append(criar('p', 'popup__horario', local.horarioFuncionamento));
-  }
+  raiz.append(criar('p', 'popup__endereco', local.endereco));
 
   if (local.caracteristicas.length > 0) {
     const lista = criar('ul', 'etiquetas');
-    for (const c of local.caracteristicas) lista.append(criar('li', 'etiqueta', c.nome));
+    for (const nome of local.caracteristicas) lista.append(criar('li', 'etiqueta', nome));
     raiz.append(lista);
   }
 
-  const contatos = criar('p', 'popup__contatos');
-  const telefone = apenasDigitos(local.telefone);
-  if (telefone) contatos.append(link(`tel:${telefone}`, local.telefone));
-  const whatsapp = apenasDigitos(local.whatsapp);
-  if (whatsapp) {
-    const numero = whatsapp.startsWith('55') ? whatsapp : `55${whatsapp}`;
-    contatos.append(link(`https://wa.me/${numero}`, 'WhatsApp', true));
-  }
-  if (local.email) contatos.append(link(`mailto:${local.email}`, local.email));
-  if (urlSegura(local.site)) contatos.append(link(local.site, 'Site', true));
-  const destino = `${local.latitude},${local.longitude}`;
-  contatos.append(
-    link(
-      `https://www.openstreetmap.org/directions?to=${encodeURIComponent(destino)}`,
-      'Como chegar',
-      true,
-    ),
-  );
-  raiz.append(contatos);
-
+  const acoes = criar('p', 'popup__acoes');
+  acoes.append(link(local.url, 'Ver detalhes'));
+  acoes.append(link(local.comoChegar, 'Como chegar', true));
+  raiz.append(acoes);
   return raiz;
-}
-
-function formatarEndereco(l) {
-  const rua = [l.logradouro, l.numero].filter(Boolean).join(', ');
-  const complemento = l.complemento ? ` – ${l.complemento}` : '';
-  const bairro = l.bairro ? `, ${l.bairro}` : '';
-  return `${rua}${complemento}${bairro} – ${l.cidade}/${l.uf}`;
-}
-
-function adicionarLegenda(mapa, grupos) {
-  const legenda = L.control({ position: 'bottomleft' });
-  legenda.onAdd = () => {
-    // <details> para poder recolher; em telas pequenas começa fechada.
-    const caixa = criar('details', 'legenda leaflet-bar');
-    caixa.open = window.matchMedia('(min-width: 640px)').matches;
-    caixa.append(criar('summary', 'legenda__titulo', 'Tipos de serviço'));
-    for (const [slug, { categoria, camada }] of grupos) {
-      const rotulo = criar('label', 'legenda__item');
-      const caixaSelecao = document.createElement('input');
-      caixaSelecao.type = 'checkbox';
-      caixaSelecao.checked = true;
-      caixaSelecao.name = 'categoria';
-      caixaSelecao.value = slug;
-      caixaSelecao.addEventListener('change', () => {
-        if (caixaSelecao.checked) camada.addTo(mapa);
-        else camada.remove();
-      });
-      const cor = criar('span', `legenda__cor marcador--${classeSegura(categoria.icone || slug)}`);
-      cor.setAttribute('aria-hidden', 'true');
-      rotulo.append(caixaSelecao, cor, document.createTextNode(categoria.nome));
-      caixa.append(rotulo);
-    }
-    // Evita que cliques e rolagem na legenda movam o mapa.
-    L.DomEvent.disableClickPropagation(caixa);
-    L.DomEvent.disableScrollPropagation(caixa);
-    return caixa;
-  };
-  legenda.addTo(mapa);
-}
-
-function avisar(mapa, mensagem) {
-  const aviso = L.control({ position: 'topright' });
-  aviso.onAdd = () => {
-    const caixa = criar('div', 'aviso-mapa leaflet-bar', mensagem);
-    caixa.setAttribute('role', 'status');
-    return caixa;
-  };
-  aviso.addTo(mapa);
 }
 
 function criar(tag, classe, texto) {
@@ -195,15 +236,6 @@ function link(href, texto, externo = false) {
   return a;
 }
 
-function apenasDigitos(valor) {
-  return String(valor ?? '').replace(/\D/g, '');
-}
-
-function urlSegura(valor) {
-  try {
-    const url = new URL(valor);
-    return url.protocol === 'https:' || url.protocol === 'http:';
-  } catch {
-    return false;
-  }
+function normalizar(texto) {
+  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }

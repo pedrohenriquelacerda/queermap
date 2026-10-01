@@ -33,7 +33,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 - Páginas: Sobre, Canais de denúncia, Privacidade (LGPD).
 - Metadados para compartilhamento (Open Graph) e páginas de erro no mesmo visual.
 
-### F2 · Mapa público completo
+### F2 · Mapa público completo ✅
 
 - Computador: lateral com busca (nome/bairro), filtro por característica e lista de locais.
 - Celular: alternância Mapa / Lista.

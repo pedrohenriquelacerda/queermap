@@ -1,0 +1,78 @@
+<%- include('../partials/head') %>
+<%
+  const telefone = fmt.linkTelefone(local.telefone);
+  const whatsapp = fmt.linkWhatsapp(local.whatsapp);
+  const site = fmt.urlSegura(local.site);
+  const temContato = telefone || whatsapp || local.email || site;
+%>
+<main id="conteudo" class="conteudo conteudo--largo local">
+  <p><a class="voltar" href="/">← Voltar para o mapa</a></p>
+
+  <header class="local__cabecalho">
+    <p class="rotulo-categoria <%= fmt.classeCategoria(local.categoria) %>"><%= local.categoria.nome %></p>
+    <h1><%= local.nome %></h1>
+    <% if (local.descricao) { %>
+    <p class="local__descricao"><%= local.descricao %></p>
+    <% } %>
+  </header>
+
+  <div class="local__grade">
+    <div class="cartao local__info">
+      <section>
+        <h2>Endereço</h2>
+        <p>
+          <%= fmt.endereco(local) %><% if (local.cep) { %><br />CEP <%= local.cep %><% } %>
+        </p>
+        <p>
+          <a class="botao botao--secundario botao--pequeno" href="<%= fmt.linkComoChegar(local) %>" target="_blank" rel="noopener noreferrer">Como chegar</a>
+        </p>
+      </section>
+
+      <% if (local.horarioFuncionamento) { %>
+      <section>
+        <h2>Horário</h2>
+        <p><%= local.horarioFuncionamento %></p>
+      </section>
+      <% } %>
+
+      <% if (temContato) { %>
+      <section>
+        <h2>Contato</h2>
+        <div class="acoes">
+          <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>">Ligar <%= local.telefone %></a><% } %>
+          <% if (whatsapp) { %><a class="botao botao--pequeno botao--secundario" href="<%= whatsapp %>" target="_blank" rel="noopener noreferrer">WhatsApp</a><% } %>
+          <% if (local.email) { %><a class="botao botao--pequeno botao--secundario" href="mailto:<%= local.email %>">E-mail</a><% } %>
+          <% if (site) { %><a class="botao botao--pequeno botao--secundario" href="<%= site %>" target="_blank" rel="noopener noreferrer">Site</a><% } %>
+        </div>
+      </section>
+      <% } %>
+    </div>
+
+    <div
+      id="mapa-local"
+      class="mapa-local"
+      role="img"
+      aria-label="Localização de <%= local.nome %> no mapa"
+      data-lat="<%= local.latitude %>"
+      data-lng="<%= local.longitude %>"
+      data-classe="<%= fmt.classeCategoria(local.categoria) %>"
+    ></div>
+  </div>
+
+  <% if (local.caracteristicas.length > 0) { %>
+  <section class="local__secao">
+    <h2>O que este local oferece</h2>
+    <ul class="etiquetas">
+      <% for (const c of local.caracteristicas) { %>
+      <li class="etiqueta"><%= c.nome %></li>
+      <% } %>
+    </ul>
+  </section>
+  <% } %>
+
+  <p class="local__conferido">
+    Informações conferidas pela ONG Somos em <%= fmt.data(local.atualizadoEm) %>. Viu algo
+    desatualizado? Em breve você poderá avisar a ONG por aqui.
+  </p>
+</main>
+<%- include('../partials/foot') %>

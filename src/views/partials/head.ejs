@@ -2,6 +2,8 @@
   const tituloCompleto = locals.title ? `${title} · ${siteName}` : siteName;
   const descricao = locals.descricao || descricaoPadrao;
   const url = siteUrl + caminho;
+  // usaMapa = página do mapa em tela cheia; usaLeaflet = só carrega o Leaflet.
+  const leaflet = locals.usaMapa || locals.usaLeaflet;
 %><!doctype html>
 <html lang="pt-BR">
   <head>
@@ -27,11 +29,11 @@
       type="font/woff2"
       crossorigin
     />
-    <% if (locals.usaMapa) { %>
+    <% if (leaflet) { %>
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <% } %>
     <link rel="stylesheet" href="/css/base.css" />
-    <% if (locals.usaMapa) { %>
+    <% if (leaflet) { %>
     <link rel="stylesheet" href="/css/mapa.css" />
     <% } %>
   </head>

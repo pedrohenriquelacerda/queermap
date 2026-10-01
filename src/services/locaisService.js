@@ -20,7 +20,8 @@ const camposPublicos = {
   email: true,
   site: true,
   horarioFuncionamento: true,
-  categoria: { select: { nome: true, slug: true, icone: true } },
+  atualizadoEm: true,
+  categoria: { select: { nome: true, slug: true, icone: true, ordem: true } },
   caracteristicas: {
     where: { ativa: true },
     select: { nome: true, slug: true },
@@ -28,10 +29,19 @@ const camposPublicos = {
   },
 };
 
+const visivel = { publicado: true, arquivadoEm: null };
+
 export function listarPublicados() {
   return prisma.local.findMany({
-    where: { publicado: true, arquivadoEm: null },
+    where: visivel,
     select: camposPublicos,
     orderBy: { nome: 'asc' },
+  });
+}
+
+export function buscarPublicadoPorSlug(slug) {
+  return prisma.local.findFirst({
+    where: { ...visivel, slug },
+    select: camposPublicos,
   });
 }

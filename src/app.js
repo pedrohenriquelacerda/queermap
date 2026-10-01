@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import routes from './routes/index.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import * as fmt from './utils/formatadores.js';
 
 const require = createRequire(import.meta.url);
 const leafletDist = path.dirname(require.resolve('leaflet'));
@@ -27,6 +28,7 @@ export function createApp({ sessionStore } = {}) {
 
   app.locals.siteName = 'Mapa SerQueer';
   app.locals.siteUrl = env.siteUrl;
+  app.locals.fmt = fmt;
   app.locals.descricaoPadrao =
     'Mapa de espaços de cuidado em saúde para a população LGBTQIA+ de Porto Alegre, ' +
     'validados pela ONG Somos.';

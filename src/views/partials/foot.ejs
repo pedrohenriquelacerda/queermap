@@ -16,7 +16,7 @@
         </div>
       </footer>
     </div>
-    <% if (locals.usaMapa) { %>
+    <% if (locals.usaMapa || locals.usaLeaflet) { %>
     <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script src="/js/mapa.js" defer></script>
     <% } %>
