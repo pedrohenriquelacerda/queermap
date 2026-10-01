@@ -53,7 +53,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 - Publicar, despublicar e arquivar.
 - CRUD de categorias e características (só admin).
 
-### F5 · Envios do público
+### F5 · Envios do público ✅
 
 - Formulário: sugestão de local, elogio, reclamação ou discriminação (opcionalmente sobre um local).
 - Confirmação por código no e-mail + Turnstile.

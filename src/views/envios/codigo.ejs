@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="conteudo texto conteudo--estreito">
+  <h1>Confirme seu e-mail</h1>
+  <p class="lead">
+    Enviamos um código de 6 números para <strong><%= emailMascarado %></strong>. Ele vale por
+    <%= validade %> minutos.
+  </p>
+
+  <form class="cartao" method="post" action="/enviar/confirmar" novalidate>
+    <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 7, pattern: '[0-9 ]*', autofocus: true, class: 'entrada-codigo' } }) %>
+    <button type="submit" class="botao">Confirmar e enviar</button>
+  </form>
+
+  <p class="campo__ajuda">
+    Não chegou? Confira a caixa de spam ou <a href="/enviar">volte e envie de novo</a> (o texto que
+    você escreveu continua lá).
+  </p>
+</main>
+<%- include('../partials/foot') %>

@@ -72,7 +72,8 @@
 
   <p class="local__conferido">
     Informações conferidas pela ONG Somos em <%= fmt.data(local.atualizadoEm) %>. Viu algo
-    desatualizado? Em breve você poderá avisar a ONG por aqui.
+    desatualizado ou quer contar como foi o atendimento?
+    <a href="/enviar?local=<%= local.slug %>">Envie um relato sobre este local</a>.
   </p>
 </main>
 <%- include('../partials/foot') %>

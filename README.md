@@ -44,6 +44,18 @@ No `.env`, troque o `DATABASE_URL` e descomente o `SHADOW_DATABASE_URL` da **Op�
 
 Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Antes de entregar, teste também no Postgres real (Docker).
 
+## Envios do público
+
+Em `/enviar` qualquer pessoa sugere um local ou manda um relato (elogio, reclamação ou discriminação), sem criar conta:
+
+1. preenche o formulário e passa pelo anti-robô (Cloudflare Turnstile);
+2. recebe um código de 6 números por e-mail (válido por 15 min, até 5 tentativas);
+3. confirma o código e o envio chega ao painel da ONG.
+
+O e-mail não é guardado: só um hash (HMAC com `HASH_SECRET`) para limitar a **5 envios a cada 30 dias**. A exceção é quando a pessoa pede contato da ONG. Textos com link, ofensas ou spam são **sinalizados** para a ONG, nunca bloqueados.
+
+Em desenvolvimento não é preciso configurar nada: o Turnstile usa as chaves de teste da Cloudflare e o e-mail com o código aparece no terminal. Em produção, preencha `TURNSTILE_*`, `SMTP_*`, `EMAIL_REMETENTE` e `HASH_SECRET` (veja o `.env.example`).
+
 ## Painel da ONG
 
 O painel fica em `/painel`. Não há cadastro público: a primeira conta é criada pelo terminal.

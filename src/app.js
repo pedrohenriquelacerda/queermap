@@ -19,6 +19,7 @@ const fontesDir = path.join(
 );
 
 const OSM_TILES = 'https://tile.openstreetmap.org';
+const TURNSTILE = 'https://challenges.cloudflare.com';
 
 export function createApp({ sessionStore } = {}) {
   const app = express();
@@ -39,6 +40,10 @@ export function createApp({ sessionStore } = {}) {
       contentSecurityPolicy: {
         directives: {
           'img-src': ["'self'", 'data:', OSM_TILES],
+          // Cloudflare Turnstile (anti-robô do formulário de envio)
+          'script-src': ["'self'", TURNSTILE],
+          'frame-src': [TURNSTILE],
+          'connect-src': ["'self'", TURNSTILE],
         },
       },
       // O OpenStreetMap bloqueia (403) tiles pedidos sem Referer. Assim enviamos

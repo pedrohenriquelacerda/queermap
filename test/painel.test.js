@@ -194,3 +194,10 @@ test('sair encerra a sessão', async () => {
   const depois = await agente.get('/painel');
   assert.equal(depois.status, 302);
 });
+
+test('desmarcar "Acesso ativo" (checkbox não enviada) desativa a pessoa', async () => {
+  const agente = await logar('admin@teste.test');
+  const res = await enviar(agente, '/painel/pessoas/2', { nome: 'Pessoa 2', papel: 'EDITOR' });
+  assert.equal(res.status, 302);
+  assert.equal(admins[1].ativo, false);
+});

@@ -293,6 +293,20 @@ textarea {
   color: var(--cor-primaria-escura);
 }
 
+.nav a.nav__destaque {
+  margin-left: var(--esp-1);
+  border: 1px solid var(--cor-primaria);
+  color: var(--cor-primaria);
+}
+
+.nav a.nav__destaque:hover,
+.nav a.nav__destaque[aria-current='page'] {
+  background: var(--cor-primaria);
+  color: #fff;
+  box-shadow: none;
+  border-radius: var(--raio);
+}
+
 .nav a[aria-current='page'] {
   color: var(--cor-primaria);
   box-shadow: inset 0 -2px 0 var(--cor-primaria);
@@ -498,6 +512,10 @@ textarea {
   accent-color: var(--cor-primaria);
 }
 
+.opcao .campo__ajuda {
+  display: block;
+}
+
 /* Cartão */
 .cartao {
   padding: var(--esp-5);
@@ -653,6 +671,74 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: var(--esp-2);
+}
+
+/* Formulário de envio (sugestão/relato) */
+.conteudo--estreito {
+  max-width: 32rem;
+}
+
+.escolha-tipo {
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  border: 0;
+}
+
+.escolha-tipo legend {
+  margin-bottom: var(--esp-2);
+  padding: 0;
+}
+
+.escolha-tipo__opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--esp-2);
+}
+
+.escolha-tipo__opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  padding: var(--esp-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  cursor: pointer;
+}
+
+.escolha-tipo__opcao:hover {
+  border-color: var(--cor-primaria);
+}
+
+.escolha-tipo__opcao:has(input:checked) {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-clara);
+  box-shadow: inset 0 0 0 1px var(--cor-primaria);
+}
+
+.escolha-tipo__opcao input {
+  margin-top: 0.25rem;
+  accent-color: var(--cor-primaria);
+}
+
+.escolha-tipo__opcao > span {
+  display: grid;
+  line-height: 1.35;
+}
+
+.campo--invalido .escolha-tipo__opcao {
+  border-color: var(--cor-erro);
+}
+
+.form-envio__privacidade {
+  margin: var(--esp-3) 0 0;
+}
+
+.campo .entrada-codigo {
+  max-width: 12rem;
+  font-size: var(--titulo-3);
+  font-weight: 700;
+  letter-spacing: 0.3em;
 }
 
 /* Página de erro / estado vazio */

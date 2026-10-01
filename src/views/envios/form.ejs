@@ -1,0 +1,82 @@
+<%- include('../partials/head') %>
+<%
+  const campo = (dados) => include('../partials/campo', { erros, ...dados });
+  const opcoesLocal = [
+    { valor: '', texto: 'Nenhum local específico' },
+    ...locais.map((l) => ({ valor: l.id, texto: l.bairro ? `${l.nome} (${l.bairro})` : l.nome })),
+  ];
+%>
+<main id="conteudo" class="conteudo texto">
+  <h1>Enviar sugestão ou relato</h1>
+  <p class="lead">
+    Sua mensagem vai só para a equipe da ONG Somos. Nada é publicado no site.
+  </p>
+
+  <% if (erroGeral) { %>
+  <div class="alerta alerta--erro" role="alert"><p><%= erroGeral %></p></div>
+  <% } else if (Object.keys(erros).length > 0) { %>
+  <div class="alerta alerta--erro" role="alert"><p><strong>Revise os campos marcados.</strong></p></div>
+  <% } %>
+
+  <form class="cartao form-envio" method="post" action="/enviar" id="form-envio" novalidate>
+    <fieldset class="escolha-tipo<%= erros.tipo ? ' campo--invalido' : '' %>" <% if (erros.tipo) { %>aria-describedby="tipo-erro"<% } %>>
+      <legend class="campo__rotulo">O que você quer enviar?</legend>
+      <div class="escolha-tipo__opcoes">
+        <% for (const [valor, t] of Object.entries(tipos)) { %>
+        <label class="escolha-tipo__opcao">
+          <input type="radio" name="tipo" value="<%= valor %>" <%= valores.tipo === valor ? 'checked' : '' %> required />
+          <span>
+            <strong><%= t.rotulo %></strong>
+            <span class="campo__ajuda"><%= t.ajuda %></span>
+          </span>
+        </label>
+        <% } %>
+      </div>
+      <% if (erros.tipo) { %><span class="campo__erro" id="tipo-erro"><%= erros.tipo %></span><% } %>
+    </fieldset>
+
+    <div class="alerta alerta--aviso" data-se-tipo="DISCRIMINACAO" hidden>
+      <p>
+        Depois de enviar, mostraremos os canais oficiais de denúncia. Se você está em perigo agora,
+        ligue <a href="tel:190">190</a>.
+      </p>
+    </div>
+
+    <div data-se-tipo="SUGESTAO_LOCAL">
+      <%- campo({ nome: 'nomeLocalSugerido', rotulo: 'Nome do local sugerido', valor: valores.nomeLocalSugerido, ajuda: 'Só para sugestão de local novo.', attrs: { maxlength: 150 } }) %>
+      <%- campo({ nome: 'enderecoLocalSugerido', rotulo: 'Endereço ou região', valor: valores.enderecoLocalSugerido, opcional: true, attrs: { maxlength: 300 } }) %>
+    </div>
+
+    <div data-se-tipo="ELOGIO RECLAMACAO DISCRIMINACAO">
+      <%- campo({ nome: 'localId', rotulo: 'Sobre qual local?', tipo: 'select', valor: valores.localId, opcoes: opcoesLocal, opcional: true }) %>
+    </div>
+
+    <%- campo({ nome: 'mensagem', rotulo: 'Sua mensagem', tipo: 'textarea', valor: valores.mensagem, ajuda: 'Conte o que aconteceu ou por que o local deveria estar no mapa. Até 2.000 caracteres.', attrs: { required: true, minlength: 10, maxlength: 2000, rows: 6 } }) %>
+
+    <%- campo({ nome: 'email', rotulo: 'Seu e-mail', tipo: 'email', valor: '', ajuda: 'Para enviar um código de confirmação. O e-mail não fica guardado.', attrs: { required: true, autocomplete: 'email' } }) %>
+
+    <div class="campo">
+      <label class="opcao">
+        <input type="checkbox" name="desejaContato" <%= valores.desejaContato === 'on' || valores.desejaContato === true ? 'checked' : '' %> />
+        <span>
+          Quero que a ONG entre em contato comigo
+          <span class="campo__ajuda">Só nesse caso o e-mail é salvo, e apenas a equipe da ONG tem acesso.</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="campo">
+      <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-language="pt-br"></div>
+      <noscript>
+        <p class="campo__erro">A verificação anti-robô precisa de JavaScript ativado.</p>
+      </noscript>
+    </div>
+
+    <button type="submit" class="botao">Continuar</button>
+    <p class="campo__ajuda form-envio__privacidade">
+      Veja como tratamos seus dados na página de <a href="/privacidade">Privacidade</a>.
+    </p>
+  </form>
+</main>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<%- include('../partials/foot') %>

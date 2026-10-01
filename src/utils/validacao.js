@@ -27,7 +27,20 @@ export const email = () =>
     .toLowerCase()
     .pipe(z.email('Informe um e-mail válido.'));
 
+// Texto opcional: vazio vira null.
+export const textoOpcional = (max) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Use no máximo ${max} caracteres.`)
+    .optional()
+    .transform((v) => v || null);
+
 // Checkbox HTML: chega "on" quando marcado e não chega quando desmarcado.
-export const caixa = () => z.any().transform((v) => v === 'on' || v === 'true' || v === true);
+export const caixa = () =>
+  z
+    .any()
+    .optional()
+    .transform((v) => v === 'on' || v === 'true' || v === true);
 
 export { z };

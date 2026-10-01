@@ -2,16 +2,7 @@ import * as service from '../../services/locaisPainelService.js';
 import * as auditoria from '../../services/auditoriaService.js';
 import { buscarEndereco } from '../../services/geocodificacaoService.js';
 import { urlSegura } from '../../utils/formatadores.js';
-import { validar, texto, z } from '../../utils/validacao.js';
-
-// Texto opcional: vazio vira null.
-const opcional = (max) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Use no máximo ${max} caracteres.`)
-    .optional()
-    .transform((v) => v || null);
+import { validar, texto, textoOpcional as opcional, z } from '../../utils/validacao.js';
 
 // Limites aproximados do Rio Grande do Sul, para pegar coordenadas trocadas ou vazias.
 const coordenada = (min, max) =>
