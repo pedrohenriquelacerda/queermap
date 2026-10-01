@@ -1,0 +1,70 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="conteudo texto">
+  <h1>Componentes</h1>
+  <p class="campo__ajuda">Vitrine de estilos. Disponível só em desenvolvimento.</p>
+
+  <h2>Botões</h2>
+  <p class="acoes">
+    <button class="botao">Primário</button>
+    <button class="botao botao--secundario">Secundário</button>
+    <button class="botao botao--fantasma">Fantasma</button>
+    <button class="botao botao--perigo">Perigo</button>
+    <button class="botao botao--pequeno">Pequeno</button>
+    <button class="botao" disabled>Desabilitado</button>
+  </p>
+
+  <h2>Formulário</h2>
+  <form class="cartao" action="#">
+    <div class="campo">
+      <label class="campo__rotulo" for="c-nome">Nome do local</label>
+      <input id="c-nome" type="text" placeholder="Ex.: Ambulatório Trans" />
+    </div>
+    <div class="campo campo--invalido">
+      <label class="campo__rotulo" for="c-email">E-mail</label>
+      <input id="c-email" type="email" value="invalido" aria-describedby="c-email-erro" aria-invalid="true" />
+      <span class="campo__erro" id="c-email-erro">Informe um e-mail válido.</span>
+    </div>
+    <div class="campo">
+      <label class="campo__rotulo" for="c-tipo">Tipo</label>
+      <select id="c-tipo">
+        <option>Sugestão de local</option>
+        <option>Elogio</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label class="campo__rotulo" for="c-msg">Mensagem <span class="campo__opcional">(opcional)</span></label>
+      <textarea id="c-msg" aria-describedby="c-msg-ajuda"></textarea>
+      <span class="campo__ajuda" id="c-msg-ajuda">Até 2.000 caracteres.</span>
+    </div>
+    <label class="opcao"><input type="checkbox" /> Quero que a ONG entre em contato comigo</label>
+  </form>
+
+  <h2>Alertas</h2>
+  <div class="alerta"><p>Informação neutra.</p></div>
+  <div class="alerta alerta--sucesso"><p>Envio recebido com sucesso.</p></div>
+  <div class="alerta alerta--aviso"><p>Atenção: revise os dados.</p></div>
+  <div class="alerta alerta--erro"><p>Não foi possível salvar.</p></div>
+
+  <h2>Etiquetas</h2>
+  <ul class="etiquetas">
+    <li class="etiqueta">Oferece PrEP</li>
+    <li class="etiqueta etiqueta--sucesso">Publicado</li>
+    <li class="etiqueta etiqueta--aviso">Rascunho</li>
+    <li class="etiqueta etiqueta--erro">Sinalizado</li>
+    <li class="etiqueta etiqueta--neutra">Arquivado</li>
+  </ul>
+
+  <h2>Tabela</h2>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead>
+        <tr><th>Local</th><th>Categoria</th><th>Situação</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ambulatório Centro</td><td>Ambulatório trans</td><td><span class="etiqueta etiqueta--sucesso">Publicado</span></td></tr>
+        <tr><td>Coletivo Bom Fim</td><td>ONG</td><td><span class="etiqueta etiqueta--aviso">Rascunho</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<%- include('../partials/foot') %>

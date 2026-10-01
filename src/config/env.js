@@ -17,6 +17,11 @@ export const env = {
   port: Number(process.env.PORT ?? 3000),
   databaseUrl: required('DATABASE_URL', 'postgresql://queermap:queermap@localhost:5432/queermap'),
   sessionSecret: required('SESSION_SECRET', 'dev-secret-nao-use-em-producao'),
+  // Endereço público do site, sem barra no final (links de compartilhamento e e-mails).
+  siteUrl: (process.env.SITE_URL || `http://localhost:${process.env.PORT ?? 3000}`).replace(
+    /\/$/,
+    '',
+  ),
   // Ative quando o app rodar atrás de proxy (Cloudflare Tunnel, Render etc.) para
   // que IPs do rate limit e cookies "secure" funcionem corretamente.
   trustProxy: process.env.TRUST_PROXY === 'true' ? 1 : false,

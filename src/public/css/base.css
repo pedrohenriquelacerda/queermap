@@ -1,0 +1,730 @@
+/* Mapa SerQueer · estilos base (site público e painel)
+ *
+ * 1. Fontes        4. Layout            7. Componentes
+ * 2. Tokens        5. Cabeçalho/rodapé  8. Utilitários
+ * 3. Reset         6. Conteúdo (texto)
+ *
+ * Para mudar a identidade visual, altere só os tokens da seção 2.
+ */
+
+/* ─── 1. Fontes ──────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/vendor/fontes/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/vendor/fontes/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2');
+}
+
+/* ─── 2. Tokens ──────────────────────────────────────────────────────────── */
+
+:root {
+  /* Cores principais */
+  --cor-primaria: #6b3fa0;
+  --cor-primaria-escura: #54307f;
+  --cor-primaria-clara: #f1ebf8;
+
+  /* Superfícies e texto */
+  --cor-fundo: #faf9fb;
+  --cor-superficie: #fff;
+  --cor-texto: #1f1d24;
+  --cor-suave: #5c5768;
+  --cor-borda: #e2dde8;
+  --cor-borda-forte: #b9b1c4;
+  --cor-foco: #1f1d24;
+
+  /* Estados (texto escuro sobre fundo claro: contraste AA) */
+  --cor-sucesso: #1b6e45;
+  --cor-sucesso-fundo: #e6f4ec;
+  --cor-aviso: #7a4f00;
+  --cor-aviso-fundo: #fdf3dc;
+  --cor-erro: #b3261e;
+  --cor-erro-fundo: #fbe9e7;
+
+  /* Faixa do orgulho (Progress Pride) */
+  --faixa-orgulho: linear-gradient(
+    90deg,
+    #000 0 9%,
+    #784f17 9% 18%,
+    #5bcefa 18% 27%,
+    #f5a9b8 27% 36%,
+    #fff 36% 45%,
+    #e40303 45% 54%,
+    #ff8c00 54% 63%,
+    #ffed00 63% 72%,
+    #008026 72% 81%,
+    #24408e 81% 90%,
+    #732982 90% 100%
+  );
+
+  /* Tipografia */
+  --fonte: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --texto-pequeno: 0.875rem;
+  --texto-base: 1rem;
+  --texto-grande: 1.125rem;
+  --titulo-3: 1.25rem;
+  --titulo-2: 1.5rem;
+  --titulo-1: 2rem;
+
+  /* Espaçamento (escala de 4px) */
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.5rem;
+  --esp-6: 2rem;
+  --esp-7: 3rem;
+
+  /* Formas */
+  --raio: 8px;
+  --raio-grande: 12px;
+  --raio-pilula: 999px;
+  --sombra: 0 1px 2px rgb(31 29 36 / 6%), 0 2px 8px rgb(31 29 36 / 6%);
+  --sombra-forte: 0 4px 16px rgb(31 29 36 / 14%);
+
+  /* Layout */
+  --largura-texto: 44rem;
+  --largura-pagina: 72rem;
+  --altura-topo: 3.75rem;
+}
+
+/* ─── 3. Reset ───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte);
+  font-size: var(--texto-base);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 var(--esp-3);
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: var(--titulo-1);
+}
+
+h2 {
+  font-size: var(--titulo-2);
+}
+
+h3 {
+  font-size: var(--titulo-3);
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 var(--esp-4);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--cor-primaria);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--cor-primaria-escura);
+}
+
+:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ─── 4. Layout ──────────────────────────────────────────────────────────── */
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.pagina > main {
+  flex: 1;
+}
+
+/* Página do mapa: ocupa exatamente a tela, sem rolagem */
+.pagina--mapa {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+.pagina--mapa > main {
+  display: flex;
+  min-height: 0;
+}
+
+.conteudo {
+  width: 100%;
+  max-width: var(--largura-texto);
+  margin: 0 auto;
+  padding: var(--esp-6) var(--esp-4) var(--esp-7);
+}
+
+.pular-conteudo {
+  position: absolute;
+  top: var(--esp-2);
+  left: var(--esp-2);
+  z-index: 2000;
+  padding: var(--esp-2) var(--esp-4);
+  border-radius: var(--raio);
+  background: var(--cor-texto);
+  color: #fff;
+  transform: translateY(-200%);
+}
+
+.pular-conteudo:focus {
+  color: #fff;
+  transform: none;
+}
+
+/* ─── 5. Cabeçalho e rodapé ──────────────────────────────────────────────── */
+
+.topo {
+  position: relative;
+  z-index: 1100; /* acima dos controles do Leaflet */
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.topo::before {
+  content: '';
+  display: block;
+  height: 4px;
+  background: var(--faixa-orgulho);
+}
+
+.topo__conteudo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  height: var(--altura-topo);
+  padding: 0 var(--esp-4);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  color: var(--cor-texto);
+  font-size: var(--texto-grande);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.marca:hover {
+  color: var(--cor-texto);
+}
+
+.marca__logo {
+  width: 28px;
+  height: 28px;
+}
+
+.marca strong {
+  color: var(--cor-primaria);
+}
+
+.nav {
+  display: flex;
+  gap: var(--esp-1);
+}
+
+.nav a {
+  padding: var(--esp-2) var(--esp-3);
+  border-radius: var(--raio);
+  color: var(--cor-texto);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+.nav a[aria-current='page'] {
+  color: var(--cor-primaria);
+  box-shadow: inset 0 -2px 0 var(--cor-primaria);
+  border-radius: 0;
+}
+
+.rodape {
+  padding: var(--esp-5) var(--esp-4);
+  border-top: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+}
+
+.rodape__conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2) var(--esp-5);
+  max-width: var(--largura-pagina);
+  margin: 0 auto;
+}
+
+.rodape p {
+  margin: 0;
+}
+
+.rodape nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-4);
+}
+
+.rodape a {
+  color: var(--cor-suave);
+}
+
+/* Na página do mapa o rodapé vira uma linha discreta */
+.pagina--mapa .rodape {
+  padding: var(--esp-2) var(--esp-4);
+}
+
+/* ─── 6. Conteúdo (páginas de texto) ─────────────────────────────────────── */
+
+.texto h1 {
+  margin-bottom: var(--esp-2);
+}
+
+.texto .lead {
+  margin-bottom: var(--esp-6);
+  color: var(--cor-suave);
+  font-size: var(--texto-grande);
+}
+
+.texto h2 {
+  margin-top: var(--esp-6);
+  font-size: var(--titulo-3);
+}
+
+.texto li + li {
+  margin-top: var(--esp-1);
+}
+
+/* ─── 7. Componentes ─────────────────────────────────────────────────────── */
+
+/* Botão */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  min-height: 2.75rem; /* alvo de toque confortável */
+  padding: var(--esp-2) var(--esp-4);
+  border: 1px solid var(--cor-primaria);
+  border-radius: var(--raio);
+  background: var(--cor-primaria);
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botao:hover {
+  border-color: var(--cor-primaria-escura);
+  background: var(--cor-primaria-escura);
+  color: #fff;
+}
+
+.botao--secundario {
+  background: var(--cor-superficie);
+  color: var(--cor-primaria);
+}
+
+.botao--secundario:hover {
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+.botao--fantasma {
+  border-color: transparent;
+  background: transparent;
+  color: var(--cor-primaria);
+}
+
+.botao--fantasma:hover {
+  border-color: transparent;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+.botao--perigo {
+  border-color: var(--cor-erro);
+  background: var(--cor-erro);
+}
+
+.botao--perigo:hover {
+  border-color: #8c1d17;
+  background: #8c1d17;
+}
+
+.botao--pequeno {
+  min-height: 2.25rem;
+  padding: var(--esp-1) var(--esp-3);
+  font-size: var(--texto-pequeno);
+}
+
+.botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Campo de formulário */
+.campo {
+  display: grid;
+  gap: var(--esp-1);
+  margin-bottom: var(--esp-4);
+}
+
+.campo__rotulo {
+  font-weight: 700;
+}
+
+.campo__opcional {
+  color: var(--cor-suave);
+  font-weight: 400;
+}
+
+.campo__ajuda {
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+}
+
+.campo__erro {
+  color: var(--cor-erro);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+}
+
+.campo input:not([type='checkbox'], [type='radio']),
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.campo textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  border-color: var(--cor-primaria);
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 0;
+}
+
+.campo--invalido input:not([type='checkbox'], [type='radio']),
+.campo--invalido select,
+.campo--invalido textarea {
+  border-color: var(--cor-erro);
+}
+
+/* Caixa de seleção / opção com texto ao lado */
+.opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  cursor: pointer;
+}
+
+.opcao input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0.2rem 0 0;
+  accent-color: var(--cor-primaria);
+}
+
+/* Cartão */
+.cartao {
+  padding: var(--esp-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra);
+}
+
+.cartao > :last-child {
+  margin-bottom: 0;
+}
+
+/* Etiqueta */
+.etiqueta {
+  display: inline-block;
+  padding: 0.125rem var(--esp-2);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.etiqueta--sucesso {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.etiqueta--aviso {
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso);
+}
+
+.etiqueta--erro {
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.etiqueta--neutra {
+  background: #eeecf1;
+  color: var(--cor-suave);
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1);
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* Alerta */
+.alerta {
+  margin-bottom: var(--esp-4);
+  padding: var(--esp-3) var(--esp-4);
+  border-left: 4px solid var(--cor-primaria);
+  border-radius: var(--raio);
+  background: var(--cor-primaria-clara);
+}
+
+.alerta > :last-child {
+  margin-bottom: 0;
+}
+
+.alerta--sucesso {
+  border-color: var(--cor-sucesso);
+  background: var(--cor-sucesso-fundo);
+}
+
+.alerta--aviso {
+  border-color: var(--cor-aviso);
+  background: var(--cor-aviso-fundo);
+}
+
+.alerta--erro {
+  border-color: var(--cor-erro);
+  background: var(--cor-erro-fundo);
+}
+
+/* Tabela */
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-pequeno);
+}
+
+.tabela th,
+.tabela td {
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: 1px solid var(--cor-borda);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela th {
+  background: var(--cor-fundo);
+  color: var(--cor-suave);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabela tbody tr:hover {
+  background: var(--cor-fundo);
+}
+
+/* Lista de contatos (canais de denúncia, telefones úteis) */
+.contatos {
+  display: grid;
+  gap: var(--esp-3);
+  margin: 0 0 var(--esp-5);
+  padding: 0;
+  list-style: none;
+}
+
+.contatos li + li {
+  margin-top: 0;
+}
+
+.contatos .cartao {
+  padding: var(--esp-4);
+}
+
+.contatos h3 {
+  margin-bottom: var(--esp-1);
+  font-size: var(--texto-base);
+}
+
+.contatos p {
+  margin-bottom: var(--esp-2);
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+}
+
+.contatos__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+/* Página de erro / estado vazio */
+.estado {
+  max-width: 32rem;
+  margin: var(--esp-7) auto;
+  padding: 0 var(--esp-4);
+  text-align: center;
+}
+
+.estado__codigo {
+  margin-bottom: var(--esp-2);
+  color: var(--cor-primaria);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ─── 8. Utilitários ─────────────────────────────────────────────────────── */
+
+/* Grupo de botões/ações lado a lado */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.so-celular {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --titulo-1: 1.625rem;
+    --titulo-2: 1.375rem;
+  }
+
+  .so-celular {
+    display: inline;
+  }
+
+  .so-computador {
+    display: none;
+  }
+
+  .topo__conteudo {
+    padding: 0 var(--esp-3);
+  }
+
+  .nav a {
+    padding: var(--esp-2);
+  }
+
+  .pagina--mapa .rodape {
+    display: none;
+  }
+}
+
+/* Celulares bem estreitos (320–360px) */
+@media (max-width: 22.5rem) {
+  .marca {
+    gap: var(--esp-1);
+    font-size: var(--texto-base);
+  }
+
+  .marca__logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .nav a {
+    padding: var(--esp-2) var(--esp-1);
+  }
+}

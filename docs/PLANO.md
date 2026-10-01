@@ -26,7 +26,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 
 ## Fases
 
-### F1 · Visual e páginas fixas
+### F1 · Visual e páginas fixas ✅
 
 - Tokens de design (cores, espaçamento, tipografia) e componentes CSS: botão, campo, tabela, etiqueta, alerta, cartão.
 - Layout público e layout do painel.

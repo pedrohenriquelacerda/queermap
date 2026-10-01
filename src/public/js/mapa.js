@@ -47,9 +47,28 @@ async function carregarLocais(mapa) {
   }
 
   const todos = L.featureGroup([...grupos.values()].map((g) => g.camada));
-  mapa.fitBounds(todos.getBounds(), { padding: [40, 40], maxZoom: 15 });
+  // Sem animação: em aba de fundo o navegador pausa animações e o zoom ficaria pela metade.
+  const enquadrar = () =>
+    mapa.fitBounds(todos.getBounds(), { padding: [40, 40], maxZoom: 15, animate: false });
+  enquadrar();
+  reajustarAoRedimensionar(mapa, enquadrar);
 
   adicionarLegenda(mapa, grupos);
+}
+
+// Se a área do mapa muda de tamanho (girar o celular, barra do navegador, janela),
+// o Leaflet precisa recalcular. Reenquadra só enquanto a pessoa não mexeu no mapa.
+function reajustarAoRedimensionar(mapa, enquadrar) {
+  let pessoaInteragiu = false;
+  const container = mapa.getContainer();
+  for (const evento of ['pointerdown', 'wheel', 'keydown']) {
+    container.addEventListener(evento, () => (pessoaInteragiu = true), { once: true });
+  }
+
+  new ResizeObserver(() => {
+    mapa.invalidateSize();
+    if (!pessoaInteragiu) enquadrar();
+  }).observe(container);
 }
 
 // Só letras minúsculas, números e hífen viram classe CSS.
@@ -70,7 +89,8 @@ function iconeDaCategoria(categoria) {
 
 // Monta o popup com DOM + textContent: nenhum dado do banco vira HTML.
 function montarPopup(local) {
-  const raiz = criar('div', 'popup');
+  const classe = classeSegura(local.categoria.icone || local.categoria.slug);
+  const raiz = criar('div', `popup marcador--${classe}`);
 
   raiz.append(criar('p', 'popup__categoria', local.categoria.nome));
   raiz.append(criar('h2', 'popup__titulo', local.nome));
@@ -82,8 +102,8 @@ function montarPopup(local) {
   }
 
   if (local.caracteristicas.length > 0) {
-    const lista = criar('ul', 'popup__caracteristicas');
-    for (const c of local.caracteristicas) lista.append(criar('li', null, c.nome));
+    const lista = criar('ul', 'etiquetas');
+    for (const c of local.caracteristicas) lista.append(criar('li', 'etiqueta', c.nome));
     raiz.append(lista);
   }
 

@@ -1,0 +1,28 @@
+<%
+  const links = [
+    { href: '/', texto: 'Mapa', classe: 'so-computador' },
+    { href: '/sobre', texto: 'Sobre' },
+    { href: '/canais-de-denuncia', texto: 'Canais de denúncia', curto: 'Denúncia' },
+  ];
+%>
+<header class="topo">
+  <div class="topo__conteudo">
+    <a class="marca" href="/">
+      <%- include('logo') %>
+      <span>Mapa <strong>SerQueer</strong></span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <% for (const l of links) { %>
+      <a
+        href="<%= l.href %>"
+        <% if (l.classe) { %>class="<%= l.classe %>"<% } %>
+        <% if (caminho === l.href) { %>aria-current="page"<% } %>
+      >
+        <% if (l.curto) { %>
+        <span class="so-computador"><%= l.texto %></span><span class="so-celular"><%= l.curto %></span>
+        <% } else { %><%= l.texto %><% } %>
+      </a>
+      <% } %>
+    </nav>
+  </div>
+</header>

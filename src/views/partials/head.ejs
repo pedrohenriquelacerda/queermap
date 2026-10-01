@@ -1,19 +1,41 @@
-<!doctype html>
+<%
+  const tituloCompleto = locals.title ? `${title} · ${siteName}` : siteName;
+  const descricao = locals.descricao || descricaoPadrao;
+  const url = siteUrl + caminho;
+%><!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title><%= locals.title ? `${title} · ${siteName}` : siteName %></title>
+    <title><%= tituloCompleto %></title>
+    <meta name="description" content="<%= descricao %>" />
+    <meta name="theme-color" content="#6b3fa0" />
+    <link rel="canonical" href="<%= url %>" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="<%= siteName %>" />
+    <meta property="og:title" content="<%= tituloCompleto %>" />
+    <meta property="og:description" content="<%= descricao %>" />
+    <meta property="og:url" content="<%= url %>" />
+
+    <link
+      rel="preload"
+      href="/vendor/fontes/atkinson-hyperlegible-latin-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <% if (locals.usaMapa) { %>
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <% } %>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <% if (locals.usaMapa) { %>
+    <link rel="stylesheet" href="/css/mapa.css" />
+    <% } %>
   </head>
   <body>
-    <header class="topo">
-      <a class="marca" href="/"><%= siteName %></a>
-      <nav aria-label="Principal">
-        <a href="/">Mapa</a>
-      </nav>
-    </header>
+    <div class="pagina<%= locals.usaMapa ? ' pagina--mapa' : '' %>">
+      <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+      <%- include('topo') %>

@@ -1,7 +1,8 @@
 <%- include('partials/head') %>
-<main class="principal principal--texto">
-  <h1>Erro <%= status %></h1>
+<main id="conteudo" class="estado">
+  <p class="estado__codigo" aria-hidden="true"><%= status %></p>
+  <h1><%= status >= 500 ? 'Algo deu errado' : 'Não foi possível continuar' %></h1>
   <p><%= mensagem %></p>
-  <p><a href="/">Voltar para o mapa</a></p>
+  <a class="botao" href="/">Voltar para o mapa</a>
 </main>
 <%- include('partials/foot') %>

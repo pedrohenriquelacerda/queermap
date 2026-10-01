@@ -1,6 +1,21 @@
-    <footer class="rodape">
-      <p><%= siteName %> · Somos · UFCSPA</p>
-    </footer>
+<%
+  const linksRodape = [
+    { href: '/sobre', texto: 'Sobre' },
+    { href: '/canais-de-denuncia', texto: 'Canais de denúncia' },
+    { href: '/privacidade', texto: 'Privacidade' },
+  ];
+%>
+      <footer class="rodape">
+        <div class="rodape__conteudo">
+          <p>Um projeto da ONG Somos com a UFCSPA.</p>
+          <nav aria-label="Rodapé">
+            <% for (const l of linksRodape) { %>
+            <a href="<%= l.href %>" <% if (caminho === l.href) { %>aria-current="page"<% } %>><%= l.texto %></a>
+            <% } %>
+          </nav>
+        </div>
+      </footer>
+    </div>
     <% if (locals.usaMapa) { %>
     <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script src="/js/mapa.js" defer></script>

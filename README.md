@@ -78,7 +78,7 @@ src/
   controllers/         # lógica de cada rota
   middlewares/         # 404, tratamento de erros etc.
   views/               # templates EJS (partials/ = cabeçalho e rodapé)
-  public/              # CSS, JS do navegador e imagens
+  public/              # CSS (base.css = tokens e componentes; mapa.css), JS do navegador
   generated/           # Prisma Client gerado (não versionado)
 test/                  # testes automatizados
 ```
@@ -103,6 +103,7 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - O `.env` nunca vai para o git. Variáveis novas devem ser adicionadas também ao `.env.example`.
 - O Prisma 7 gera o client em TypeScript (`src/generated/prisma`). O Node 24 executa esses arquivos direto, sem etapa de build.
 - O Leaflet é servido pelo próprio servidor (`/vendor/leaflet`), sem CDN, por causa da política de segurança de conteúdo (CSP).
+- Visual: cores, espaços e fontes ficam em variáveis no topo de `src/public/css/base.css`. Em desenvolvimento, `/dev/componentes` mostra todos os componentes.
 - `GET /health` verifica se o servidor e o banco estão respondendo.
 - `GET /api/locais` devolve os locais publicados (só campos públicos) que o mapa exibe.
 - Os locais de exemplo começam com "[Exemplo]" e não podem ser inseridos com `NODE_ENV=production`.

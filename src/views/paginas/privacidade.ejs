@@ -1,0 +1,55 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="conteudo texto">
+  <%- include('../partials/rascunho') %>
+
+  <h1>Privacidade</h1>
+  <p class="lead">
+    Como o Mapa SerQueer trata os seus dados, de acordo com a Lei Geral de Proteção de Dados (Lei nº
+    13.709/2018).
+  </p>
+
+  <h2>Para ver o mapa</h2>
+  <p>
+    Não é preciso criar conta nem informar dados pessoais. Não usamos cookies de rastreamento nem
+    ferramentas de publicidade ou estatísticas de acesso.
+  </p>
+  <p>
+    As imagens do mapa são carregadas dos servidores do
+    <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer"
+      >OpenStreetMap</a
+    >, que recebem o endereço IP do seu dispositivo para enviar essas imagens.
+  </p>
+
+  <h2>Ao enviar uma sugestão ou relato</h2>
+  <ul>
+    <li>
+      Você confirma seu e-mail com um código. <strong>O e-mail não é guardado</strong>: o sistema
+      mantém apenas um código embaralhado (hash), que não permite descobrir o endereço, por até 30
+      dias, só para limitar a quantidade de envios por pessoa.
+    </li>
+    <li>
+      Se você pedir que a ONG entre em contato, aí sim o e-mail é salvo junto com o envio, e
+      apenas a equipe da ONG Somos tem acesso a ele.
+    </li>
+    <li>
+      O texto que você escreve chega somente ao painel da ONG. Nada é publicado no site.
+    </li>
+    <li>
+      A verificação anti-robô é feita pelo Cloudflare Turnstile, que processa dados técnicos do
+      navegador para diferenciar pessoas de robôs.
+    </li>
+  </ul>
+
+  <h2>Quem é responsável pelos dados</h2>
+  <p>
+    A ONG Somos é a controladora dos dados. Você pode pedir acesso, correção ou exclusão dos seus
+    dados pelo e-mail <strong>[e-mail de contato da ONG]</strong>.
+  </p>
+
+  <h2>Painel da ONG</h2>
+  <p>
+    O único cookie usado pelo site é o de sessão do painel administrativo, necessário para que a
+    equipe da ONG faça login. Ele não existe para quem apenas visita o mapa.
+  </p>
+</main>
+<%- include('../partials/foot') %>

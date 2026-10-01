@@ -11,6 +11,10 @@ import { errorHandler } from './middlewares/errorHandler.js';
 
 const require = createRequire(import.meta.url);
 const leafletDist = path.dirname(require.resolve('leaflet'));
+const fontesDir = path.join(
+  path.dirname(require.resolve('@fontsource/atkinson-hyperlegible/package.json')),
+  'files',
+);
 
 const OSM_TILES = 'https://tile.openstreetmap.org';
 
@@ -22,6 +26,10 @@ export function createApp({ sessionStore } = {}) {
   app.set('trust proxy', env.trustProxy);
 
   app.locals.siteName = 'Mapa SerQueer';
+  app.locals.siteUrl = env.siteUrl;
+  app.locals.descricaoPadrao =
+    'Mapa de espaços de cuidado em saúde para a população LGBTQIA+ de Porto Alegre, ' +
+    'validados pela ONG Somos.';
 
   app.use(
     helmet({
@@ -38,6 +46,13 @@ export function createApp({ sessionStore } = {}) {
 
   app.use(express.static(path.join(import.meta.dirname, 'public')));
   app.use('/vendor/leaflet', express.static(leafletDist));
+  app.use('/vendor/fontes', express.static(fontesDir, { maxAge: '1y', immutable: true }));
+
+  // Caminho atual, para marcar o link ativo no menu.
+  app.use((req, res, next) => {
+    res.locals.caminho = req.path;
+    next();
+  });
 
   // Depois dos arquivos estáticos, para não contar CSS/JS/imagens no limite.
   app.use(
