@@ -96,6 +96,29 @@
   </aside>
 
   <div id="mapa" class="mapa" role="region" aria-label="Mapa de Porto Alegre"></div>
+
+  <%# Aparece sobre o mapa quando a localização não está disponível (o mapa.js o posiciona). %>
+  <section class="painel-localizacao" id="painel-localizacao" aria-label="Sua localização" hidden>
+    <button type="button" class="painel-localizacao__fechar" aria-label="Fechar">&times;</button>
+    <p class="painel-localizacao__aviso" role="status" aria-live="polite"></p>
+    <form class="painel-localizacao__form" action="/buscar-endereco">
+      <label class="visualmente-oculto" for="endereco-pessoa">Endereço, bairro ou cidade</label>
+      <div class="campo painel-localizacao__linha">
+        <input
+          type="search"
+          id="endereco-pessoa"
+          name="q"
+          placeholder="Ex.: Rua da República, Cidade Baixa"
+          autocomplete="street-address"
+          minlength="3"
+          maxlength="300"
+          required
+        />
+        <button type="submit" class="botao botao--pequeno">Buscar</button>
+      </div>
+    </form>
+    <div class="painel-localizacao__opcoes"></div>
+  </section>
 </main>
 <script type="application/json" id="dados-mapa"><%- fmt.jsonSeguro(dadosMapa) %></script>
 <%- include('partials/foot') %>

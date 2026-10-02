@@ -11,6 +11,9 @@
 
   /* Cor usada quando nenhuma classe marcador--* define outra (herdada) */
   --cor-marcador: var(--cat-padrao);
+
+  /* "Você está aqui": azul, diferente de todas as categorias */
+  --cor-pessoa: #1a73e8;
 }
 
 .mapa {
@@ -103,6 +106,133 @@
 .marcador:focus-visible .marcador__pino {
   outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
+}
+
+/* ─── Localização de quem usa o mapa ─────────────────────────────────────── */
+
+.marcador-pessoa__ponto {
+  position: absolute;
+  inset: 2px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--cor-pessoa);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 40%);
+}
+
+/* O Leaflet põe stroke/fill como atributos do SVG; o CSS tem prioridade */
+.precisao-pessoa {
+  fill: var(--cor-pessoa);
+  fill-opacity: 0.12;
+  stroke: var(--cor-pessoa);
+  stroke-width: 1;
+}
+
+.localizar__botao {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  cursor: pointer;
+}
+
+.localizar__botao:hover {
+  background: var(--cor-primaria-clara);
+}
+
+.localizar__botao:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.localizar__botao[aria-busy='true'] {
+  color: var(--cor-pessoa);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .localizar__botao[aria-busy='true'] svg {
+    animation: girar 1.2s linear infinite;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.painel-localizacao {
+  position: relative;
+  width: min(20rem, calc(100vw - 6rem));
+  padding: var(--esp-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-forte);
+  font-size: var(--texto-pequeno);
+  line-height: 1.4;
+}
+
+.painel-localizacao__fechar {
+  position: absolute;
+  top: var(--esp-1);
+  right: var(--esp-1);
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--raio);
+  background: none;
+  color: var(--cor-suave);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.painel-localizacao__fechar:hover {
+  background: var(--cor-primaria-clara);
+}
+
+.painel-localizacao__aviso {
+  margin: 0 var(--esp-6) var(--esp-2) 0;
+}
+
+.painel-localizacao__linha {
+  display: flex;
+  gap: var(--esp-2);
+  margin: 0;
+}
+
+.painel-localizacao__linha input:not([type='checkbox'], [type='radio']) {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.25rem;
+}
+
+.painel-localizacao__opcoes ul {
+  display: grid;
+  gap: var(--esp-1);
+  margin: var(--esp-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-localizacao__opcao {
+  width: 100%;
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  text-align: left;
+  cursor: pointer;
+}
+
+.painel-localizacao__opcao:hover {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-clara);
 }
 
 /* Bolinha com a cor da categoria (filtros e rótulos) */

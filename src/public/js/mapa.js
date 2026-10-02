@@ -6,6 +6,26 @@ const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATRIBUICAO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 const celular = window.matchMedia('(max-width: 47.99rem)');
 
+// Localização de quem usa o mapa
+const GRANDE_POA = [
+  [-30.45, -51.6],
+  [-29.55, -50.7],
+];
+const ZOOM_PESSOA = 15;
+const ICONE_LOCALIZAR =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+const AVISOS = {
+  semSuporte: 'Seu navegador não informa a localização. Digite seu endereço, bairro ou cidade:',
+  negada:
+    'Sem acesso à sua localização. Digite seu endereço, bairro ou cidade para ver os locais perto de você:',
+  bloqueada:
+    'A localização está bloqueada para este site. Para liberar, toque no cadeado ao lado do endereço do site. Ou digite seu endereço:',
+  indisponivel:
+    'Não foi possível descobrir sua localização agora. Digite seu endereço, bairro ou cidade:',
+  foraDaRegiao:
+    'Você está fora da região de Porto Alegre, então o mapa mostra todos os locais. Para ver os locais perto de um endereço, digite abaixo:',
+};
+
 const dados = document.getElementById('dados-mapa');
 if (dados) iniciarExplorar(JSON.parse(dados.textContent));
 
@@ -35,7 +55,15 @@ function iniciarExplorar(locais) {
     mapa.fitBounds(camada.getBounds(), { padding: [40, 40], maxZoom: 15, animate: false });
   };
   enquadrar();
-  const marcarInteracao = reajustarAoRedimensionar(mapa, enquadrar);
+
+  // Depois que o mapa centraliza na pessoa, é essa a visão que volta ao redimensionar.
+  let centroPessoa = null;
+  const visaoInicial = () => (centroPessoa ? centralizar(mapa, centroPessoa) : enquadrar());
+  const { marcarInteracao, interagiu } = reajustarAoRedimensionar(mapa, visaoInicial);
+  configurarLocalizacao(mapa, {
+    interagiu,
+    aoCentralizar: (posicao) => (centroPessoa = posicao),
+  });
 
   const alternarModo = configurarModos();
   configurarFiltros({ marcadores, camada, enquadrar });
@@ -153,6 +181,158 @@ function atualizarUrl(q, tipos, caracteristicas) {
   history.replaceState(null, '', busca ? `?${busca}` : location.pathname);
 }
 
+// ─── Localização de quem usa o mapa ─────────────────────────────────────────
+// A posição do GPS fica só no navegador: nunca é enviada ao servidor. Só o endereço
+// digitado (quando a pessoa não libera o GPS) passa pelo servidor, a caminho do Nominatim.
+
+function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
+  const regiao = L.latLngBounds(GRANDE_POA);
+  const painel = configurarPainelEndereco(mapa, (posicao) => {
+    mostrarPessoa(posicao, 'Endereço informado');
+    irPara(posicao);
+  });
+  let marcador = null;
+  let precisao = null;
+  let ultimaPosicao = null;
+
+  const irPara = (posicao) => {
+    ultimaPosicao = posicao;
+    aoCentralizar(posicao);
+    centralizar(mapa, posicao);
+  };
+
+  function mostrarPessoa(posicao, rotulo, raio) {
+    marcador?.remove();
+    precisao?.remove();
+    // Círculo de precisão só quando ajuda (com Wi-Fi/rede ele pode ter quilômetros).
+    if (raio && raio < 2000) {
+      precisao = L.circle(posicao, {
+        radius: raio,
+        className: 'precisao-pessoa',
+        interactive: false,
+      }).addTo(mapa);
+    }
+    marcador = L.marker(posicao, {
+      icon: L.divIcon({
+        className: 'marcador-pessoa',
+        html: '<span class="marcador-pessoa__ponto" aria-hidden="true"></span>',
+        iconSize: [22, 22],
+      }),
+      title: rotulo,
+      alt: rotulo,
+      keyboard: false,
+      zIndexOffset: 1000,
+    })
+      .bindTooltip(rotulo)
+      .addTo(mapa);
+  }
+
+  // automatico = pedido ao abrir o mapa; senão, a pessoa clicou no botão.
+  function localizar({ automatico }) {
+    if (!('geolocation' in navigator)) return painel.abrir(AVISOS.semSuporte);
+    botao.setAttribute('aria-busy', 'true');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        botao.removeAttribute('aria-busy');
+        const posicao = L.latLng(coords.latitude, coords.longitude);
+        mostrarPessoa(posicao, 'Você está aqui', coords.accuracy);
+        if (!automatico) {
+          painel.fechar();
+          return irPara(posicao);
+        }
+        if (!regiao.contains(posicao)) return painel.abrir(AVISOS.foraDaRegiao);
+        if (!interagiu()) irPara(posicao);
+      },
+      (erro) => {
+        botao.removeAttribute('aria-busy');
+        if (erro.code !== erro.PERMISSION_DENIED) return painel.abrir(AVISOS.indisponivel);
+        // Recusada antes: o navegador não pergunta de novo, só a pessoa pode liberar.
+        if (!automatico && ultimaPosicao) centralizar(mapa, ultimaPosicao);
+        painel.abrir(automatico ? AVISOS.negada : AVISOS.bloqueada);
+      },
+      { timeout: 10000, maximumAge: 60000 },
+    );
+  }
+
+  const botao = criar('button', 'localizar__botao');
+  botao.type = 'button';
+  botao.title = 'Centralizar na minha localização';
+  botao.setAttribute('aria-label', botao.title);
+  botao.innerHTML = ICONE_LOCALIZAR;
+  botao.addEventListener('click', () => localizar({ automatico: false }));
+  const barra = criar('div', 'leaflet-bar localizar');
+  barra.append(botao);
+  adicionarControle(mapa, barra, 'topleft');
+
+  localizar({ automatico: true });
+}
+
+// Campo para digitar o endereço, sobre o mapa. aoEscolher recebe um L.LatLng.
+function configurarPainelEndereco(mapa, aoEscolher) {
+  const painel = document.getElementById('painel-localizacao');
+  const aviso = painel.querySelector('.painel-localizacao__aviso');
+  const form = painel.querySelector('form');
+  const campo = form.elements.q;
+  const enviar = form.querySelector('[type=submit]');
+  const opcoes = painel.querySelector('.painel-localizacao__opcoes');
+  adicionarControle(mapa, painel, 'topright');
+
+  const abrir = (texto) => {
+    aviso.textContent = texto;
+    opcoes.replaceChildren();
+    painel.hidden = false;
+  };
+  const fechar = () => (painel.hidden = true);
+  const escolher = (resultado) => {
+    aoEscolher(L.latLng(resultado));
+    fechar();
+  };
+
+  painel.querySelector('.painel-localizacao__fechar').addEventListener('click', fechar);
+  form.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    enviar.disabled = true;
+    aviso.textContent = 'Buscando…';
+    opcoes.replaceChildren();
+    try {
+      const resposta = await fetch(`/buscar-endereco?q=${encodeURIComponent(campo.value)}`, {
+        headers: { Accept: 'application/json' },
+      });
+      const dados = await resposta.json();
+      if (!resposta.ok) {
+        aviso.textContent = dados.erro ?? 'Não foi possível buscar.';
+      } else if (dados.resultados.length === 0) {
+        aviso.textContent =
+          'Não encontramos esse endereço no Rio Grande do Sul. Tente incluir o bairro ou a cidade.';
+      } else if (dados.resultados.length === 1) {
+        escolher(dados.resultados[0]);
+      } else {
+        aviso.textContent = 'Escolha o endereço certo:';
+        mostrarOpcoes(dados.resultados);
+      }
+    } catch {
+      aviso.textContent = 'Não foi possível buscar agora. Tente de novo em instantes.';
+    } finally {
+      enviar.disabled = false;
+    }
+  });
+
+  function mostrarOpcoes(resultados) {
+    const lista = criar('ul');
+    for (const resultado of resultados) {
+      const opcao = criar('button', 'painel-localizacao__opcao', resultado.descricao);
+      opcao.type = 'button';
+      opcao.addEventListener('click', () => escolher(resultado));
+      const item = criar('li');
+      item.append(opcao);
+      lista.append(item);
+    }
+    opcoes.replaceChildren(lista);
+  }
+
+  return { abrir, fechar };
+}
+
 // ─── Página do local ────────────────────────────────────────────────────────
 
 function iniciarMapaLocal(el) {
@@ -173,6 +353,22 @@ function criarMapa(elemento, opcoes = {}) {
   return mapa;
 }
 
+function centralizar(mapa, posicao) {
+  mapa.setView(posicao, Math.max(mapa.getZoom(), ZOOM_PESSOA), { animate: false });
+}
+
+// Coloca um elemento nosso como controle do Leaflet, sem que cliques e rolagem
+// dentro dele mexam no mapa.
+function adicionarControle(mapa, elemento, position) {
+  const controle = L.control({ position });
+  controle.onAdd = () => {
+    L.DomEvent.disableClickPropagation(elemento);
+    L.DomEvent.disableScrollPropagation(elemento);
+    return elemento;
+  };
+  controle.addTo(mapa);
+}
+
 // Se a área do mapa muda de tamanho (girar o celular, trocar Mapa/Lista, janela),
 // o Leaflet precisa recalcular. Reenquadra só enquanto a pessoa não mexeu no mapa.
 function reajustarAoRedimensionar(mapa, enquadrar) {
@@ -186,7 +382,10 @@ function reajustarAoRedimensionar(mapa, enquadrar) {
     mapa.invalidateSize();
     if (!pessoaInteragiu) enquadrar();
   }).observe(container);
-  return () => (pessoaInteragiu = true);
+  return {
+    marcarInteracao: () => (pessoaInteragiu = true),
+    interagiu: () => pessoaInteragiu,
+  };
 }
 
 function icone(classe) {

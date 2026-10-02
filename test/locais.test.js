@@ -1,4 +1,4 @@
-import { test, afterEach } from 'node:test';
+import { test, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
@@ -115,4 +115,43 @@ test('GET /locais/:slug responde 404 para local inexistente ou não publicado', 
 
   assert.equal(res.status, 404);
   assert.match(res.text, /Página não encontrada/);
+});
+
+test('GET /buscar-endereco busca só no RS e não exige login', async (t) => {
+  t.after(() => mock.restoreAll());
+  const chamadas = [];
+  mock.method(globalThis, 'fetch', async (url) => {
+    chamadas.push(String(url));
+    return new Response(
+      JSON.stringify([
+        { lat: '-30.04', lon: '-51.22', display_name: 'Cidade Baixa, Porto Alegre' },
+      ]),
+    );
+  });
+
+  const res = await request(app).get('/buscar-endereco?q=Cidade%20Baixa');
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body.resultados, [
+    { lat: -30.04, lng: -51.22, descricao: 'Cidade Baixa, Porto Alegre' },
+  ]);
+  assert.match(chamadas[0], /viewbox=-57\.65%2C-27\.08%2C-49\.69%2C-33\.75/);
+  assert.match(chamadas[0], /bounded=1/);
+
+  const curta = await request(app).get('/buscar-endereco?q=ab');
+  assert.equal(curta.status, 400);
+  assert.equal(chamadas.length, 1); // consulta curta nem chega ao Nominatim
+
+  mock.method(globalThis, 'fetch', async () => new Response('erro', { status: 503 }));
+  mock.method(console, 'error', () => {});
+  const falha = await request(app).get('/buscar-endereco?q=Rua%20B');
+  assert.equal(falha.status, 502);
+});
+
+test('GET / traz o campo de endereço para quando a localização não estiver disponível', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [local()]);
+
+  const res = await request(app).get('/');
+
+  assert.match(res.text, /id="painel-localizacao"[^>]*hidden/);
+  assert.match(res.text, /<input[^>]*id="endereco-pessoa"/);
 });
