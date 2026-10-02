@@ -5,16 +5,16 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 
 ## Decisões tomadas
 
-| Tema                | Decisão                                                                                                    |
-| ------------------- | ----------------------------------------------------------------------------------------------------------- |
-| E-mail              | Nodemailer + SMTP genérico configurável no`.env`. Em desenvolvimento, o código aparece no terminal.    |
-| Anti-robô          | Cloudflare Turnstile. Em desenvolvimento, usa as chaves de teste da Cloudflare.                             |
-| Endereço do local  | Busca no Nominatim (OpenStreetMap) + ajuste do pino arrastando no minimapa.                                 |
-| Papéis             | **Admin**: tudo, incluindo pessoas, categorias e características. **Editor**: locais e envios. |
-| Identidade visual   | Própria: pino + nome, roxo como cor principal, faixa arco-íris discreta. Cores em variáveis CSS.         |
-| Fonte               | Atkinson Hyperlegible, servida pelo próprio site (sem Google Fonts).                                       |
-| Filtro de conteúdo | Marca como "sinalizado" e entrega; nunca bloqueia.                                                          |
-| Aviso à ONG        | Resumo diário por e-mail, só se houver envios novos, sem o conteúdo dos relatos.                         |
+| Tema               | Decisão                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------- |
+| E-mail             | Nodemailer + SMTP genérico configurável no `.env`. Em desenvolvimento, o código aparece no terminal. |
+| Anti-robô          | Cloudflare Turnstile. Em desenvolvimento, usa as chaves de teste da Cloudflare.                      |
+| Endereço do local  | Busca no Nominatim (OpenStreetMap) + ajuste do pino arrastando no minimapa.                          |
+| Papéis             | **Admin**: tudo, incluindo pessoas, categorias e características. **Editor**: locais e envios.       |
+| Identidade visual  | Própria: pino + nome, roxo como cor principal, faixa arco-íris discreta. Cores em variáveis CSS.     |
+| Fonte              | Atkinson Hyperlegible, servida pelo próprio site (sem Google Fonts).                                 |
+| Filtro de conteúdo | Marca como "sinalizado" e entrega; nunca bloqueia.                                                   |
+| Aviso à ONG        | Resumo diário por e-mail, só se houver envios novos, sem o conteúdo dos relatos.                     |
 
 ## Valores padrão (ajustáveis)
 
