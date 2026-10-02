@@ -27,6 +27,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
+    "prepare": "husky",
     "admin:criar": "node scripts/admin-criar.js"
   },
   "dependencies": {
@@ -50,6 +51,8 @@
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
     "prisma": "^7.10.0",
     "supertest": "^7.3.0"

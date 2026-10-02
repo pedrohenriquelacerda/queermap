@@ -144,3 +144,18 @@ src/generated/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configurações pessoais de editor (as recomendações de extensões ficam no git)
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Backups do banco têm dados reais: nunca vão para o git.
+# (Não ignore *.sql: as migrations do Prisma são arquivos .sql.)
+backups/
+*.dump
