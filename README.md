@@ -92,6 +92,11 @@ Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, bloqu
 | `npm run db:deploy`        | Aplica migrations existentes (produção)                 |
 | `npm run db:studio`        | Abre o Prisma Studio para ver e editar os dados         |
 
+### Verificações automáticas
+
+- **Pre-commit** (husky + lint-staged, ativado pelo `npm install`): a cada `git commit`, formata com Prettier os arquivos do commit, roda o ESLint nos `.js`, valida o `schema.prisma` se ele mudou e roda os testes. Se algo falhar, o commit não é feito. Em emergência, `git commit --no-verify` pula as verificações, mas o CI vai pegar o problema.
+- **CI** (GitHub Actions, a cada push e PR): as mesmas verificações no projeto inteiro, mais as migrations num Postgres vazio e o gitleaks (segredos expostos).
+
 ## Estrutura
 
 ```
