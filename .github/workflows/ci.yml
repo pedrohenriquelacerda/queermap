@@ -1,0 +1,47 @@
+name: ci
+on: [pull_request, push]
+jobs:
+  # Lint, formatação, schema do Prisma e testes (os testes simulam o Prisma, sem banco).
+  qualidade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npx prisma validate
+      - run: npm test
+
+  # Aplica as migrations num Postgres vazio e confere se batem com o schema.prisma.
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: queermap
+          POSTGRES_PASSWORD: queermap
+          POSTGRES_DB: queermap
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U queermap -d queermap"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://queermap:queermap@localhost:5432/queermap
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:deploy
+      - run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+      - run: npm run db:seed
