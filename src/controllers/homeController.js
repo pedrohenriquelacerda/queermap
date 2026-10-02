@@ -2,10 +2,17 @@ import * as locaisService from '../services/locaisService.js';
 import * as fmt from '../utils/formatadores.js';
 
 export async function index(req, res) {
-  const locais = await locaisService.listarPublicados();
+  const [locais, todasCategorias] = await Promise.all([
+    locaisService.listarPublicados(),
+    locaisService.listarCategoriasAtivas(),
+  ]);
 
-  // Filtros só com opções que têm pelo menos um local (sem consultas extras).
-  const categorias = unicos(locais.map((l) => l.categoria)).sort((a, b) => a.ordem - b.ordem);
+  // Tipos de serviço: todos, com quantos locais cada um tem (pode ser zero).
+  const categorias = todasCategorias.map((c) => ({
+    ...c,
+    total: locais.filter((l) => l.categoria.slug === c.slug).length,
+  }));
+  // Características: só as que têm pelo menos um local.
   const caracteristicas = unicos(locais.flatMap((l) => l.caracteristicas)).sort((a, b) =>
     a.nome.localeCompare(b.nome, 'pt-BR'),
   );

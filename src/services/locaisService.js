@@ -39,6 +39,15 @@ export function listarPublicados() {
   });
 }
 
+// Todas as categorias ativas, mesmo sem locais: o filtro do mapa sempre mostra todas.
+export function listarCategoriasAtivas() {
+  return prisma.categoria.findMany({
+    where: { ativa: true },
+    select: { nome: true, slug: true, icone: true, ordem: true },
+    orderBy: [{ ordem: 'asc' }, { nome: 'asc' }],
+  });
+}
+
 export function buscarPublicadoPorSlug(slug) {
   return prisma.local.findFirst({
     where: { ...visivel, slug },
