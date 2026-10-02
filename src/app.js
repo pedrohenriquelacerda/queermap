@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import session from 'express-session';
 import { rateLimit } from 'express-rate-limit';
 import { env } from './config/env.js';
-import routes from './routes/index.js';
+import rotas from './routes/index.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { verificarOrigem } from './middlewares/origem.js';
@@ -92,7 +92,7 @@ export function createApp({ sessionStore } = {}) {
   );
 
   app.use(verificarOrigem); // CSRF: envios só a partir do próprio site
-  app.use(routes);
+  app.use(rotas());
 
   app.use(notFound);
   app.use(errorHandler);

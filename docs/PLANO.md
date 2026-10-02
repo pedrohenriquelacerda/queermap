@@ -55,7 +55,7 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 
 ### F5 · Envios do público ✅
 
-- Formulário: sugestão de local, elogio, reclamação ou discriminação (opcionalmente sobre um local).
+- Formulário: sugestão de local (nome, tipo, endereço e contato, todos obrigatórios) ou elogio, reclamação ou discriminação (sobre um local do mapa ou outro lugar, com o nome).
 - Confirmação por código no e-mail + Turnstile.
 - Limite por pessoa (hash do e-mail, 30 dias) e filtro de conteúdo.
 - Opção "quero ser contatada" (só então o e-mail é salvo).

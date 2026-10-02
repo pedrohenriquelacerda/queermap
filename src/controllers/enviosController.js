@@ -13,15 +13,24 @@ export const TIPOS = {
   DISCRIMINACAO: { rotulo: 'Discriminação', ajuda: 'Você sofreu preconceito ou violência.' },
 };
 
+// No relato, a pessoa escolhe um local do mapa ou "outro lugar" e digita o nome.
+export const OUTRO_LUGAR = 'outro';
+
+const id = () =>
+  z
+    .string()
+    .optional()
+    .transform((v) => (/^\d+$/.test(v ?? '') ? Number(v) : null));
+
 const esquema = z
   .object({
     tipo: z.enum(Object.keys(TIPOS), { error: 'Escolha o que você quer enviar.' }),
-    localId: z
-      .string()
-      .optional()
-      .transform((v) => (/^\d+$/.test(v ?? '') ? Number(v) : null)),
+    localId: z.string().optional(),
+    nomeLocalRelato: textoOpcional(150),
     nomeLocalSugerido: textoOpcional(150),
+    categoriaSugeridaId: id(),
     enderecoLocalSugerido: textoOpcional(300),
+    contatoLocalSugerido: textoOpcional(200),
     mensagem: z
       .string({ error: 'Escreva sua mensagem.' })
       .trim()
@@ -31,12 +40,18 @@ const esquema = z
     desejaContato: caixa(),
   })
   .superRefine((d, ctx) => {
-    if (d.tipo === 'SUGESTAO_LOCAL' && !d.nomeLocalSugerido) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['nomeLocalSugerido'],
-        message: 'Informe o nome do local sugerido.',
-      });
+    const erro = (campo, message) => ctx.addIssue({ code: 'custom', path: [campo], message });
+    if (d.tipo === 'SUGESTAO_LOCAL') {
+      if (!d.nomeLocalSugerido) erro('nomeLocalSugerido', 'Informe o nome do local sugerido.');
+      if (!d.categoriaSugeridaId) erro('categoriaSugeridaId', 'Escolha o tipo de serviço.');
+      if (!d.enderecoLocalSugerido) erro('enderecoLocalSugerido', 'Informe o endereço do local.');
+      if (!d.contatoLocalSugerido) {
+        erro('contatoLocalSugerido', 'Informe um telefone, site ou e-mail do local.');
+      }
+    } else if (d.localId === OUTRO_LUGAR) {
+      if (!d.nomeLocalRelato) erro('nomeLocalRelato', 'Informe o nome do lugar.');
+    } else if (!/^\d+$/.test(d.localId ?? '')) {
+      erro('localId', 'Escolha o local ou "Outro lugar".');
     }
   });
 
@@ -51,28 +66,49 @@ const MENSAGENS_CODIGO = {
 // ─── Passo 1: formulário ────────────────────────────────────────────────────
 
 export async function formulario(req, res) {
-  const locais = await envios.locaisParaSelecao();
+  const [locais, categorias] = await Promise.all([
+    envios.locaisParaSelecao(),
+    envios.categoriasParaSelecao(),
+  ]);
   const pendente = req.session.envioPendente?.dados ?? {};
   const doLocal = locais.find((l) => l.slug === req.query.local);
   const valores = {
     tipo: doLocal ? 'RECLAMACAO' : '',
     ...pendente,
-    localId: doLocal?.id ?? pendente.localId ?? '',
+    localId: doLocal?.id ?? pendente.localId ?? (pendente.nomeLocalRelato ? OUTRO_LUGAR : ''),
   };
-  renderizar(res, { valores, locais });
+  renderizar(res, { valores, locais, categorias });
 }
 
 export async function enviar(req, res) {
-  const locais = await envios.locaisParaSelecao();
+  const [locais, categorias] = await Promise.all([
+    envios.locaisParaSelecao(),
+    envios.categoriasParaSelecao(),
+  ]);
   const { dados, erros } = validar(esquema, req.body);
   const valores = { ...req.body, email: '' }; // nunca reexibe o e-mail
-  if (erros) return renderizar(res.status(400), { valores, locais, erros });
+  const formulario = { valores, locais, categorias };
+  if (erros) return renderizar(res.status(400), { ...formulario, erros });
 
-  if (dados.localId && !locais.some((l) => l.id === dados.localId)) dados.localId = null;
+  const ehSugestao = dados.tipo === 'SUGESTAO_LOCAL';
+  // Os ids vêm do navegador: só valem os que estão na lista mostrada.
+  const localId = ehSugestao || dados.localId === OUTRO_LUGAR ? null : Number(dados.localId);
+  if (localId !== null && !locais.some((l) => l.id === localId)) {
+    return renderizar(res.status(400), {
+      ...formulario,
+      erros: { localId: 'Escolha o local ou "Outro lugar".' },
+    });
+  }
+  if (ehSugestao && !categorias.some((c) => c.id === dados.categoriaSugeridaId)) {
+    return renderizar(res.status(400), {
+      ...formulario,
+      erros: { categoriaSugeridaId: 'Escolha o tipo de serviço.' },
+    });
+  }
+
   if (!(await verificarHumano(req.body['cf-turnstile-response'], req.ip))) {
     return renderizar(res.status(400), {
-      valores,
-      locais,
+      ...formulario,
       erroGeral: 'Não conseguimos confirmar que você não é um robô. Tente de novo.',
     });
   }
@@ -80,13 +116,11 @@ export async function enviar(req, res) {
   const emailHash = hashEmail(dados.email);
   if (await envios.atingiuLimite(emailHash)) {
     return renderizar(res.status(429), {
-      valores,
-      locais,
+      ...formulario,
       erroGeral: `Este e-mail já fez ${envios.LIMITE_ENVIOS} envios nos últimos ${envios.JANELA_DIAS} dias. Tente de novo mais tarde.`,
     });
   }
 
-  const ehSugestao = dados.tipo === 'SUGESTAO_LOCAL';
   const { verificacaoId, codigo } = await envios.criarVerificacao(emailHash);
   await enviarEmail({
     para: dados.email,
@@ -107,9 +141,12 @@ export async function enviar(req, res) {
     emailMascarado: mascararEmail(dados.email),
     dados: {
       tipo: dados.tipo,
-      localId: ehSugestao ? null : dados.localId,
+      localId,
+      nomeLocalRelato: ehSugestao || localId ? null : dados.nomeLocalRelato,
       nomeLocalSugerido: ehSugestao ? dados.nomeLocalSugerido : null,
+      categoriaSugeridaId: ehSugestao ? dados.categoriaSugeridaId : null,
       enderecoLocalSugerido: ehSugestao ? dados.enderecoLocalSugerido : null,
+      contatoLocalSugerido: ehSugestao ? dados.contatoLocalSugerido : null,
       mensagem: dados.mensagem,
       desejaContato: dados.desejaContato,
       emailContato: dados.desejaContato ? dados.email : null,
@@ -144,8 +181,9 @@ export async function confirmar(req, res) {
   }
 
   const { dados } = pendente;
+  // O contato do local fica de fora: um site ali é esperado e não deve sinalizar "contém link".
   const filtro = analisar(
-    [dados.nomeLocalSugerido, dados.enderecoLocalSugerido, dados.mensagem]
+    [dados.nomeLocalRelato, dados.nomeLocalSugerido, dados.enderecoLocalSugerido, dados.mensagem]
       .filter(Boolean)
       .join('\n'),
   );
@@ -163,13 +201,15 @@ export function obrigado(req, res) {
   res.render('envios/obrigado', { title: 'Envio recebido', tipo });
 }
 
-function renderizar(res, { valores, locais, erros = {}, erroGeral = null }) {
+function renderizar(res, { valores, locais, categorias, erros = {}, erroGeral = null }) {
   res.render('envios/form', {
     title: 'Enviar sugestão ou relato',
     descricao: 'Sugira um local para o mapa ou conte à ONG Somos como foi um atendimento.',
     tipos: TIPOS,
+    outroLugar: OUTRO_LUGAR,
     valores,
     locais,
+    categorias,
     erros,
     erroGeral,
     turnstileSiteKey: env.turnstile.siteKey,

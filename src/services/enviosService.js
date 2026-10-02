@@ -56,6 +56,14 @@ export function registrar(dados, emailHash) {
   ]);
 }
 
+export function categoriasParaSelecao() {
+  return prisma.categoria.findMany({
+    where: { ativa: true },
+    select: { id: true, nome: true },
+    orderBy: [{ ordem: 'asc' }, { nome: 'asc' }],
+  });
+}
+
 export function locaisParaSelecao() {
   return prisma.local.findMany({
     where: { publicado: true, arquivadoEm: null },
