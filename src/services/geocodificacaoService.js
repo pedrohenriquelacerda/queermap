@@ -9,7 +9,11 @@ const URL_NOMINATIM = 'https://nominatim.openstreetmap.org/search';
 const INTERVALO_MS = 1100;
 let proximaLiberada = 0;
 
-export async function buscarEndereco(consulta) {
+// Retângulo do Rio Grande do Sul (oeste, norte, leste, sul), para a busca do mapa público.
+export const REGIAO_RS = '-57.65,-27.08,-49.69,-33.75';
+
+// Com `regiao`, só devolve resultados dentro do retângulo.
+export async function buscarEndereco(consulta, { regiao } = {}) {
   const agora = Date.now();
   const espera = Math.max(0, proximaLiberada - agora);
   proximaLiberada = Math.max(agora, proximaLiberada) + INTERVALO_MS;
@@ -23,6 +27,10 @@ export async function buscarEndereco(consulta) {
     limit: '5',
     'accept-language': 'pt-BR',
   });
+  if (regiao) {
+    url.searchParams.set('viewbox', regiao);
+    url.searchParams.set('bounded', '1');
+  }
 
   const resposta = await fetch(url, {
     headers: { 'User-Agent': `MapaSerQueer/0.1 (${env.siteUrl})` },

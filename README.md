@@ -136,4 +136,5 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - `GET /health` verifica se o servidor e o banco estão respondendo.
 - A página inicial já vem com a lista de locais pronta do servidor (funciona sem JavaScript); o `mapa.js` só filtra e desenha os marcadores. Os filtros ficam na URL, então dá para compartilhar um link como `/?car=oferece-prep`.
 - Cada local publicado tem sua página em `/locais/<slug>`.
+- Ao abrir, o mapa pede a localização ao navegador e centraliza na pessoa (só dentro da Grande Porto Alegre). A posição nunca sai do navegador. Sem permissão, aparece um campo de endereço que usa `GET /buscar-endereco` (Nominatim, só no RS, 20 buscas a cada 15 min por IP). O GPS só funciona em `localhost` ou HTTPS.
 - Os locais de exemplo começam com "[Exemplo]" e não podem ser inseridos com `NODE_ENV=production`.

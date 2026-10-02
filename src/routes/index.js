@@ -24,12 +24,24 @@ const limite = (minutos, limit) =>
     },
   });
 
+// Busca de endereço do mapa: cada consulta vai ao Nominatim, que aceita 1 por segundo
+// para o site todo. O limite por IP evita que uma pessoa ocupe a fila.
+const limiteBusca = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  handler: (req, res) =>
+    res.status(429).json({ erro: 'Muitas buscas seguidas. Aguarde alguns minutos.' }),
+});
+
 router.get('/', homeController.index);
 router.get('/sobre', paginasController.sobre);
 router.get('/canais-de-denuncia', paginasController.canais);
 router.get('/privacidade', paginasController.privacidade);
 router.get('/health', healthController.check);
 router.get('/locais/:slug', locaisController.mostrar);
+router.get('/buscar-endereco', limiteBusca, locaisController.buscarEndereco);
 router.get('/enviar', enviosController.formulario);
 router.post('/enviar', limite(60, 10), enviosController.enviar);
 router.get('/enviar/confirmar', enviosController.formularioCodigo);
