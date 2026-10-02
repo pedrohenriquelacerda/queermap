@@ -8,7 +8,7 @@ import { analisar } from '../src/utils/filtroConteudo.js';
 import { hashEmail } from '../src/utils/hash.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 
-const app = createApp();
+let app; // um por teste: os limites por IP começam do zero
 let verificacoes;
 let envios;
 let registros;
@@ -16,6 +16,7 @@ let emails; // e-mails "enviados" (capturados do modo desenvolvimento)
 let turnstileAprova;
 
 beforeEach(() => {
+  app = createApp();
   verificacoes = [];
   envios = [];
   registros = [];
@@ -25,6 +26,7 @@ beforeEach(() => {
   mockPrisma(prisma.local, 'findMany', async () => [
     { id: 4, nome: 'SAE Teste', slug: 'sae-teste', bairro: 'Centro' },
   ]);
+  mockPrisma(prisma.categoria, 'findMany', async () => [{ id: 2, nome: 'Ambulatório trans' }]);
   mockPrisma(
     prisma.registroEnvio,
     'count',
@@ -122,21 +124,68 @@ test('relato de discriminação mostra os canais oficiais no final', async () =>
   assert.match(obrigado.text, /href="tel:136"/);
 });
 
-test('sugestão de local exige o nome e ignora o local selecionado', async () => {
+const sugestao = {
+  ...relato,
+  tipo: 'SUGESTAO_LOCAL',
+  nomeLocalSugerido: 'Casa Nova',
+  categoriaSugeridaId: '2',
+  enderecoLocalSugerido: 'Rua da República, 100, Cidade Baixa',
+  contatoLocalSugerido: 'https://casanova.example',
+};
+
+test('sugestão de local exige nome, tipo, endereço e contato', async () => {
   const agente = request.agent(app);
-  const semNome = await enviar(agente, '/enviar', { ...relato, tipo: 'SUGESTAO_LOCAL' });
-  assert.equal(semNome.status, 400);
-  assert.match(semNome.text, /Informe o nome do local sugerido/);
-  assert.doesNotMatch(semNome.text, /Pessoa@Teste/); // não reexibe o e-mail
+  const semNada = await enviar(agente, '/enviar', { ...relato, tipo: 'SUGESTAO_LOCAL' });
+  assert.equal(semNada.status, 400);
+  assert.match(semNada.text, /Informe o nome do local sugerido/);
+  assert.match(semNada.text, /Escolha o tipo de serviço/);
+  assert.match(semNada.text, /Informe o endereço do local/);
+  assert.match(semNada.text, /Informe um telefone, site ou e-mail do local/);
+  assert.doesNotMatch(semNada.text, /Pessoa@Teste/); // não reexibe o e-mail
+
+  const categoriaInexistente = await enviar(agente, '/enviar', {
+    ...sugestao,
+    categoriaSugeridaId: '99',
+  });
+  assert.equal(categoriaInexistente.status, 400);
+  assert.match(categoriaInexistente.text, /Escolha o tipo de serviço/);
+  assert.equal(emails.length, 0);
+});
+
+test('sugestão completa é salva sem o local selecionado e sem sinalizar o site', async () => {
+  const agente = request.agent(app);
+  await enviar(agente, '/enviar', sugestao);
+  await enviar(agente, '/enviar/confirmar', { codigo: codigoDoEmail() });
+  assert.equal(envios[0].nomeLocalSugerido, 'Casa Nova');
+  assert.equal(envios[0].categoriaSugeridaId, 2);
+  assert.equal(envios[0].enderecoLocalSugerido, 'Rua da República, 100, Cidade Baixa');
+  assert.equal(envios[0].contatoLocalSugerido, 'https://casanova.example');
+  assert.equal(envios[0].localId, null);
+  assert.equal(envios[0].sinalizado, false); // site no contato não conta como link suspeito
+});
+
+test('relato exige o local: um do mapa ou "Outro lugar" com o nome', async () => {
+  const agente = request.agent(app);
+  const semLocal = await enviar(agente, '/enviar', { ...relato, localId: '' });
+  assert.equal(semLocal.status, 400);
+  assert.match(semLocal.text, /Escolha o local ou &#34;Outro lugar&#34;/);
+
+  const localInexistente = await enviar(agente, '/enviar', { ...relato, localId: '99' });
+  assert.equal(localInexistente.status, 400);
+
+  const outroSemNome = await enviar(agente, '/enviar', { ...relato, localId: 'outro' });
+  assert.equal(outroSemNome.status, 400);
+  assert.match(outroSemNome.text, /Informe o nome do lugar/);
+  assert.equal(emails.length, 0);
 
   await enviar(agente, '/enviar', {
     ...relato,
-    tipo: 'SUGESTAO_LOCAL',
-    nomeLocalSugerido: 'Casa Nova',
+    localId: 'outro',
+    nomeLocalRelato: 'UBS Santa Cecília',
   });
   await enviar(agente, '/enviar/confirmar', { codigo: codigoDoEmail() });
-  assert.equal(envios[0].nomeLocalSugerido, 'Casa Nova');
   assert.equal(envios[0].localId, null);
+  assert.equal(envios[0].nomeLocalRelato, 'UBS Santa Cecília');
 });
 
 test('sem passar no anti-robô não envia código', async () => {

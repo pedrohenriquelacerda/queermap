@@ -72,6 +72,7 @@ model Categoria {
   ordem  Int     @default(0)
   ativa  Boolean @default(true)
   locais Local[]
+  envios Envio[] // sugestões de local com esta categoria
 
   @@map("categoria")
 }
@@ -163,9 +164,14 @@ model Envio {
   localId  Int?        @map("local_id") // relato sobre um local já cadastrado
   mensagem String
 
-  // Preenchidos quando tipo = SUGESTAO_LOCAL
+  // Relato sobre um lugar que não está no mapa (no lugar de localId)
+  nomeLocalRelato String? @map("nome_local_relato")
+
+  // Preenchidos quando tipo = SUGESTAO_LOCAL (obrigatórios no formulário)
   nomeLocalSugerido     String? @map("nome_local_sugerido")
+  categoriaSugeridaId   Int?    @map("categoria_sugerida_id")
   enderecoLocalSugerido String? @map("endereco_local_sugerido")
+  contatoLocalSugerido  String? @map("contato_local_sugerido") // telefone, site ou e-mail do local
 
   // Contato opcional: só é salvo se a pessoa marcar que deseja ser contatada.
   desejaContato Boolean @default(false) @map("deseja_contato")
@@ -181,7 +187,8 @@ model Envio {
   criadoEm      DateTime  @default(now()) @map("criado_em")
   atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
 
-  local Local? @relation(fields: [localId], references: [id], onDelete: SetNull)
+  local             Local?     @relation(fields: [localId], references: [id], onDelete: SetNull)
+  categoriaSugerida Categoria? @relation(fields: [categoriaSugeridaId], references: [id], onDelete: SetNull)
 
   @@index([status, criadoEm])
   @@index([tipo])

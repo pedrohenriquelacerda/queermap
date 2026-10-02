@@ -2,8 +2,13 @@
 <%
   const campo = (dados) => include('../partials/campo', { erros, ...dados });
   const opcoesLocal = [
-    { valor: '', texto: 'Nenhum local específico' },
+    { valor: '', texto: 'Escolha o local' },
     ...locais.map((l) => ({ valor: l.id, texto: l.bairro ? `${l.nome} (${l.bairro})` : l.nome })),
+    { valor: outroLugar, texto: 'Outro lugar (não está no mapa)' },
+  ];
+  const opcoesCategoria = [
+    { valor: '', texto: 'Escolha o tipo de serviço' },
+    ...categorias.map((c) => ({ valor: c.id, texto: c.nome })),
   ];
 %>
 <main id="conteudo" class="conteudo texto">
@@ -43,12 +48,17 @@
     </div>
 
     <div data-se-tipo="SUGESTAO_LOCAL">
-      <%- campo({ nome: 'nomeLocalSugerido', rotulo: 'Nome do local sugerido', valor: valores.nomeLocalSugerido, ajuda: 'Só para sugestão de local novo.', attrs: { maxlength: 150 } }) %>
-      <%- campo({ nome: 'enderecoLocalSugerido', rotulo: 'Endereço ou região', valor: valores.enderecoLocalSugerido, opcional: true, attrs: { maxlength: 300 } }) %>
+      <%- campo({ nome: 'nomeLocalSugerido', rotulo: 'Nome do local sugerido', valor: valores.nomeLocalSugerido, attrs: { required: true, maxlength: 150 } }) %>
+      <%- campo({ nome: 'categoriaSugeridaId', rotulo: 'Tipo de serviço', tipo: 'select', valor: valores.categoriaSugeridaId, opcoes: opcoesCategoria, attrs: { required: true } }) %>
+      <%- campo({ nome: 'enderecoLocalSugerido', rotulo: 'Endereço do local', valor: valores.enderecoLocalSugerido, ajuda: 'Rua e número. Se não souber, o bairro e a cidade.', attrs: { required: true, maxlength: 300 } }) %>
+      <%- campo({ nome: 'contatoLocalSugerido', rotulo: 'Contato do local', valor: valores.contatoLocalSugerido, ajuda: 'Telefone, site, e-mail ou rede social do local.', attrs: { required: true, maxlength: 200 } }) %>
     </div>
 
     <div data-se-tipo="ELOGIO RECLAMACAO DISCRIMINACAO">
-      <%- campo({ nome: 'localId', rotulo: 'Sobre qual local?', tipo: 'select', valor: valores.localId, opcoes: opcoesLocal, opcional: true }) %>
+      <%- campo({ nome: 'localId', rotulo: 'Sobre qual local?', tipo: 'select', valor: valores.localId, opcoes: opcoesLocal, attrs: { required: true } }) %>
+      <div data-se-outro-lugar>
+        <%- campo({ nome: 'nomeLocalRelato', rotulo: 'Nome do lugar', valor: valores.nomeLocalRelato, ajuda: 'Só se escolheu "Outro lugar". Ex.: UBS Santa Cecília, Hospital X.', attrs: { maxlength: 150 } }) %>
+      </div>
     </div>
 
     <%- campo({ nome: 'mensagem', rotulo: 'Sua mensagem', tipo: 'textarea', valor: valores.mensagem, ajuda: 'Conte o que aconteceu ou por que o local deveria estar no mapa. Até 2.000 caracteres.', attrs: { required: true, minlength: 10, maxlength: 2000, rows: 6 } }) %>
