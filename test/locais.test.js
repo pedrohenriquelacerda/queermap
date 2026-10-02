@@ -1,4 +1,4 @@
-import { test, afterEach, mock } from 'node:test';
+import { test, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
@@ -6,6 +6,22 @@ import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 
 const app = createApp();
+
+// As cinco categorias do seed; o filtro do mapa mostra todas, mesmo sem locais.
+const categorias = [
+  { nome: 'Ambulatório trans', slug: 'ambulatorio-trans', icone: 'ambulatorio', ordem: 0 },
+  { nome: 'ONG / coletivo LGBTQIA+', slug: 'ong', icone: 'ong', ordem: 1 },
+  {
+    nome: 'Saúde sexual e prevenção (SAE, PEP, PrEP)',
+    slug: 'saude-sexual',
+    icone: 'saude-sexual',
+    ordem: 2,
+  },
+  { nome: 'Abrigo / albergue', slug: 'abrigo', icone: 'abrigo', ordem: 3 },
+  { nome: 'Casa de acolhimento', slug: 'casa-acolhimento', icone: 'acolhimento', ordem: 4 },
+];
+
+beforeEach(() => mockPrisma(prisma.categoria, 'findMany', async () => categorias));
 afterEach(restaurarPrisma);
 
 function local(extra = {}) {
@@ -40,7 +56,7 @@ function local(extra = {}) {
   };
 }
 
-test('GET / lista os locais publicados e só filtros com resultados', async () => {
+test('GET / lista os locais publicados', async () => {
   const findMany = mockPrisma(prisma.local, 'findMany', async () => [local()]);
 
   const res = await request(app).get('/');
@@ -52,9 +68,36 @@ test('GET / lista os locais publicados e só filtros com resultados', async () =
   });
   assert.match(res.text, /class="cartao-local"/);
   assert.match(res.text, /href="\/locais\/ambulatorio-teste"/);
-  assert.match(res.text, /name="tipo" value="ambulatorio-trans"/);
   assert.match(res.text, /name="car" value="oferece-prep"/);
   assert.match(res.text, /1 local\b/);
+});
+
+test('GET / mostra as cinco categorias no filtro, com a quantidade de locais de cada', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [local()]);
+
+  const res = await request(app).get('/');
+
+  for (const c of categorias) {
+    assert.match(res.text, new RegExp(`name="tipo" value="${c.slug}"`));
+    assert.match(res.text, new RegExp(`data-atalho-tipo="${c.slug}"`)); // atalho do celular
+  }
+  const total = (slug) =>
+    res.text.match(new RegExp(`value="${slug}" />[\\s\\S]*?opcao__total">\\((\\d+)\\)`))[1];
+  assert.equal(total('ambulatorio-trans'), '1');
+  assert.equal(total('abrigo'), '0'); // aparece mesmo sem locais
+  assert.match(res.text, /<details class="filtros__grupo" open>\s*<summary>Tipo de serviço/);
+});
+
+test('GET / filtro de características mostra só as que têm locais', async () => {
+  mockPrisma(prisma.caracteristica, 'findMany', async () => {
+    throw new Error('não deve consultar características à parte');
+  });
+  mockPrisma(prisma.local, 'findMany', async () => [local()]);
+
+  const res = await request(app).get('/');
+
+  assert.match(res.text, /name="car" value="oferece-prep"/);
+  assert.equal(res.text.match(/name="car"/g).length, 1);
 });
 
 test('GET / não expõe campos internos do local', async () => {

@@ -337,6 +337,64 @@
   color: var(--cor-primaria);
 }
 
+.opcao__total {
+  color: var(--cor-suave);
+}
+
+/* Faixa de tipos sobre o mapa: só no celular, no modo mapa (veja o @media abaixo). */
+.atalhos-tipo {
+  display: none;
+}
+
+.atalhos-tipo__botoes {
+  display: flex;
+  gap: var(--esp-2);
+  padding-bottom: var(--esp-1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  touch-action: pan-x;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+.atalhos-tipo__botoes[data-no-fim] {
+  mask-image: none;
+}
+
+.atalhos-tipo__botoes[data-arrastando] {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.atalho-tipo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: 2.25rem;
+  padding: var(--esp-1) var(--esp-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.atalho-tipo[aria-pressed='true'] {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+.atalhos-tipo__vazio {
+  margin: var(--esp-2) 0 0;
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+}
+
 .resultado {
   display: flex;
   align-items: center;
@@ -405,7 +463,7 @@
 /* Celular: alterna entre Mapa e Lista */
 @media (max-width: 47.99rem) {
   .pagina--mapa > main.explorar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto 1fr;
   }
 
@@ -436,6 +494,18 @@
   .explorar[data-modo='mapa'] .lateral,
   .explorar[data-modo='lista'] .mapa {
     display: none;
+  }
+
+  /* Modo mapa com os atalhos visíveis: mais uma linha entre os botões e o mapa */
+  .pagina--mapa > main.explorar[data-modo='mapa']:has(.atalhos-tipo:not([hidden])) {
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .explorar[data-modo='mapa'] .atalhos-tipo {
+    display: block;
+    padding: var(--esp-2) var(--esp-3) var(--esp-1);
+    border-bottom: 1px solid var(--cor-borda);
+    background: var(--cor-superficie);
   }
 
   .lateral {

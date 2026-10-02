@@ -7,6 +7,22 @@
     </button>
   </div>
 
+  <% if (locais.length > 0) { %>
+  <%# Atalhos do filtro de tipo sobre o mapa, no celular (o mapa.js mostra e liga às caixas). %>
+  <div class="atalhos-tipo" id="atalhos-tipo" hidden>
+    <div class="atalhos-tipo__botoes" role="group" aria-label="Filtrar por tipo de serviço">
+      <% for (const c of categorias) { %>
+      <button type="button" class="atalho-tipo" data-atalho-tipo="<%= c.slug %>" aria-pressed="false">
+        <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
+        <%= c.nome %>
+      </button>
+      <% } %>
+    </div>
+    <%# A lista fica escondida no modo mapa: o aviso de "nenhum local" aparece aqui também. %>
+    <p class="atalhos-tipo__vazio" data-aviso-vazio role="status" hidden></p>
+  </div>
+  <% } %>
+
   <aside class="lateral" aria-labelledby="titulo-lista">
     <div class="lateral__topo">
       <h1 id="titulo-lista" class="lateral__titulo">Espaços de cuidado em Porto Alegre</h1>
@@ -24,13 +40,15 @@
           />
         </div>
 
-        <details class="filtros__grupo">
+        <%# Aberto por padrão: o tipo de serviço é o filtro principal. %>
+        <details class="filtros__grupo" open>
           <summary>Tipo de serviço <span class="filtros__contador" data-contador="tipo"></span></summary>
           <% for (const c of categorias) { %>
           <label class="opcao">
             <input type="checkbox" name="tipo" value="<%= c.slug %>" />
             <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
             <%= c.nome %>
+            <span class="opcao__total">(<%= c.total %>)</span>
           </label>
           <% } %>
         </details>
@@ -89,7 +107,7 @@
       </li>
       <% } %>
     </ul>
-    <p class="lateral__vazio" id="lista-vazia" hidden>
+    <p class="lateral__vazio" id="lista-vazia" data-aviso-vazio role="status" hidden>
       Nenhum local encontrado com esses filtros.
     </p>
     <% } %>

@@ -100,8 +100,10 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   const busca = form.elements.q;
   const itens = [...document.querySelectorAll('.cartao-local')];
   const contagem = document.getElementById('contagem');
-  const vazio = document.getElementById('lista-vazia');
+  const avisosVazio = document.querySelectorAll('[data-aviso-vazio]');
   const limpar = document.getElementById('limpar');
+  const atalhos = document.querySelectorAll('[data-atalho-tipo]');
+  const caixaDoTipo = (slug) => form.querySelector(`input[name=tipo][value="${slug}"]`);
 
   // Restaura filtros da URL (link compartilhável).
   const params = new URLSearchParams(location.search);
@@ -135,7 +137,14 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     }
 
     contagem.textContent = `${visiveis} ${visiveis === 1 ? 'local' : 'locais'}`;
-    vazio.hidden = visiveis > 0;
+    const mensagem = mensagemVazio({ termos, tipos, caracteristicas });
+    for (const aviso of avisosVazio) {
+      aviso.textContent = mensagem;
+      aviso.hidden = visiveis > 0;
+    }
+    for (const atalho of atalhos) {
+      atalho.setAttribute('aria-pressed', String(tipos.includes(atalho.dataset.atalhoTipo)));
+    }
     const temFiltro = termos.length > 0 || tipos.length > 0 || caracteristicas.length > 0;
     limpar.hidden = !temFiltro;
     atualizarContador('tipo', tipos.length);
@@ -152,6 +161,20 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   // Na digitação, não reenquadra a cada letra (o mapa ficaria pulando).
   busca.addEventListener('input', () => aplicar({ reenquadrar: false }));
   busca.addEventListener('search', () => aplicar());
+  // Atalhos sobre o mapa (celular): marcam/desmarcam a caixa correspondente do filtro.
+  for (const atalho of atalhos) {
+    atalho.addEventListener('click', () => {
+      const caixa = caixaDoTipo(atalho.dataset.atalhoTipo);
+      caixa.checked = !caixa.checked;
+      aplicar();
+    });
+  }
+  const barraAtalhos = document.getElementById('atalhos-tipo');
+  if (barraAtalhos) {
+    barraAtalhos.hidden = false; // só funcionam com JavaScript
+    faixaRolavel(barraAtalhos.querySelector('.atalhos-tipo__botoes'));
+  }
+
   limpar.addEventListener('click', () => {
     form.reset();
     busca.value = '';
@@ -167,9 +190,76 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   aplicar({ reenquadrar: params.size > 0 });
 }
 
+function faixaRolavel(faixa) {
+  const atualizarFim = () =>
+    faixa.toggleAttribute(
+      'data-no-fim',
+      faixa.scrollLeft + faixa.clientWidth >= faixa.scrollWidth - 2,
+    );
+  faixa.addEventListener('scroll', atualizarFim, { passive: true });
+  new ResizeObserver(atualizarFim).observe(faixa);
+
+  faixa.addEventListener(
+    'wheel',
+    (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      faixa.scrollLeft += e.deltaY;
+      e.preventDefault();
+    },
+    { passive: false },
+  );
+
+  let inicio = null;
+  let arrastou = false;
+  faixa.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    inicio = { x: e.clientX, scroll: faixa.scrollLeft };
+    arrastou = false;
+  });
+  faixa.addEventListener('pointermove', (e) => {
+    if (!inicio) return;
+    const dx = e.clientX - inicio.x;
+    if (!arrastou && Math.abs(dx) < 5) return; // ainda é um clique
+    if (!arrastou) {
+      arrastou = true;
+      faixa.setPointerCapture(e.pointerId);
+      faixa.toggleAttribute('data-arrastando', true);
+    }
+    faixa.scrollLeft = inicio.scroll - dx;
+  });
+  const soltar = () => {
+    inicio = null;
+    faixa.removeAttribute('data-arrastando');
+  };
+  faixa.addEventListener('pointerup', soltar);
+  faixa.addEventListener('pointercancel', soltar);
+  faixa.addEventListener(
+    'click',
+    (e) => {
+      if (!arrastou) return;
+      arrastou = false;
+      e.stopPropagation();
+      e.preventDefault();
+    },
+    true,
+  );
+}
+
+// Quando só o tipo de serviço está filtrando, a mensagem fala da categoria.
+function mensagemVazio({ termos, tipos, caracteristicas }) {
+  if (tipos.length > 0 && termos.length === 0 && caracteristicas.length === 0) {
+    return tipos.length === 1
+      ? 'Nenhum local encontrado para esta categoria.'
+      : 'Nenhum local encontrado para estas categorias.';
+  }
+  return 'Nenhum local encontrado com esses filtros.';
+}
+
+// Pode haver mais de um contador por filtro (lateral e menu do celular).
 function atualizarContador(nome, quantidade) {
-  const el = document.querySelector(`[data-contador="${nome}"]`);
-  if (el) el.textContent = quantidade > 0 ? `(${quantidade})` : '';
+  for (const el of document.querySelectorAll(`[data-contador="${nome}"]`)) {
+    el.textContent = quantidade > 0 ? `(${quantidade})` : '';
+  }
 }
 
 function atualizarUrl(q, tipos, caracteristicas) {
