@@ -37,6 +37,11 @@
   <h2>Ao enviar uma sugestão ou relato</h2>
   <ul>
     <li>
+      O endereço IP é usado apenas durante a requisição, para limitar abusos e realizar a
+      verificação anti-robô. <strong>Ele não é salvo no banco de dados</strong> nem associado ao
+      conteúdo enviado.
+    </li>
+    <li>
       Você confirma seu e-mail com um código. <strong>O e-mail não é guardado</strong>: o sistema
       mantém apenas um código embaralhado (hash), que não permite descobrir o endereço, por até 30
       dias, só para limitar a quantidade de envios por pessoa.
@@ -50,7 +55,8 @@
     </li>
     <li>
       A verificação anti-robô é feita pelo Cloudflare Turnstile, que processa dados técnicos do
-      navegador para diferenciar pessoas de robôs.
+      navegador, incluindo o endereço IP, para diferenciar pessoas de robôs. Esses dados seguem
+      também as práticas de privacidade da Cloudflare.
     </li>
   </ul>
 

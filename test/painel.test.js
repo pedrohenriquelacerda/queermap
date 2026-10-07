@@ -31,6 +31,20 @@ test('painel exige login e lembra a página pedida', async () => {
   assert.equal(res.headers.location, '/painel/entrar?volta=%2Fpainel%2Fpessoas');
 });
 
+test('todas as áreas administrativas exigem login', async () => {
+  for (const caminho of [
+    '/painel',
+    '/painel/conta',
+    '/painel/pessoas',
+    '/painel/locais',
+    '/painel/classificacao',
+  ]) {
+    const res = await request(app).get(caminho);
+    assert.equal(res.status, 302, `${caminho} deveria redirecionar`);
+    assert.match(res.headers.location, /^\/painel\/entrar\?volta=/);
+  }
+});
+
 test('envio sem Origin do próprio site é bloqueado (CSRF)', async () => {
   const res = await request(app)
     .post('/painel/entrar')
@@ -70,6 +84,16 @@ test('login certo cria sessão, registra auditoria e abre o painel', async () =>
   assert.equal(inicio.status, 200);
   assert.match(inicio.text, /Olá, Pessoa/);
   assert.equal(inicio.headers['cache-control'], 'no-store');
+});
+
+test('login retorna à página administrativa pedida', async () => {
+  const res = await enviar(request(app), '/painel/entrar', {
+    email: 'admin@teste.test',
+    senha: SENHA,
+    volta: '/painel/locais?status=rascunho',
+  });
+  assert.equal(res.status, 302);
+  assert.equal(res.headers.location, '/painel/locais?status=rascunho');
 });
 
 test('depois do login não redireciona para outro site', async () => {
@@ -142,6 +166,20 @@ test('pessoa editora não acessa a gestão de pessoas', async () => {
   const agente = await logar('editor@teste.test');
   const res = await agente.get('/painel/pessoas');
   assert.equal(res.status, 403);
+});
+
+test('pessoa editora não cria conta por requisição direta', async () => {
+  const agente = await logar('editor@teste.test');
+  const res = await enviar(agente, '/painel/pessoas', {
+    nome: 'Conta indevida',
+    email: 'indevida@teste.test',
+    papel: 'EDITOR',
+  });
+  assert.equal(res.status, 403);
+  assert.equal(
+    admins.some((a) => a.email === 'indevida@teste.test'),
+    false,
+  );
 });
 
 test('admin cadastra pessoa com senha provisória mostrada uma vez', async () => {

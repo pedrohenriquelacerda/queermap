@@ -11,6 +11,14 @@ const paginas = [
   ['/privacidade', 'Privacidade'],
 ];
 
+test('site público não exige login', async () => {
+  for (const caminho of ['/sobre', '/canais-de-denuncia', '/privacidade']) {
+    const res = await request(app).get(caminho);
+    assert.equal(res.status, 200, `${caminho} deveria abrir sem sessão`);
+    assert.notEqual(res.headers.location, '/painel/entrar');
+  }
+});
+
 for (const [caminho, titulo] of paginas) {
   test(`GET ${caminho} renderiza a página`, async () => {
     const res = await request(app).get(caminho);
@@ -33,6 +41,13 @@ test('canais de denúncia trazem os telefones oficiais', async () => {
   for (const numero of ['100', '136', '188']) {
     assert.match(res.text, new RegExp(`href="tel:${numero}"`));
   }
+});
+
+test('página de privacidade explica o uso transitório e a não persistência do IP', async () => {
+  const res = await request(app).get('/privacidade');
+  assert.match(res.text, /IP é usado apenas durante a requisição/);
+  assert.match(res.text, /não é salvo no banco de dados/);
+  assert.match(res.text, /incluindo o endereço IP/);
 });
 
 test('fonte é servida localmente com cache longo', async () => {
