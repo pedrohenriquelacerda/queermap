@@ -1,0 +1,52 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Canais de denúncia</h1>
+  </div>
+  <p class="campo__ajuda">
+    Atualize os contatos oficiais exibidos no formulário de discriminação e na página pública.
+    Canais inativos deixam de aparecer para o público, mas podem ser reativados depois.
+  </p>
+
+  <% if (canais.length === 0) { %>
+  <div class="cartao estado-vazio"><p>Nenhum canal de denúncia cadastrado.</p></div>
+  <% } %>
+
+  <div class="canais-painel">
+    <% for (const canal of canais) { %>
+    <form class="cartao canais-painel__item" method="post" action="/painel/canais-denuncia/<%= canal.id %>" novalidate>
+      <h2><%= canal.nome %></h2>
+      <div class="canais-painel__campos">
+        <div class="campo">
+          <label for="canal-<%= canal.id %>-nome">Nome</label>
+          <input id="canal-<%= canal.id %>-nome" name="nome" value="<%= canal.nome %>" required maxlength="120" />
+        </div>
+        <div class="campo">
+          <label for="canal-<%= canal.id %>-descricao">Descrição</label>
+          <textarea id="canal-<%= canal.id %>-descricao" name="descricao" required maxlength="500" rows="3"><%= canal.descricao %></textarea>
+        </div>
+        <div class="form-inline__campos">
+          <div class="campo">
+            <label for="canal-<%= canal.id %>-telefone">Telefone</label>
+            <input id="canal-<%= canal.id %>-telefone" name="telefone" value="<%= canal.telefone %>" required maxlength="40" />
+          </div>
+          <div class="campo">
+            <label for="canal-<%= canal.id %>-link">Link oficial (http:// ou https://)</label>
+            <input id="canal-<%= canal.id %>-link" name="link" type="url" value="<%= canal.link %>" required maxlength="500" />
+          </div>
+          <div class="campo">
+            <label for="canal-<%= canal.id %>-ordem">Ordem</label>
+            <input id="canal-<%= canal.id %>-ordem" name="ordem" type="number" min="0" max="99" value="<%= canal.ordem %>" />
+          </div>
+        </div>
+        <label class="opcao">
+          <input type="checkbox" name="ativo" <%= canal.ativo ? 'checked' : '' %> />
+          <span>Exibir para o público</span>
+        </label>
+      </div>
+      <button class="botao">Salvar canal</button>
+    </form>
+    <% } %>
+  </div>
+</main>
+<%- include('../partials/foot') %>

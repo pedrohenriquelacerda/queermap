@@ -5,6 +5,7 @@ import { verificarHumano } from '../services/turnstileService.js';
 import { analisar } from '../utils/filtroConteudo.js';
 import { hashEmail, mascararEmail } from '../utils/hash.js';
 import { validar, email, caixa, textoOpcional, z } from '../utils/validacao.js';
+import * as canaisDenuncia from '../services/canaisDenunciaService.js';
 
 export const TIPOS = {
   SUGESTAO_LOCAL: { rotulo: 'Sugerir um local', ajuda: 'Um serviço que deveria estar no mapa.' },
@@ -66,9 +67,10 @@ const MENSAGENS_CODIGO = {
 // ─── Passo 1: formulário ────────────────────────────────────────────────────
 
 export async function formulario(req, res) {
-  const [locais, categorias] = await Promise.all([
+  const [locais, categorias, canais] = await Promise.all([
     envios.locaisParaSelecao(),
     envios.categoriasParaSelecao(),
+    canaisDenuncia.listarAtivos(),
   ]);
   const pendente = req.session.envioPendente?.dados ?? {};
   const doLocal = locais.find((l) => l.slug === req.query.local);
@@ -77,17 +79,18 @@ export async function formulario(req, res) {
     ...pendente,
     localId: doLocal?.id ?? pendente.localId ?? (pendente.nomeLocalRelato ? OUTRO_LUGAR : ''),
   };
-  renderizar(res, { valores, locais, categorias });
+  renderizar(res, { valores, locais, categorias, canais });
 }
 
 export async function enviar(req, res) {
-  const [locais, categorias] = await Promise.all([
+  const [locais, categorias, canais] = await Promise.all([
     envios.locaisParaSelecao(),
     envios.categoriasParaSelecao(),
+    canaisDenuncia.listarAtivos(),
   ]);
   const { dados, erros } = validar(esquema, req.body);
   const valores = { ...req.body, email: '' }; // nunca reexibe o e-mail
-  const formulario = { valores, locais, categorias };
+  const formulario = { valores, locais, categorias, canais };
   if (erros) return renderizar(res.status(400), { ...formulario, erros });
 
   const ehSugestao = dados.tipo === 'SUGESTAO_LOCAL';
@@ -194,14 +197,15 @@ export async function confirmar(req, res) {
   res.redirect('/enviar/obrigado');
 }
 
-export function obrigado(req, res) {
+export async function obrigado(req, res) {
   const tipo = req.session.envioConcluido;
   if (!tipo) return res.redirect('/');
   delete req.session.envioConcluido;
-  res.render('envios/obrigado', { title: 'Envio recebido', tipo });
+  const canais = tipo === 'DISCRIMINACAO' ? await canaisDenuncia.listarAtivos() : [];
+  res.render('envios/obrigado', { title: 'Envio recebido', tipo, canais });
 }
 
-function renderizar(res, { valores, locais, categorias, erros = {}, erroGeral = null }) {
+function renderizar(res, { valores, locais, categorias, canais, erros = {}, erroGeral = null }) {
   res.render('envios/form', {
     title: 'Enviar sugestão ou relato',
     descricao: 'Sugira um local para o mapa ou conte à ONG Somos como foi um atendimento.',
@@ -210,6 +214,7 @@ function renderizar(res, { valores, locais, categorias, erros = {}, erroGeral = 
     valores,
     locais,
     categorias,
+    canais,
     erros,
     erroGeral,
     turnstileSiteKey: env.turnstile.siteKey,

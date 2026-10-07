@@ -8,6 +8,7 @@ import * as inicio from '../controllers/painel/inicioController.js';
 import * as pessoas from '../controllers/painel/pessoasController.js';
 import * as locais from '../controllers/painel/locaisController.js';
 import * as classificacao from '../controllers/painel/classificacaoController.js';
+import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 
@@ -87,5 +88,12 @@ rotasClassificacao.get('/', classificacao.listar);
 rotasClassificacao.post('/:tipo', classificacao.criar);
 rotasClassificacao.post('/:tipo/:id', classificacao.salvar);
 router.use('/classificacao', rotasClassificacao);
+
+const rotasCanaisDenuncia = Router();
+rotasCanaisDenuncia.use(exigirPapelAdmin);
+rotasCanaisDenuncia.param('id', soNumeros);
+rotasCanaisDenuncia.get('/', canaisDenuncia.listar);
+rotasCanaisDenuncia.post('/:id', canaisDenuncia.salvar);
+router.use('/canais-denuncia', rotasCanaisDenuncia);
 
 export default router;

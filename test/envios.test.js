@@ -27,6 +27,35 @@ beforeEach(() => {
     { id: 4, nome: 'SAE Teste', slug: 'sae-teste', bairro: 'Centro' },
   ]);
   mockPrisma(prisma.categoria, 'findMany', async () => [{ id: 2, nome: 'Ambulatório trans' }]);
+  mockPrisma(prisma.canalDenuncia, 'findMany', async () => [
+    {
+      slug: 'disque-100',
+      nome: 'Disque 100 · Direitos Humanos',
+      descricao: 'Denúncias de violações de direitos humanos.',
+      telefone: '100',
+      link: 'https://www.gov.br/pt-br/servicos/denunciar-violacao-de-direitos-humanos',
+      ordem: 1,
+      ativo: true,
+    },
+    {
+      slug: 'delegacia-combate-intolerancia',
+      nome: 'Delegacia de Combate à Intolerância (Polícia Civil RS)',
+      descricao: 'Registra ocorrências de crimes de ódio e discriminação.',
+      telefone: '(51) 3288-2400',
+      link: 'https://www.pc.rs.gov.br/delegacia-de-combate-a-intolerancia',
+      ordem: 2,
+      ativo: true,
+    },
+    {
+      slug: 'ouvidoria-sus',
+      nome: 'Ouvidoria do SUS',
+      descricao: 'Reclamações sobre atendimento em serviços públicos de saúde.',
+      telefone: '136',
+      link: 'https://www.gov.br/saude/pt-br/canais-de-atendimento/ouvsus',
+      ordem: 3,
+      ativo: true,
+    },
+  ]);
   mockPrisma(
     prisma.registroEnvio,
     'count',
@@ -152,6 +181,17 @@ test('relato de discriminação mostra os canais oficiais no final', async () =>
   const obrigado = await agente.get('/enviar/obrigado');
   assert.match(obrigado.text, /Disque 100/);
   assert.match(obrigado.text, /href="tel:136"/);
+});
+
+test('formulário oferece pop-up com canais oficiais e aviso sobre denúncia formal', async () => {
+  const res = await request(app).get('/enviar');
+  assert.equal(res.status, 200);
+  assert.match(res.text, /<dialog[^>]+id="modal-canais"/);
+  assert.match(res.text, /href="tel:100"/);
+  assert.match(res.text, /href="tel:136"/);
+  assert.match(res.text, /href="tel:5132882400"/);
+  assert.match(res.text, /não substitui uma denúncia formal/);
+  assert.match(res.text, /data-fechar-canais/);
 });
 
 const sugestao = {

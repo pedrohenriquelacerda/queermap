@@ -90,6 +90,23 @@ model Caracteristica {
   @@map("caracteristica")
 }
 
+// Canais oficiais exibidos no formulário e editáveis pela ONG no painel.
+model CanalDenuncia {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  nome         String
+  descricao    String
+  telefone     String
+  link         String
+  ordem        Int      @default(0)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@index([ativo, ordem])
+  @@map("canal_denuncia")
+}
+
 model Local {
   id          Int     @id @default(autoincrement())
   nome        String
