@@ -1,4 +1,5 @@
-<h2>Canais oficiais de denúncia</h2>
+<%# comTitulo: false quando quem inclui já tem o próprio título (ex.: pop-up do formulário). %>
+<% if (locals.comTitulo !== false) { %><h2>Canais oficiais de denúncia</h2><% } %>
 <% if (canais.length > 0) { %>
 <ul class="contatos">
   <% for (const canal of canais) { const telefone = fmt.linkTelefone(canal.telefone); const link = fmt.urlSegura(canal.link); %>

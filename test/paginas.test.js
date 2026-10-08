@@ -20,8 +20,8 @@ beforeEach(() => {
     {
       nome: 'Delegacia de Combate à Intolerância',
       descricao: 'Registra ocorrências de discriminação.',
-      telefone: '(51) 3288-2400',
-      link: 'https://www.pc.rs.gov.br/delegacia-de-combate-a-intolerancia',
+      telefone: '197',
+      link: 'https://www.pc.rs.gov.br/fale-conosco',
       ordem: 2,
       ativo: true,
     },
@@ -79,7 +79,7 @@ test('páginas têm metadados para compartilhamento', async () => {
 
 test('canais de denúncia trazem os telefones oficiais', async () => {
   const res = await request(app).get('/canais-de-denuncia');
-  for (const numero of ['100', '136', '5132882400', '188']) {
+  for (const numero of ['100', '136', '197', '188']) {
     assert.match(res.text, new RegExp(`href="tel:${numero}"`));
   }
 });

@@ -41,8 +41,8 @@ beforeEach(() => {
       slug: 'delegacia-combate-intolerancia',
       nome: 'Delegacia de Combate à Intolerância (Polícia Civil RS)',
       descricao: 'Registra ocorrências de crimes de ódio e discriminação.',
-      telefone: '(51) 3288-2400',
-      link: 'https://www.pc.rs.gov.br/delegacia-de-combate-a-intolerancia',
+      telefone: '197',
+      link: 'https://www.pc.rs.gov.br/fale-conosco',
       ordem: 2,
       ativo: true,
     },
@@ -189,9 +189,15 @@ test('formulário oferece pop-up com canais oficiais e aviso sobre denúncia for
   assert.match(res.text, /<dialog[^>]+id="modal-canais"/);
   assert.match(res.text, /href="tel:100"/);
   assert.match(res.text, /href="tel:136"/);
-  assert.match(res.text, /href="tel:5132882400"/);
+  assert.match(res.text, /href="tel:197"/);
   assert.match(res.text, /não substitui uma denúncia formal/);
   assert.match(res.text, /data-fechar-canais/);
+
+  const [dialogo] = res.text.match(/<dialog[\s\S]*?<\/dialog>/);
+  assert.equal(dialogo.match(/<h2/g).length, 1);
+  const [aviso] = res.text.match(/data-se-tipo="DISCRIMINACAO"[\s\S]*?<\/div>/);
+  assert.match(aviso, /data-abrir-canais/);
+  assert.doesNotMatch(aviso, /href="\/canais-de-denuncia"/);
 });
 
 const sugestao = {

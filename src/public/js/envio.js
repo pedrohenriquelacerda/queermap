@@ -26,5 +26,8 @@ if (form) {
   for (const botao of document.querySelectorAll('[data-fechar-canais]')) {
     botao.addEventListener('click', () => modalCanais?.close());
   }
+  for (const botao of document.querySelectorAll('[data-abrir-canais]')) {
+    botao.addEventListener('click', () => modalCanais?.showModal());
+  }
   atualizar();
 }

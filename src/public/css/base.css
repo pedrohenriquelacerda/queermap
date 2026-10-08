@@ -717,6 +717,22 @@ textarea {
   gap: var(--esp-2);
 }
 
+/* Botão com aparência de link (ação na própria página, sem navegar) */
+.botao-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-primaria);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.botao-link:hover {
+  color: var(--cor-primaria-escura);
+}
+
 .modal-canais {
   width: min(44rem, calc(100% - 2rem));
   max-height: calc(100dvh - 2rem);

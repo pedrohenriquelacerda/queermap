@@ -43,14 +43,16 @@
     <noscript>
       <p class="campo__ajuda">
         Se você for enviar um relato de discriminação, consulte os
-        <a href="/canais-de-denuncia">canais oficiais de denúncia</a>.
+        <a href="/canais-de-denuncia" target="_blank" rel="noopener">canais oficiais de denúncia</a>
+        (abre em outra aba, sem perder o que você escreveu).
       </p>
     </noscript>
 
     <div class="alerta alerta--aviso" data-se-tipo="DISCRIMINACAO" hidden>
       <p>
         Se você está em perigo imediato, ligue <a href="tel:190">190</a> ou <a href="tel:192">192</a>.
-        <a href="/canais-de-denuncia">Consulte os canais oficiais de denúncia</a>.
+        <%# Botão, e não link: sair da página faria perder o relato já escrito. %>
+        <button type="button" class="botao-link" data-abrir-canais>Ver os canais oficiais de denúncia</button>.
       </p>
     </div>
 
@@ -104,7 +106,7 @@
       <strong>Em situação de perigo imediato</strong>, ligue para a Polícia Militar (190) ou para o
       SAMU (192).
     </p>
-    <%- include('../partials/canais-denuncia-lista') %>
+    <%- include('../partials/canais-denuncia-lista', { comTitulo: false }) %>
     <p class="alerta alerta--aviso">
       O envio do relato ao Mapa SerQueer não substitui uma denúncia formal nos canais oficiais.
     </p>
