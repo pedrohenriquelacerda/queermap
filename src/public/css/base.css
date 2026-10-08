@@ -293,6 +293,16 @@ textarea {
   color: var(--cor-primaria-escura);
 }
 
+.nav a.nav__administrativo {
+  border: 1px solid var(--cor-borda-forte);
+  color: var(--cor-suave);
+}
+
+.nav a.nav__administrativo:hover {
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria-escura);
+}
+
 .nav a.nav__destaque {
   margin-left: var(--esp-1);
   border: 1px solid var(--cor-primaria);

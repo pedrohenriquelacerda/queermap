@@ -19,6 +19,12 @@ test('site público não exige login', async () => {
   }
 });
 
+test('cabeçalho público oferece acesso ao painel administrativo', async () => {
+  const res = await request(app).get('/sobre');
+  assert.match(res.text, /href="\/painel\/entrar"/);
+  assert.match(res.text, /Área administrativa/);
+});
+
 for (const [caminho, titulo] of paginas) {
   test(`GET ${caminho} renderiza a página`, async () => {
     const res = await request(app).get(caminho);
