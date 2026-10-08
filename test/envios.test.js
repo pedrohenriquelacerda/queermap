@@ -84,7 +84,8 @@ function codigoDoEmail() {
 test('formulário público de envio não exige login', async () => {
   const res = await request(app).get('/enviar');
   assert.equal(res.status, 200);
-  assert.doesNotMatch(res.text, /Entrar no painel/);
+  assert.equal(res.headers.location, undefined);
+  assert.match(res.text, /<form[^>]*action="\/enviar"/);
 });
 
 test('fluxo completo: formulário, código por e-mail e confirmação', async () => {

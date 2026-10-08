@@ -1,16 +1,34 @@
 import * as adminsService from '../services/adminsService.js';
+import { marcaDaSenha } from '../utils/hash.js';
+
+export const DURACAO_MAXIMA_LOGIN_MS = 8 * 60 * 60 * 1000;
+
+export function iniciarSessaoAdmin(req, admin) {
+  req.session.adminId = admin.id;
+  req.session.marcaSenha = marcaDaSenha(admin.senhaHash);
+  req.session.loginEm ??= Date.now();
+}
 
 // Carrega a pessoa logada (se houver) em req.admin e res.locals.admin.
-// Conta desativada ou removida encerra a sessão na hora.
+// Encerra a sessão do painel na hora se a conta foi desativada ou removida, se a senha
+// mudou depois do login (outra sessão trocou ou um admin redefiniu) ou se passou de 8 h.
 export async function carregarAdmin(req, res, next) {
   const id = req.session.adminId;
   if (!id) return next();
 
-  const admin = await adminsService.buscarParaSessao(id);
-  if (!admin?.ativo) {
-    delete req.session.adminId; // sai do painel, mas mantém a sessão para os próximos middlewares
+  const conta = await adminsService.buscarParaSessao(id);
+  const valida =
+    conta?.ativo &&
+    req.session.marcaSenha === marcaDaSenha(conta.senhaHash) &&
+    Date.now() - (req.session.loginEm ?? 0) < DURACAO_MAXIMA_LOGIN_MS;
+  if (!valida) {
+    delete req.session.adminId;
+    delete req.session.marcaSenha;
+    delete req.session.loginEm;
     return next();
   }
+  const admin = { ...conta };
+  delete admin.senhaHash;
   req.admin = admin;
   res.locals.admin = admin;
   next();

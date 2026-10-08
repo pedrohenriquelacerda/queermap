@@ -235,6 +235,50 @@ textarea {
   border-bottom: 1px solid var(--cor-borda);
 }
 
+/* Faixa "Conta da equipe": só para quem está logado no painel, acima do cabeçalho */
+.barra-equipe {
+  position: relative;
+  z-index: 1100;
+  background: var(--cor-texto);
+  color: #fff;
+  font-size: var(--texto-pequeno);
+}
+
+/* Mesmas margens do .topo__conteudo: nome alinhado ao logo, links ao menu */
+.barra-equipe__conteudo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-1) var(--esp-4);
+}
+
+.barra-equipe p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-equipe a,
+.barra-equipe button {
+  padding: var(--esp-1) 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.barra-equipe a:focus-visible,
+.barra-equipe button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .topo::before {
   content: '';
   display: block;
@@ -290,16 +334,6 @@ textarea {
 
 .nav a:hover {
   background: var(--cor-primaria-clara);
-  color: var(--cor-primaria-escura);
-}
-
-.nav a.nav__administrativo {
-  border: 1px solid var(--cor-borda-forte);
-  color: var(--cor-suave);
-}
-
-.nav a.nav__administrativo:hover {
-  border-color: var(--cor-primaria);
   color: var(--cor-primaria-escura);
 }
 
@@ -804,8 +838,9 @@ textarea {
     display: none;
   }
 
-  .topo__conteudo {
-    padding: 0 var(--esp-3);
+  .topo__conteudo,
+  .barra-equipe__conteudo {
+    padding-inline: var(--esp-3);
   }
 
   .nav a {

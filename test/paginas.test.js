@@ -19,10 +19,12 @@ test('site público não exige login', async () => {
   }
 });
 
-test('cabeçalho público oferece acesso ao painel administrativo', async () => {
+test('acesso da equipe ao painel fica no rodapé, não no cabeçalho', async () => {
   const res = await request(app).get('/sobre');
-  assert.match(res.text, /href="\/painel\/entrar"/);
-  assert.match(res.text, /Área administrativa/);
+  const [topo] = res.text.match(/<header class="topo">[\s\S]*?<\/header>/);
+  const [rodape] = res.text.match(/<footer class="rodape">[\s\S]*?<\/footer>/);
+  assert.doesNotMatch(topo, /\/painel\/entrar/);
+  assert.match(rodape, /href="\/painel\/entrar"[^>]*>Acesso da equipe/);
 });
 
 for (const [caminho, titulo] of paginas) {

@@ -11,6 +11,10 @@ export function hashEmail(email) {
   return hmac(`email:${email.trim().toLowerCase()}`);
 }
 
+export function marcaDaSenha(senhaHash) {
+  return hmac(`sessao:${senhaHash}`);
+}
+
 export function hashCodigo(emailHash, codigo) {
   return hmac(`codigo:${emailHash}:${codigo}`);
 }

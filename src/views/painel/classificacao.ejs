@@ -94,7 +94,7 @@
 
     <form class="form-inline" method="post" action="/painel/classificacao/caracteristica" novalidate>
       <h3>Nova característica</h3>
-      <div class="form-inline__campos">
+      <div class="form-inline__campos form-inline__campos--dois">
         <%- include('../partials/campo', { id: 'nova-car-nome', nome: 'nome', rotulo: 'Nome', valor: novo_caracteristica.nome, erros: erros_caracteristica, attrs: { required: true, maxlength: 80 } }) %>
         <%- include('../partials/campo', { id: 'nova-car-descricao', nome: 'descricao', rotulo: 'Descrição', valor: novo_caracteristica.descricao, opcional: true, erros: erros_caracteristica, ajuda: 'Explica o critério, se precisar.', attrs: { maxlength: 200 } }) %>
       </div>

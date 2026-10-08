@@ -1,5 +1,6 @@
 import * as adminsService from '../../services/adminsService.js';
 import * as auditoria from '../../services/auditoriaService.js';
+import { iniciarSessaoAdmin } from '../../middlewares/auth.js';
 import { gerarHash, verificarSenha, SENHA_MINIMO } from '../../utils/senha.js';
 import { validar, z } from '../../utils/validacao.js';
 
@@ -34,10 +35,9 @@ export async function trocarSenha(req, res) {
     return renderizar(res.status(400), { erros: { atual: 'Senha atual incorreta.' } });
   }
 
-  await adminsService.atualizar(admin.id, {
-    senhaHash: await gerarHash(dados.nova),
-    precisaTrocarSenha: false,
-  });
+  const senhaHash = await gerarHash(dados.nova);
+  await adminsService.atualizar(admin.id, { senhaHash, precisaTrocarSenha: false });
+  iniciarSessaoAdmin(req, { id: admin.id, senhaHash });
   await auditoria.registrar(req, 'conta.trocar_senha', 'Admin', admin.id);
   req.flash('sucesso', 'Senha alterada.');
   res.redirect('/painel');

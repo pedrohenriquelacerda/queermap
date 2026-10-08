@@ -1,5 +1,13 @@
 /* Mapa SerQueer · painel da ONG (usa os tokens e componentes de base.css) */
 
+.topo--painel .marca {
+  align-items: baseline;
+}
+
+.topo--painel .marca .marca__logo {
+  align-self: center;
+}
+
 .topo--painel .marca .etiqueta {
   margin-left: var(--esp-1);
 }
@@ -474,7 +482,13 @@ fieldset.cartao legend + * {
 .form-inline__campos {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
+  align-items: start; /* campos com texto de ajuda não esticam os vizinhos */
   gap: 0 var(--esp-3);
+}
+
+/* Formulários com só dois campos (ex.: nova característica) */
+.form-inline__campos--dois {
+  grid-template-columns: 1fr 1fr;
 }
 
 @media (max-width: 56rem) {
