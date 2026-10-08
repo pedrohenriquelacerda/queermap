@@ -1,9 +1,42 @@
-import { test } from 'node:test';
+import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { prisma } from '../src/db/prisma.js';
+import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 
 const app = createApp();
+
+beforeEach(() => {
+  mockPrisma(prisma.canalDenuncia, 'findMany', async () => [
+    {
+      nome: 'Disque 100 · Direitos Humanos',
+      descricao: 'Recebe denúncias de violações de direitos humanos.',
+      telefone: '100',
+      link: 'https://www.gov.br/pt-br/servicos/denunciar-violacao-de-direitos-humanos',
+      ordem: 1,
+      ativo: true,
+    },
+    {
+      nome: 'Delegacia de Combate à Intolerância',
+      descricao: 'Registra ocorrências de discriminação.',
+      telefone: '197',
+      link: 'https://www.pc.rs.gov.br/fale-conosco',
+      ordem: 2,
+      ativo: true,
+    },
+    {
+      nome: 'Ouvidoria do SUS',
+      descricao: 'Reclamações sobre serviços públicos de saúde.',
+      telefone: '136',
+      link: 'https://www.gov.br/saude/pt-br/canais-de-atendimento/ouvsus',
+      ordem: 3,
+      ativo: true,
+    },
+  ]);
+});
+
+afterEach(restaurarPrisma);
 
 const paginas = [
   ['/sobre', 'Sobre o Mapa SerQueer'],
@@ -46,7 +79,7 @@ test('páginas têm metadados para compartilhamento', async () => {
 
 test('canais de denúncia trazem os telefones oficiais', async () => {
   const res = await request(app).get('/canais-de-denuncia');
-  for (const numero of ['100', '136', '188']) {
+  for (const numero of ['100', '136', '197', '188']) {
     assert.match(res.text, new RegExp(`href="tel:${numero}"`));
   }
 });

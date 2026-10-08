@@ -1,0 +1,20 @@
+<%# comTitulo: false quando quem inclui já tem o próprio título (ex.: pop-up do formulário). %>
+<% if (locals.comTitulo !== false) { %><h2>Canais oficiais de denúncia</h2><% } %>
+<% if (canais.length > 0) { %>
+<ul class="contatos">
+  <% for (const canal of canais) { const telefone = fmt.linkTelefone(canal.telefone); const link = fmt.urlSegura(canal.link); %>
+  <li class="cartao">
+    <h3><%= canal.nome %></h3>
+    <p><%= canal.descricao %></p>
+    <div class="contatos__acoes">
+      <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>">Ligar <%= canal.telefone %></a><% } %>
+      <% if (link) { %>
+      <a class="botao botao--pequeno botao--secundario" href="<%= link %>" target="_blank" rel="noopener noreferrer">Acessar canal oficial</a>
+      <% } %>
+    </div>
+  </li>
+  <% } %>
+</ul>
+<% } else { %>
+<p>Os canais oficiais estão temporariamente indisponíveis. Consulte a equipe da ONG Somos.</p>
+<% } %>

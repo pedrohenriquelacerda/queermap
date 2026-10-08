@@ -717,6 +717,70 @@ textarea {
   gap: var(--esp-2);
 }
 
+/* Botão com aparência de link (ação na própria página, sem navegar) */
+.botao-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-primaria);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.botao-link:hover {
+  color: var(--cor-primaria-escura);
+}
+
+.modal-canais {
+  width: min(44rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  margin: auto;
+  padding: var(--esp-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-forte);
+}
+
+.modal-canais::backdrop {
+  background: rgb(31 29 36 / 65%);
+}
+
+.modal-canais__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.modal-canais__cabecalho h2 {
+  margin-bottom: var(--esp-3);
+}
+
+.canais-painel {
+  display: grid;
+  gap: var(--esp-4);
+}
+
+.canais-painel__item {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.canais-painel__item h2 {
+  margin: 0;
+  font-size: var(--titulo-3);
+}
+
+.canais-painel__campos {
+  display: grid;
+  gap: var(--esp-3);
+}
+
 /* Formulário de envio (sugestão/relato) */
 .conteudo--estreito {
   max-width: 32rem;

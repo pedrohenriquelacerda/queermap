@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina">
+    <h1>Canais de denúncia</h1>
+  </div>
+  <p class="campo__ajuda">
+    Atualize os contatos oficiais exibidos no formulário de discriminação e na página pública.
+    Canais inativos deixam de aparecer para o público, mas podem ser reativados depois.
+  </p>
+
+  <% if (emEdicao) { %>
+  <div class="alerta alerta--erro" role="alert"><p><strong>Revise os campos marcados.</strong></p></div>
+  <% } %>
+
+  <% if (canais.length === 0) { %>
+  <div class="cartao estado-vazio"><p>Nenhum canal de denúncia cadastrado.</p></div>
+  <% } %>
+
+  <div class="canais-painel">
+    <% for (const canal of canais) {
+      // O canal que voltou com erro mostra o que foi digitado; os outros, o que está salvo.
+      const comErro = emEdicao?.id === canal.id;
+      const v = comErro ? emEdicao.valores : canal;
+      const campoCanal = (dados) =>
+        include('../partials/campo', { id: `canal-${canal.id}-${dados.nome}`, erros: comErro ? emEdicao.erros : {}, ...dados });
+    %>
+    <form class="cartao canais-painel__item" method="post" action="/painel/canais-denuncia/<%= canal.id %>" novalidate>
+      <h2><%= canal.nome %></h2>
+      <div class="canais-painel__campos">
+        <%- campoCanal({ nome: 'nome', rotulo: 'Nome', valor: v.nome, attrs: { required: true, maxlength: 120 } }) %>
+        <%- campoCanal({ nome: 'descricao', rotulo: 'Descrição', tipo: 'textarea', valor: v.descricao, attrs: { required: true, maxlength: 500, rows: 3 } }) %>
+        <div class="form-inline__campos">
+          <%- campoCanal({ nome: 'telefone', rotulo: 'Telefone', valor: v.telefone, attrs: { required: true, maxlength: 40 } }) %>
+          <%- campoCanal({ nome: 'link', rotulo: 'Link oficial', tipo: 'url', valor: v.link, ajuda: 'Começa com http:// ou https://', attrs: { required: true, maxlength: 500 } }) %>
+          <%- campoCanal({ nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: v.ordem, attrs: { min: 0, max: 99 } }) %>
+        </div>
+        <label class="opcao">
+          <input type="checkbox" name="ativo" <%= v.ativo ? 'checked' : '' %> />
+          <span>Exibir para o público</span>
+        </label>
+      </div>
+      <button class="botao">Salvar canal</button>
+    </form>
+    <% } %>
+  </div>
+</main>
+<%- include('../partials/foot') %>
