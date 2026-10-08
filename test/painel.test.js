@@ -31,6 +31,20 @@ test('painel exige login e lembra a página pedida', async () => {
   assert.equal(res.headers.location, '/painel/entrar?volta=%2Fpainel%2Fpessoas');
 });
 
+test('todas as áreas administrativas exigem login', async () => {
+  for (const caminho of [
+    '/painel',
+    '/painel/conta',
+    '/painel/pessoas',
+    '/painel/locais',
+    '/painel/classificacao',
+  ]) {
+    const res = await request(app).get(caminho);
+    assert.equal(res.status, 302, `${caminho} deveria redirecionar`);
+    assert.match(res.headers.location, /^\/painel\/entrar\?volta=/);
+  }
+});
+
 test('envio sem Origin do próprio site é bloqueado (CSRF)', async () => {
   const res = await request(app)
     .post('/painel/entrar')
@@ -70,6 +84,16 @@ test('login certo cria sessão, registra auditoria e abre o painel', async () =>
   assert.equal(inicio.status, 200);
   assert.match(inicio.text, /Olá, Pessoa/);
   assert.equal(inicio.headers['cache-control'], 'no-store');
+});
+
+test('login retorna à página administrativa pedida', async () => {
+  const res = await enviar(request(app), '/painel/entrar', {
+    email: 'admin@teste.test',
+    senha: SENHA,
+    volta: '/painel/locais?status=rascunho',
+  });
+  assert.equal(res.status, 302);
+  assert.equal(res.headers.location, '/painel/locais?status=rascunho');
 });
 
 test('depois do login não redireciona para outro site', async () => {
@@ -144,6 +168,20 @@ test('pessoa editora não acessa a gestão de pessoas', async () => {
   assert.equal(res.status, 403);
 });
 
+test('pessoa editora não cria conta por requisição direta', async () => {
+  const agente = await logar('editor@teste.test');
+  const res = await enviar(agente, '/painel/pessoas', {
+    nome: 'Conta indevida',
+    email: 'indevida@teste.test',
+    papel: 'EDITOR',
+  });
+  assert.equal(res.status, 403);
+  assert.equal(
+    admins.some((a) => a.email === 'indevida@teste.test'),
+    false,
+  );
+});
+
 test('admin cadastra pessoa com senha provisória mostrada uma vez', async () => {
   const agente = await logar('admin@teste.test');
   const res = await enviar(agente, '/painel/pessoas', {
@@ -191,8 +229,78 @@ test('sair encerra a sessão', async () => {
   const agente = await logar('admin@teste.test');
   const saida = await enviar(agente, '/painel/sair', {});
   assert.equal(saida.status, 302);
+  assert.equal(saida.headers.location, '/painel/entrar');
   const depois = await agente.get('/painel');
   assert.equal(depois.status, 302);
+});
+
+test('logada no site público, a pessoa vê a faixa da equipe, sem cache', async () => {
+  const visitante = await request(app).get('/sobre');
+  assert.doesNotMatch(visitante.text, /barra-equipe/);
+
+  const agente = await logar('admin@teste.test');
+  const res = await agente.get('/sobre');
+  assert.match(res.text, /class="barra-equipe"/);
+  assert.match(res.text, /Conta da equipe: <strong>Pessoa 1<\/strong>/);
+  assert.match(res.text, /<a href="\/painel">Ir ao painel<\/a>/);
+  assert.match(res.text, /action="\/painel\/sair"[\s\S]*?name="volta" value="\/sobre"/);
+  assert.equal(res.headers['cache-control'], 'private, no-store');
+  // Rodapé: logada, "Ir ao painel" no lugar de "Acesso da equipe".
+  const [rodape] = res.text.match(/<footer class="rodape">[\s\S]*?<\/footer>/);
+  assert.match(rodape, /href="\/painel"[^>]*>Ir ao painel/);
+  assert.doesNotMatch(rodape, /Acesso da equipe/);
+});
+
+test('senha trocada em outro lugar encerra as outras sessões da conta', async () => {
+  const agente = await logar('editor@teste.test');
+  assert.equal((await agente.get('/painel')).status, 200);
+
+  admins[1].senhaHash = 'hash-da-senha-redefinida'; // ex.: um admin redefiniu a senha
+  const depois = await agente.get('/painel');
+  assert.equal(depois.status, 302);
+  assert.match(depois.headers.location, /^\/painel\/entrar/);
+});
+
+test('sessão expira após 30 min sem uso', async (t) => {
+  const agente = await logar('admin@teste.test');
+  const inicio = Date.now();
+  const relogio = t.mock.method(Date, 'now', () => inicio + 29 * 60 * 1000);
+  assert.equal((await agente.get('/painel')).status, 200); // 29 min: ainda vale (e renova)
+
+  relogio.mock.mockImplementation(() => inicio + 29 * 60 * 1000 + 31 * 60 * 1000);
+  const parada = await agente.get('/painel');
+  assert.equal(parada.status, 302);
+  assert.match(parada.headers.location, /^\/painel\/entrar/);
+});
+
+test('mesmo em uso, a sessão termina 8 h depois do login', async (t) => {
+  const agente = await logar('admin@teste.test');
+  const inicio = Date.now();
+  let agora = inicio;
+  t.mock.method(Date, 'now', () => agora);
+
+  // Um acesso a cada 25 min (nunca fica 30 min parada) até 7h55...
+  for (let i = 1; i <= 19; i++) {
+    agora = inicio + i * 25 * 60 * 1000;
+    assert.equal((await agente.get('/painel')).status, 200, `${i * 25} min`);
+  }
+  // ...e às 8h20 já não vale mais.
+  agora = inicio + 20 * 25 * 60 * 1000;
+  const parada = await agente.get('/painel');
+  assert.equal(parada.status, 302);
+});
+
+test('sair pela faixa do site volta para a mesma página, nunca para outro site', async () => {
+  const agente = await logar('admin@teste.test');
+  const saida = await enviar(agente, '/painel/sair', { volta: '/sobre' });
+  assert.equal(saida.headers.location, '/sobre');
+  assert.doesNotMatch((await agente.get('/sobre')).text, /barra-equipe/);
+
+  for (const volta of ['//golpe.example', '/\\golpe.example', 'https://golpe.example']) {
+    const outro = await logar('admin@teste.test');
+    const res = await enviar(outro, '/painel/sair', { volta });
+    assert.equal(res.headers.location, '/painel/entrar', `volta=${volta}`);
+  }
 });
 
 test('desmarcar "Acesso ativo" (checkbox não enviada) desativa a pessoa', async () => {

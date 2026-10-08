@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
-import { carregarAdmin, exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
+import { exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
 import { flash } from '../middlewares/flash.js';
 import * as sessao from '../controllers/painel/sessaoController.js';
 import * as conta from '../controllers/painel/contaController.js';
@@ -42,7 +42,6 @@ router.use((req, res, next) => {
   res.locals.painel = true;
   next();
 });
-router.use(carregarAdmin);
 router.use(flash);
 
 router.get('/entrar', sessao.formulario);

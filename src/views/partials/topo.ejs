@@ -6,6 +6,19 @@
     { href: '/enviar', texto: 'Enviar sugestão ou relato', curto: 'Enviar', classe: 'nav__destaque' },
   ];
 %>
+<% if (locals.admin) { %>
+<%# Só aparece para quem está logado no painel; o público nunca vê. %>
+<div class="barra-equipe">
+  <div class="barra-equipe__conteudo">
+    <p>Conta da equipe: <strong><%= admin.nome %></strong></p>
+    <a href="/painel">Ir ao painel</a>
+    <form method="post" action="/painel/sair">
+      <input type="hidden" name="volta" value="<%= caminho %>" />
+      <button type="submit">Sair</button>
+    </form>
+  </div>
+</div>
+<% } %>
 <header class="topo">
   <div class="topo__conteudo">
     <a class="marca" href="/">

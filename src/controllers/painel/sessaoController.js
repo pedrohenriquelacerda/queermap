@@ -1,6 +1,6 @@
 import * as adminsService from '../../services/adminsService.js';
 import * as auditoria from '../../services/auditoriaService.js';
-import { destinoSeguro } from '../../middlewares/auth.js';
+import { destinoSeguro, iniciarSessaoAdmin } from '../../middlewares/auth.js';
 import { verificarSenha, verificarSenhaFicticia } from '../../utils/senha.js';
 import { validar, email, z } from '../../utils/validacao.js';
 
@@ -35,7 +35,7 @@ export async function entrar(req, res, next) {
   // Nova sessão a cada login: impede que alguém reaproveite um cookie anterior.
   req.session.regenerate(async (erro) => {
     if (erro) return next(erro);
-    req.session.adminId = admin.id;
+    iniciarSessaoAdmin(req, admin);
     req.admin = admin;
     await adminsService.atualizar(admin.id, { ultimoLoginEm: new Date() });
     await auditoria.registrar(req, 'sessao.entrar', 'Admin', admin.id);
@@ -45,10 +45,12 @@ export async function entrar(req, res, next) {
 
 export async function sair(req, res, next) {
   await auditoria.registrar(req, 'sessao.sair', 'Admin', req.admin.id);
+  const volta = String(req.body?.volta ?? '');
+  const destino = /^\/(?![/\\])/.test(volta) ? volta : '/painel/entrar';
   req.session.destroy((erro) => {
     if (erro) return next(erro);
     res.clearCookie('queermap.sid');
-    res.redirect('/painel/entrar');
+    res.redirect(destino);
   });
 }
 

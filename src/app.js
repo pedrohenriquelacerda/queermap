@@ -9,6 +9,7 @@ import rotas from './routes/index.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { verificarOrigem } from './middlewares/origem.js';
+import { carregarAdmin } from './middlewares/auth.js';
 import * as fmt from './utils/formatadores.js';
 
 const require = createRequire(import.meta.url);
@@ -82,16 +83,23 @@ export function createApp({ sessionStore } = {}) {
       secret: env.sessionSecret,
       resave: false,
       saveUninitialized: false,
+      // Expira após 30 min sem uso: cada acesso renova o prazo (rolling)
+      rolling: true,
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
         secure: env.isProduction,
-        maxAge: 8 * 60 * 60 * 1000,
+        maxAge: 30 * 60 * 1000,
       },
     }),
   );
 
   app.use(verificarOrigem); // CSRF: envios só a partir do próprio site
+  app.use(carregarAdmin);
+  app.use((req, res, next) => {
+    if (req.admin) res.set('Cache-Control', 'private, no-store');
+    next();
+  });
   app.use(rotas());
 
   app.use(notFound);

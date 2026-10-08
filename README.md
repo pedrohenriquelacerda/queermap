@@ -54,6 +54,8 @@ Em `/enviar` qualquer pessoa sugere um local ou manda um relato (elogio, reclama
 
 O e-mail não é guardado: só um hash (HMAC com `HASH_SECRET`) para limitar a **5 envios a cada 30 dias**. A exceção é quando a pessoa pede contato da ONG. Textos com link, ofensas ou spam são **sinalizados** para a ONG, nunca bloqueados.
 
+O endereço IP é usado de forma transitória pelo limitador de requisições e pelo Cloudflare Turnstile, mas não é salvo no banco nem associado ao envio. O conteúdo enviado e os dados opcionais de contato são acessíveis somente no painel da ONG.
+
 Em desenvolvimento não é preciso configurar nada: o Turnstile usa as chaves de teste da Cloudflare e o e-mail com o código aparece no terminal. Em produção, preencha `TURNSTILE_*`, `SMTP_*`, `EMAIL_REMETENTE` e `HASH_SECRET` (veja o `.env.example`).
 
 ## Painel da ONG
@@ -70,7 +72,7 @@ Em desenvolvimento, `npm run db:seed:exemplos` cria duas contas de teste (`admin
 
 No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStreetMap (Nominatim, no máximo 1 consulta por segundo, feita pelo servidor) e o pino pode ser ajustado arrastando no mapa. Todo local nasce como **rascunho** e só aparece no site depois de **publicado**; arquivar tira do mapa sem apagar. Em **Tipos e características** (só administração) dá para criar, renomear e desativar itens; o endereço usado nos links de filtro não muda ao renomear.
 
-Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
+Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, sessão que expira após 30 min sem uso e no máximo 8 h depois do login, troca ou redefinição de senha encerra as outras sessões da conta, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
 ## Scripts
 

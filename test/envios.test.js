@@ -81,6 +81,13 @@ function codigoDoEmail() {
   return emails.at(-1).match(/é: (\d{6})/)[1];
 }
 
+test('formulário público de envio não exige login', async () => {
+  const res = await request(app).get('/enviar');
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.location, undefined);
+  assert.match(res.text, /<form[^>]*action="\/enviar"/);
+});
+
 test('fluxo completo: formulário, código por e-mail e confirmação', async () => {
   const agente = request.agent(app);
 
@@ -103,8 +110,31 @@ test('fluxo completo: formulário, código por e-mail e confirmação', async ()
   assert.deepEqual(registros, [{ emailHash: hashEmail('pessoa@teste.test') }]);
   assert.ok(!JSON.stringify(verificacoes).includes(codigoDoEmail())); // só o hash do código
 
+  const persistido = JSON.stringify({ envios, registros, verificacoes });
+  assert.doesNotMatch(persistido, /127\.0\.0\.1|::ffff|user-agent/i);
+  assert.doesNotMatch(persistido, /Pessoa@Teste\.test/i);
+
   const obrigado = await agente.get('/enviar/obrigado');
   assert.match(obrigado.text, /Seu relato chegou à ONG/);
+});
+
+test('IP é usado no anti-robô, mas não é incluído nos dados persistidos', async () => {
+  let dadosTurnstile;
+  mock.restoreAll();
+  mock.method(console, 'info', (texto) => emails.push(texto));
+  mock.method(globalThis, 'fetch', async (_url, opcoes) => {
+    dadosTurnstile = Object.fromEntries(opcoes.body);
+    return Response.json({ success: true });
+  });
+
+  const agente = request.agent(app);
+  await enviar(agente, '/enviar', relato);
+  await enviar(agente, '/enviar/confirmar', { codigo: codigoDoEmail() });
+
+  assert.ok(dadosTurnstile.remoteip);
+  assert.equal(Object.hasOwn(envios[0], 'ip'), false);
+  assert.equal(Object.hasOwn(registros[0], 'ip'), false);
+  assert.equal(Object.hasOwn(verificacoes[0], 'ip'), false);
 });
 
 test('e-mail só é salvo quando a pessoa pede contato', async () => {

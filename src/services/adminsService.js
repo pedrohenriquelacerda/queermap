@@ -10,7 +10,7 @@ const camposSessao = {
 };
 
 export function buscarParaSessao(id) {
-  return prisma.admin.findUnique({ where: { id }, select: camposSessao });
+  return prisma.admin.findUnique({ where: { id }, select: { ...camposSessao, senhaHash: true } });
 }
 
 export function buscarPorEmail(email) {

@@ -3,6 +3,9 @@
     { href: '/sobre', texto: 'Sobre' },
     { href: '/canais-de-denuncia', texto: 'Canais de denúncia' },
     { href: '/privacidade', texto: 'Privacidade' },
+    locals.admin
+      ? { href: '/painel', texto: 'Ir ao painel' }
+      : { href: '/painel/entrar', texto: 'Acesso da equipe' },
   ];
 %>
       <% if (!locals.painel) { %>
