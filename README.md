@@ -99,6 +99,18 @@ Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, sess�
 - **Pre-commit** (husky + lint-staged, ativado pelo `npm install`): a cada `git commit`, formata com Prettier os arquivos do commit, roda o ESLint nos `.js`, valida o `schema.prisma` se ele mudou e roda os testes. Se algo falhar, o commit não é feito. Em emergência, `git commit --no-verify` pula as verificações, mas o CI vai pegar o problema.
 - **CI** (GitHub Actions, a cada push e PR): as mesmas verificações no projeto inteiro, mais as migrations num Postgres vazio e o gitleaks (segredos expostos).
 
+## Ambiente de demonstração
+
+O servidor roda em Docker no Render e o banco no Neon, ambos no plano gratuito. Cada merge na `main` publica a nova versão, e as migrations são aplicadas automaticamente antes do servidor subir.
+
+- `Dockerfile`: imagem do servidor (Node 24). Ao iniciar, roda `npm run db:deploy && npm start`.
+- `render.yaml`: configuração do serviço no Render (Blueprint). Os segredos ficam só no painel do Render.
+- **[docs/DEPLOY.md](docs/DEPLOY.md)**: escolha do banco (Neon × Supabase), passo a passo da publicação, variáveis de produção, dados de demonstração, checklist de testes e limitações observadas.
+
+Para testar a imagem localmente: `wsl docker build -t queermap .` (ou `docker build -t queermap .` com o Docker Desktop).
+
+No banco de demonstração, use `npm run db:seed:exemplos -- --sem-contas`: sem essa opção, o seed cria as contas de teste, cujas senhas estão neste repositório.
+
 ## Estrutura
 
 ```

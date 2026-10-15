@@ -1,0 +1,18 @@
+# Fica fora da imagem: dependências e client gerado (refeitos no build), segredos,
+# git, testes e configurações de desenvolvimento.
+node_modules
+src/generated
+.env
+.env.*
+!.env.example
+.git
+.github
+.husky
+.vscode
+coverage
+test
+docs
+*.log
+Dockerfile
+.dockerignore
+render.yaml
