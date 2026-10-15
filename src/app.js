@@ -31,6 +31,7 @@ export function createApp({ sessionStore } = {}) {
 
   app.locals.siteName = 'Mapa SerQueer';
   app.locals.siteUrl = env.siteUrl;
+  app.locals.demonstracao = env.demonstracao;
   app.locals.fmt = fmt;
   app.locals.descricaoPadrao =
     'Mapa de espaços de cuidado em saúde para a população LGBTQIA+ de Porto Alegre, ' +

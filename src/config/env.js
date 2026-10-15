@@ -45,4 +45,8 @@ export const env = {
     pass: process.env.SMTP_PASS || null,
   },
   emailRemetente: required('EMAIL_REMETENTE', 'Mapa SerQueer <nao-responda@queermap.test>'),
+
+  // Ambiente de demonstração (Render): mostra em todas as páginas que os dados são fictícios,
+  // para ninguém enviar um relato real a um banco de teste.
+  demonstracao: process.env.AMBIENTE_DEMONSTRACAO === 'true',
 };
