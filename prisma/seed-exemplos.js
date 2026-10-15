@@ -1,6 +1,7 @@
 // Locais FICTÍCIOS só para desenvolvimento: nomes começam com "[Exemplo]".
 // Não são serviços reais. Rode depois do seed principal: npm run db:seed:exemplos
 // Para removê-los: npm run db:seed:exemplos -- --remover
+// Só os locais, sem as contas de teste (ambiente de demonstração): -- --sem-contas
 
 import { prisma } from '../src/db/prisma.js';
 import { gerarHash } from '../src/utils/senha.js';
@@ -156,6 +157,12 @@ async function inserir() {
     });
   }
   console.log(`${exemplos.length} locais de exemplo inseridos/atualizados.`);
+
+  // Ambiente de demonstração: as senhas destas contas estão no repositório (públicas).
+  if (process.argv.includes('--sem-contas')) {
+    console.log('Contas de teste não criadas (--sem-contas). Use npm run admin:criar.');
+    return;
+  }
 
   // Contas de teste do painel (só desenvolvimento).
   for (const conta of CONTAS_TESTE) {

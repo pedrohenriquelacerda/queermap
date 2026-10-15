@@ -1,0 +1,43 @@
+# Ambiente de demonstração no Render (plano gratuito). Passo a passo: docs/DEPLOY.md
+# Os segredos ficam só no painel do Render: "sync: false" pede o valor na criação.
+services:
+  - type: web
+    name: queermap
+    runtime: docker
+    plan: free
+    region: virginia # perto do banco (Neon em AWS us-east-1)
+    # Sem "branch": o serviço segue a branch escolhida no Blueprint (dá para testar uma
+    # branch antes do merge e depois trocar para a main).
+    autoDeploy: true # cada push na branch do Blueprint publica a nova versão
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AMBIENTE_DEMONSTRACAO
+        value: 'true' # faixa "dados fictícios, não envie relatos reais"
+      - key: TRUST_PROXY
+        value: 'true' # o Render fica na frente do app (HTTPS, IP real)
+      - key: SITE_URL
+        sync: false # ex.: https://queermap.onrender.com
+      - key: DATABASE_URL
+        sync: false # conexão direta do Neon (sem "-pooler"), com sslmode=require
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: HASH_SECRET
+        generateValue: true
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: '587'
+      - key: SMTP_SECURE
+        value: 'false'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_REMETENTE
+        sync: false
