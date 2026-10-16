@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import { exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
+import { idValido } from '../utils/ids.js';
 import { flash } from '../middlewares/flash.js';
 import * as sessao from '../controllers/painel/sessaoController.js';
 import * as conta from '../controllers/painel/contaController.js';
@@ -101,7 +102,7 @@ router.use('/canais-denuncia', rotasCanaisDenuncia);
 // Base da caixa de entrada: ambos os papéis, sempre depois de exigirLogin.
 const rotasEnvios = Router();
 rotasEnvios.param('id', (req, res, next, id) => {
-  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
+  if (!idValido(id)) {
     return res.status(404).json({ erro: 'Envio não encontrado.' });
   }
   next();

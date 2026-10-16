@@ -1,23 +1,51 @@
 import { prisma } from '../db/prisma.js';
+import { hmac, mesmoHash } from '../utils/hash.js';
 
 export const STATUS = ['NOVO', 'EM_ANALISE', 'RESOLVIDO', 'ARQUIVADO'];
 
-// A listagem não precisa expor o texto nem o contato dos relatos.
-export function listar() {
+export const TIPOS = ['SUGESTAO_LOCAL', 'ELOGIO', 'RECLAMACAO', 'DISCRIMINACAO'];
+
+// Paginação e filtros no banco; nenhum relato ou contato vai para a lista.
+export function listar({ tipo, status, pagina = 1 } = {}) {
   return prisma.envio.findMany({
-    select: { id: true, tipo: true, status: true, criadoEm: true, lidoEm: true },
+    where: { ...(tipo ? { tipo } : {}), ...(status ? { status } : {}) },
+    select: {
+      id: true,
+      tipo: true,
+      status: true,
+      criadoEm: true,
+      lidoEm: true,
+      nomeLocalSugerido: true,
+      nomeLocalRelato: true,
+      local: { select: { nome: true } },
+      sinalizado: true,
+      motivoFiltro: true,
+    },
     orderBy: [{ criadoEm: 'desc' }, { id: 'desc' }],
-    take: 100,
+    skip: (pagina - 1) * 50,
+    take: 51,
   });
 }
 
 export function buscar(id) {
-  return prisma.envio.findUnique({ where: { id } });
+  return prisma.envio.findUnique({
+    where: { id },
+    include: { local: { select: { nome: true } }, categoriaSugerida: { select: { nome: true } } },
+  });
 }
 
-// Alteração e auditoria são indivisíveis. A serialização impede que duas pessoas
-// sobrescrevam silenciosamente a mesma situação ou a primeira data de leitura.
-export async function alterar(id, adminId, acao, valor) {
+// A versão depende só das notas: leitura e situação não invalidam o formulário.
+export function versaoNotas(envio) {
+  return hmac(JSON.stringify(['notas-envio', envio.id, envio.notasInternas ?? null]));
+}
+
+export function versaoSituacao(envio) {
+  return hmac(JSON.stringify(['situacao-envio', envio.id, envio.status]));
+}
+
+// Alteração e auditoria são indivisíveis. A versão detecta formulários antigos;
+// Serializable protege a comparação e gravação contra transações concorrentes.
+export async function alterar(id, adminId, acao, valor, versaoEsperada) {
   try {
     return await prisma.$transaction(
       async (tx) => {
@@ -30,6 +58,13 @@ export async function alterar(id, adminId, acao, valor) {
           data = { lidoEm: new Date() };
           detalhes = null;
         } else if (acao === 'situacao') {
+          if (!mesmoHash(versaoEsperada, versaoSituacao(atual))) {
+            const conflito = new Error(
+              'A situação foi alterada por outra pessoa. Confira a situação atual antes de salvar novamente.',
+            );
+            conflito.status = 409;
+            throw conflito;
+          }
           if (atual.status === valor) return atual;
           data = {
             status: valor,
@@ -37,6 +72,13 @@ export async function alterar(id, adminId, acao, valor) {
           };
           detalhes = { anterior: atual.status, novo: valor };
         } else {
+          if (!mesmoHash(versaoEsperada, versaoNotas(atual))) {
+            const conflito = new Error(
+              'As anotações foram alteradas por outra pessoa. Compare os textos antes de salvar novamente.',
+            );
+            conflito.status = 409;
+            throw conflito;
+          }
           if (atual.notasInternas === valor) return atual;
           data = { notasInternas: valor };
           // Não duplica conteúdo sensível na auditoria.

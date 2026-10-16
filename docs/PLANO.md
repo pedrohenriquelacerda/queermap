@@ -61,12 +61,12 @@ Cada fase termina com testes, verificação no navegador, commit e push.
 - Opção "quero ser contatada" (só então o e-mail é salvo).
 - Após um relato de discriminação: Ouvidoria do SUS, Disque 100 e Delegacia de Combate à Intolerância.
 
-### F6 · Caixa de envios no painel
+### F6 · Caixa de envios no painel (caixa implementada; auditoria visual pendente)
 
 - Lista por situação/tipo com contador de novos.
 - Detalhe, troca de situação e anotações internas.
 - "Criar local a partir desta sugestão" (formulário pré-preenchido).
-- Tela do registro de auditoria.
+- Tela do registro de auditoria (pendente; ações da caixa já são registradas no banco).
 
 ### F7 · Operação e entrega
 
