@@ -512,3 +512,30 @@ fieldset.cartao legend + * {
     grid-column: auto;
   }
 }
+
+/* Caixa de entrada */
+.filtros-envios {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+  margin-bottom: var(--esp-4);
+}
+.filtros-envios .campo {
+  flex: 1 1 12rem;
+  margin-bottom: 0;
+}
+.envio-sinalizado {
+  background: var(--cor-primaria-clara);
+}
+.texto-envio {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.paginacao-envios {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-3);
+  margin-top: var(--esp-4);
+}

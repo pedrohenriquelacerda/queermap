@@ -2,17 +2,35 @@ import { prisma } from '../db/prisma.js';
 
 export const STATUS = ['NOVO', 'EM_ANALISE', 'RESOLVIDO', 'ARQUIVADO'];
 
-// A listagem não precisa expor o texto nem o contato dos relatos.
-export function listar() {
+export const TIPOS = ['SUGESTAO_LOCAL', 'ELOGIO', 'RECLAMACAO', 'DISCRIMINACAO'];
+
+// Paginação e filtros no banco; nenhum relato ou contato vai para a lista.
+export function listar({ tipo, status, pagina = 1 } = {}) {
   return prisma.envio.findMany({
-    select: { id: true, tipo: true, status: true, criadoEm: true, lidoEm: true },
+    where: { ...(tipo ? { tipo } : {}), ...(status ? { status } : {}) },
+    select: {
+      id: true,
+      tipo: true,
+      status: true,
+      criadoEm: true,
+      lidoEm: true,
+      nomeLocalSugerido: true,
+      nomeLocalRelato: true,
+      local: { select: { nome: true } },
+      sinalizado: true,
+      motivoFiltro: true,
+    },
     orderBy: [{ criadoEm: 'desc' }, { id: 'desc' }],
-    take: 100,
+    skip: (pagina - 1) * 50,
+    take: 51,
   });
 }
 
 export function buscar(id) {
-  return prisma.envio.findUnique({ where: { id } });
+  return prisma.envio.findUnique({
+    where: { id },
+    include: { local: { select: { nome: true } }, categoriaSugerida: { select: { nome: true } } },
+  });
 }
 
 // Alteração e auditoria são indivisíveis. A serialização impede que duas pessoas

@@ -1,0 +1,46 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <p><a class="voltar" href="/painel/envios">← Envios</a></p>
+  <div class="cabecalho-pagina"><h1><%= tipos[envio.tipo] %> #<%= envio.id %></h1><span class="etiqueta etiqueta--neutra"><%= situacoes[envio.status] %></span></div>
+  <% if (envio.sinalizado) { %>
+  <div class="alerta alerta--aviso"><p><strong>Sinalizado pelo filtro automático.</strong> <%= envio.motivoFiltro || 'Revisar conteúdo.' %></p></div>
+  <% } %>
+  <div class="form-local">
+    <div>
+      <section class="cartao">
+        <h2>Envio recebido</h2>
+        <dl class="dados">
+          <dt>Local</dt><dd><%= envio.local?.nome || envio.nomeLocalSugerido || envio.nomeLocalRelato || 'Não informado' %></dd>
+          <dt>Recebido em</dt><dd><%= fmt.data(envio.criadoEm) %></dd>
+          <dt>Primeira leitura</dt><dd><%= fmt.data(envio.lidoEm) %></dd>
+          <% if (envio.resolvidoEm) { %><dt>Resolvido em</dt><dd><%= fmt.data(envio.resolvidoEm) %></dd><% } %>
+          <% if (envio.tipo === 'SUGESTAO_LOCAL') { %>
+          <dt>Tipo de serviço</dt><dd><%= envio.categoriaSugerida?.nome || 'Não informado' %></dd>
+          <dt>Endereço sugerido</dt><dd><%= envio.enderecoLocalSugerido %></dd>
+          <dt>Contato do local</dt><dd><%= envio.contatoLocalSugerido %></dd>
+          <% } %>
+        </dl>
+        <h3>Mensagem</h3><p class="texto-envio"><%= envio.mensagem %></p>
+        <% if (envio.desejaContato && envio.emailContato) { %>
+        <h3>Contato solicitado</h3><p class="texto-envio"><%= envio.emailContato %></p>
+        <% } %>
+      </section>
+      <form method="post" action="/painel/envios/<%= envio.id %>/notas" class="cartao">
+        <h2>Anotações internas</h2>
+        <%- include('../../partials/campo', { nome: 'notasInternas', rotulo: 'Anotações da ONG', tipo: 'textarea', valor: envio.notasInternas, ajuda: 'Visíveis somente à equipe. Até 5.000 caracteres.', attrs: { maxlength: 5000, rows: 6 } }) %>
+        <button class="botao" type="submit">Salvar anotações</button>
+      </form>
+    </div>
+    <aside class="form-local__lateral">
+      <form class="cartao" method="post" action="/painel/envios/<%= envio.id %>/situacao">
+        <h2>Situação</h2>
+        <%- include('../../partials/campo', { nome: 'status', rotulo: 'Situação do envio', tipo: 'select', valor: envio.status, opcoes: Object.entries(situacoes).map(([valor, texto]) => ({ valor, texto })) }) %>
+        <button class="botao" type="submit">Salvar situação</button>
+      </form>
+      <% if (envio.tipo === 'SUGESTAO_LOCAL') { %>
+      <section class="cartao"><h2>Novo local</h2><p class="campo__ajuda">Revise os dados sugeridos e salve como rascunho antes de publicar.</p><a class="botao botao--secundario" href="/painel/locais/novo?envio=<%= envio.id %>">Criar local a partir desta sugestão</a></section>
+      <% } %>
+    </aside>
+  </div>
+</main>
+<%- include('../../partials/foot') %>
