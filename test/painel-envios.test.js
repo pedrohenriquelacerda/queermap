@@ -153,7 +153,7 @@ test('rejeita situação e notas inválidas e envio inexistente', async () => {
     .set('Origin', 'http://localhost:3000')
     .send({ status: ['NOVO'] });
   assert.equal(array.status, 400);
-  for (const dados of [{}, { notasInternas: 'x'.repeat(5001) }]) {
+  for (const dados of [{}, { notasInternas: 'x'.repeat(5001), versaoNotas: versaoNotas(envio) }]) {
     assert.equal((await enviar(agente, '/painel/envios/1/notas', dados)).status, 400);
   }
   assert.equal((await agente.get('/painel/envios/999')).status, 404);
@@ -432,4 +432,20 @@ test('notas sem versão ou com versão forjada não alteram o envio', async () =
   );
   assert.equal(envio.notasInternas, null);
   assert.equal(auditoria.filter((a) => a.acao === 'envio.anotar').length, 0);
+});
+
+test('notas aceitam 5.000 caracteres e recusam 5.001 com versão válida', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  const limite = await enviar(agente, '/painel/envios/1/notas', {
+    notasInternas: 'x'.repeat(5000),
+    versaoNotas: versaoNotas(envio),
+  });
+  assert.equal(limite.status, 200);
+  const excedido = await enviar(agente, '/painel/envios/1/notas', {
+    notasInternas: 'y'.repeat(5001),
+    versaoNotas: versaoNotas(envio),
+  });
+  assert.equal(excedido.status, 400);
+  assert.equal(envio.notasInternas, 'x'.repeat(5000));
+  assert.equal(auditoria.filter((a) => a.acao === 'envio.anotar').length, 1);
 });
