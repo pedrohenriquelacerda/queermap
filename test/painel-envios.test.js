@@ -2,6 +2,7 @@ import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { versaoNotas } from '../src/services/enviosPainelService.js';
 import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 import { prepararAdmins, enviar as enviarFormulario, logar } from './helpers/painel.js';
@@ -126,7 +127,15 @@ test('repetir resolução preserva data; reabrir e resolver cria nova resoluçã
 test('cada edição de notas é auditada sem copiar texto privado para o log', async () => {
   const agente = await logar(app, 'editor@teste.test');
   for (const notasInternas of ['Contatar serviço', 'Aguardando retorno', '']) {
-    assert.equal((await enviar(agente, '/painel/envios/1/notas', { notasInternas })).status, 200);
+    assert.equal(
+      (
+        await enviar(agente, '/painel/envios/1/notas', {
+          notasInternas,
+          versaoNotas: versaoNotas(envio),
+        })
+      ).status,
+      200,
+    );
     assert.equal(envio.notasInternas, notasInternas || null);
   }
   const logs = auditoria.filter((a) => a.acao === 'envio.anotar');
@@ -225,7 +234,7 @@ test('formulários HTML salvam situação e notas e redirecionam ao detalhe', as
   const agente = await logar(app, 'editor@teste.test');
   for (const [acao, dados] of [
     ['situacao', { status: 'EM_ANALISE' }],
-    ['notas', { notasInternas: 'Retornar ligação' }],
+    ['notas', { notasInternas: 'Retornar ligação', versaoNotas: versaoNotas(envio) }],
   ]) {
     const res = await enviarFormulario(agente, `/painel/envios/1/${acao}`, dados);
     assert.equal(res.status, 302);
@@ -347,4 +356,80 @@ test('cadastro recusa referência inexistente, inválida ou que não seja sugest
     const res = await enviarFormulario(agente, '/painel/locais', { envioId });
     assert.equal(res.status, 404);
   }
+});
+
+test('HEAD não altera leitura nem auditoria; GET continua marcando leitura', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  for (const accept of ['text/html', 'application/json']) {
+    assert.equal((await agente.head('/painel/envios/1').set('Accept', accept)).status, 200);
+    assert.equal(envio.lidoEm, null);
+    assert.equal(auditoria.filter((a) => a.acao === 'envio.ler').length, 0);
+  }
+  assert.equal((await agente.head('/painel/envios/999')).status, 404);
+  assert.equal((await agente.get('/painel/envios/1')).status, 200);
+  assert.ok(envio.lidoEm instanceof Date);
+});
+
+for (const formato of ['html', 'json']) {
+  test(`notas antigas retornam 409 em ${formato}, sem perder texto nem sobrescrever a equipe`, async () => {
+    const editor = await logar(app, 'editor@teste.test');
+    const admin = await logar(app, 'admin@teste.test');
+    const aberto = await editor.get('/painel/envios/1');
+    const versao = aberto.text.match(/name="versaoNotas" value="([a-f0-9]{64})"/)[1];
+    const salvar = formato === 'json' ? enviar : enviarFormulario;
+    assert.equal(
+      (
+        await enviarFormulario(admin, '/painel/envios/1/notas', {
+          notasInternas: 'Informação da equipe',
+          versaoNotas: versao,
+        })
+      ).status,
+      302,
+    );
+    const antigas = {
+      notasInternas: '</textarea><script>texto preservado</script>',
+      versaoNotas: versao,
+    };
+    const res = await salvar(editor, '/painel/envios/1/notas', antigas);
+    assert.equal(res.status, 409);
+    assert.equal(envio.notasInternas, 'Informação da equipe');
+    assert.equal(auditoria.filter((a) => a.acao === 'envio.anotar').length, 1);
+    let novaVersao;
+    if (formato === 'json') {
+      assert.equal(res.body.notasDigitadas, antigas.notasInternas);
+      assert.equal(res.body.envio.notasInternas, 'Informação da equipe');
+      novaVersao = res.body.envio.versaoNotas;
+    } else {
+      assert.match(res.text, /Informação da equipe/);
+      assert.match(res.text, /&lt;script&gt;texto preservado/);
+      assert.doesNotMatch(res.text, /<script>texto preservado/);
+      novaVersao = res.text.match(/name="versaoNotas" value="([a-f0-9]{64})"/)[1];
+    }
+    assert.notEqual(novaVersao, versao);
+    const revisado = await salvar(editor, '/painel/envios/1/notas', {
+      notasInternas: 'Informação da equipe + minha revisão',
+      versaoNotas: novaVersao,
+    });
+    assert.equal(revisado.status, formato === 'json' ? 200 : 302);
+    assert.equal(envio.notasInternas, 'Informação da equipe + minha revisão');
+  });
+}
+
+test('notas sem versão ou com versão forjada não alteram o envio', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  assert.equal(
+    (await enviar(agente, '/painel/envios/1/notas', { notasInternas: 'Texto' })).status,
+    400,
+  );
+  assert.equal(
+    (
+      await enviar(agente, '/painel/envios/1/notas', {
+        notasInternas: 'Texto',
+        versaoNotas: '0'.repeat(64),
+      })
+    ).status,
+    409,
+  );
+  assert.equal(envio.notasInternas, null);
+  assert.equal(auditoria.filter((a) => a.acao === 'envio.anotar').length, 0);
 });

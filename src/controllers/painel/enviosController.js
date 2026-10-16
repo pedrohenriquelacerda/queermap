@@ -19,7 +19,12 @@ const filtros = z.object({
   status: z.enum(service.STATUS).optional(),
   pagina: z.coerce.number().int().min(1).max(10000).default(1),
 });
-const notas = z.object({ notasInternas: z.string().trim().max(5000) }).strict();
+const notas = z
+  .object({
+    notasInternas: z.string().trim().max(5000),
+    versaoNotas: z.string().regex(/^[a-f0-9]{64}$/),
+  })
+  .strict();
 
 export async function listar(req, res) {
   const resultado = filtros.safeParse({
@@ -52,6 +57,10 @@ export async function listar(req, res) {
 
 export async function mostrar(req, res) {
   const id = Number(req.params.id);
+  if (req.method === 'HEAD') {
+    const envio = await service.buscar(id);
+    return res.status(envio ? 200 : 404).end();
+  }
   if (querJson(req)) return responder(req, res, await service.buscar(id));
   const lido = await service.alterar(id, req.admin.id, 'ler');
   if (!lido) return res.status(404).json({ erro: 'Envio não encontrado.' });
@@ -83,16 +92,40 @@ export async function anotar(req, res) {
   if (!resultado.success) {
     return res.status(400).json({ erro: 'Informe uma anotação de até 5.000 caracteres.' });
   }
-  responder(
-    req,
-    res,
-    await service.alterar(
-      Number(req.params.id),
-      req.admin.id,
-      'anotar',
-      resultado.data.notasInternas || null,
-    ),
-  );
+  const id = Number(req.params.id);
+  try {
+    responder(
+      req,
+      res,
+      await service.alterar(
+        id,
+        req.admin.id,
+        'anotar',
+        resultado.data.notasInternas || null,
+        resultado.data.versaoNotas,
+      ),
+    );
+  } catch (erro) {
+    if (erro.status !== 409) throw erro;
+    const atual = await service.buscar(id);
+    if (!atual) return res.status(404).json({ erro: 'Envio não encontrado.' });
+    res.status(409);
+    if (querJson(req)) {
+      return res.json({
+        erro: erro.message,
+        notasDigitadas: resultado.data.notasInternas,
+        envio: protegerContato(atual),
+      });
+    }
+    res.render('painel/envios/mostrar', {
+      title: `Envio #${id}`,
+      envio: protegerContato(atual),
+      tipos: TIPOS,
+      situacoes: ROTULOS,
+      conflitoNotas: erro.message,
+      notasDigitadas: resultado.data.notasInternas,
+    });
+  }
 }
 
 function querJson(req) {
@@ -100,7 +133,13 @@ function querJson(req) {
 }
 
 function protegerContato(envio) {
-  return envio && { ...envio, emailContato: envio.desejaContato ? envio.emailContato : null };
+  return (
+    envio && {
+      ...envio,
+      emailContato: envio.desejaContato ? envio.emailContato : null,
+      versaoNotas: service.versaoNotas(envio),
+    }
+  );
 }
 
 function responder(req, res, envio) {
