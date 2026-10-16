@@ -74,28 +74,41 @@ No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStr
 
 Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, sessão que expira após 30 min sem uso e no máximo 8 h depois do login, troca ou redefinição de senha encerra as outras sessões da conta, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
-## Base da caixa de envios (rotas JSON)
+## Caixa de entrada da ONG
 
-A base de armazenamento e fluxo está disponível em `/painel/envios`, com a mesma
-sessão e proteção de origem do painel. Administração e Edição têm acesso.
-A interface da caixa de entrada continua pendente (F6).
+Em `/painel/envios`, Administração e Edição consultam sugestões e relatos, filtram
+por tipo e situação e navegam em páginas de 50 itens. O indicador do início leva
+à lista de envios novos. Ao abrir o detalhe no painel, a primeira leitura é
+registrada automaticamente; abrir novamente preserva a data.
+
+O detalhe permite alterar situação e salvar anotações internas. Envios sinalizados
+mostram o motivo do filtro na lista e no detalhe. O e-mail da pessoa só aparece
+quando `desejaContato` está ativo. O contato de um serviço sugerido é um dado separado.
+
+Uma sugestão pode abrir o cadastro de local pré-preenchido. A ONG revisa endereço,
+contato e coordenadas e salva como rascunho; a publicação continua manual. Abrir
+esse formulário não cria um local nem muda a situação da sugestão.
+
+### Base técnica dos envios
+
+As rotas usam a sessão e a proteção de origem do painel. Para respostas JSON,
+envie `Accept: application/json` (consultas JSON não marcam leitura).
 
 | Método e caminho                   | Comportamento                                                     |
 | ---------------------------------- | ----------------------------------------------------------------- |
-| `GET /painel/envios`               | Lista até os 100 envios mais recentes, sem mensagem ou contato    |
-| `GET /painel/envios/:id`           | Consulta o conteúdo completo, sem alterar dados                   |
-| `POST /painel/envios/:id/ler`      | Registra automaticamente a primeira leitura                       |
+| `GET /painel/envios`               | Lista paginada; aceita `tipo`, `status` e `pagina`                |
+| `GET /painel/envios/:id`           | Detalhe HTML com leitura automática, ou consulta JSON             |
+| `POST /painel/envios/:id/ler`      | Registra a primeira leitura explicitamente                        |
 | `POST /painel/envios/:id/situacao` | Recebe `status`: `NOVO`, `EM_ANALISE`, `RESOLVIDO` ou `ARQUIVADO` |
 | `POST /painel/envios/:id/notas`    | Recebe `notasInternas` (até 5.000 caracteres; vazio limpa)        |
 
 Qualquer situação pode mudar para outra. Resolver grava `resolvidoEm`; sair de
 `RESOLVIDO` limpa essa data. Repetir a mesma situação ou leitura preserva a data e
-não cria auditoria duplicada. A futura interface deve chamar `/ler` ao abrir o envio.
-Cada alteração efetiva de leitura, situação ou notas grava auditoria na mesma
-transação; notas e relatos não são copiados para o log. Conflitos concorrentes
-respondem `409`, para atualizar e tentar novamente. Sem login, as rotas redirecionam
-para a entrada do painel. IDs inexistentes retornam `404`; dados inválidos, `400`.
-O schema existente já contém os campos necessários, sem nova migration.
+não cria auditoria duplicada. Cada alteração efetiva de leitura, situação ou notas
+grava auditoria na mesma transação; notas e relatos não são copiados para o log.
+Conflitos concorrentes respondem `409`, para atualizar e tentar novamente.
+Sem login, as rotas redirecionam para a entrada. IDs inexistentes retornam `404`;
+dados inválidos, `400`. O schema existente é reutilizado, sem nova migration.
 
 ## Scripts
 

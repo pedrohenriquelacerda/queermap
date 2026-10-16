@@ -4,24 +4,29 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
-import { prepararAdmins, enviar, logar } from './helpers/painel.js';
+import { prepararAdmins, enviar as enviarFormulario, logar } from './helpers/painel.js';
 
 const app = createApp();
+const enviar = (...args) => enviarFormulario(...args).set('Accept', 'application/json');
 let envio;
 let auditoria;
 let falharAuditoria;
 let conflito;
+let consultas;
 
 beforeEach(async () => {
   ({ auditoria } = await prepararAdmins());
   falharAuditoria = false;
   conflito = false;
+  consultas = [];
   envio = {
     id: 1,
     tipo: 'RECLAMACAO',
     status: 'NOVO',
     mensagem: 'Relato privado',
     emailContato: 'privado@teste.test',
+    desejaContato: true,
+    criadoEm: new Date('2026-10-15T15:00:00Z'),
     lidoEm: null,
     resolvidoEm: null,
     notasInternas: null,
@@ -29,9 +34,10 @@ beforeEach(async () => {
   mockPrisma(prisma.envio, 'findUnique', async ({ where }) =>
     where.id === 1 ? { ...envio } : null,
   );
-  mockPrisma(prisma.envio, 'findMany', async () => [
-    { id: 1, tipo: envio.tipo, status: envio.status },
-  ]);
+  mockPrisma(prisma.envio, 'findMany', async (args) => {
+    consultas.push(args);
+    return [{ ...envio, mensagem: undefined, emailContato: undefined }];
+  });
   mockPrisma(prisma, '$transaction', async (executar, opcoes) => {
     assert.equal(opcoes.isolationLevel, 'Serializable');
     if (conflito) throw Object.assign(new Error('conflito'), { code: 'P2034' });
@@ -79,8 +85,11 @@ test('sem login, nenhuma rota permite consultar ou alterar envios', async () => 
 for (const papel of ['admin', 'editor']) {
   test(`${papel} consulta, registra primeira leitura e percorre as situações`, async () => {
     const agente = await logar(app, `${papel}@teste.test`);
-    assert.equal((await agente.get('/painel/envios')).status, 200);
-    const detalhe = await agente.get('/painel/envios/1');
+    assert.equal(
+      (await agente.get('/painel/envios').set('Accept', 'application/json')).status,
+      200,
+    );
+    const detalhe = await agente.get('/painel/envios/1').set('Accept', 'application/json');
     assert.equal(detalhe.body.envio.mensagem, 'Relato privado');
     assert.equal(envio.lidoEm, null); // GET não altera dados.
     await enviar(agente, '/painel/envios/1/ler', {});
@@ -170,4 +179,125 @@ test('falha da auditoria reverte alteração; conflito retorna 409', async () =>
   assert.equal(auditoria.filter((a) => a.entidade === 'Envio').length, 0);
   conflito = true;
   assert.equal((await enviar(agente, '/painel/envios/1/ler', {})).status, 409);
+});
+
+test('lista HTML mostra tipo, local, data, situação e motivo da sinalização', async () => {
+  envio.nomeLocalRelato = 'Serviço de teste';
+  envio.sinalizado = true;
+  envio.motivoFiltro = 'Contém link';
+  const agente = await logar(app, 'editor@teste.test');
+  const res = await agente.get('/painel/envios?tipo=RECLAMACAO&status=NOVO&pagina=2');
+  assert.equal(res.status, 200);
+  for (const texto of [
+    'Serviço de teste',
+    'Reclamação',
+    'Novo',
+    '15 de outubro',
+    'Sinalizado',
+    'Contém link',
+  ]) {
+    assert.ok(res.text.includes(texto), texto);
+  }
+  assert.doesNotMatch(res.text, /privado@teste.test|Relato privado/);
+  assert.deepEqual(consultas.at(-1).where, { tipo: 'RECLAMACAO', status: 'NOVO' });
+  assert.equal(consultas.at(-1).skip, 50);
+  assert.equal(consultas.at(-1).take, 51);
+  assert.match(res.text, /pagina=1&amp;tipo=RECLAMACAO&amp;status=NOVO/);
+});
+
+test('abrir detalhe HTML marca como lido, escapa conteúdo e respeita consentimento', async () => {
+  envio.mensagem = '<script>alert(1)</script>';
+  envio.desejaContato = false;
+  const agente = await logar(app, 'editor@teste.test');
+  const res = await agente.get('/painel/envios/1');
+  assert.equal(res.status, 200);
+  assert.ok(envio.lidoEm instanceof Date);
+  assert.match(res.text, /&lt;script&gt;/);
+  assert.doesNotMatch(res.text, /<script>alert|privado@teste.test/);
+  const json = await agente.get('/painel/envios/1').set('Accept', 'application/json');
+  assert.equal(json.body.envio.emailContato, null);
+  envio.desejaContato = true;
+  assert.match((await agente.get('/painel/envios/1')).text, /privado@teste.test/);
+  assert.equal(auditoria.filter((a) => a.acao === 'envio.ler').length, 1);
+});
+
+test('formulários HTML salvam situação e notas e redirecionam ao detalhe', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  for (const [acao, dados] of [
+    ['situacao', { status: 'EM_ANALISE' }],
+    ['notas', { notasInternas: 'Retornar ligação' }],
+  ]) {
+    const res = await enviarFormulario(agente, `/painel/envios/1/${acao}`, dados);
+    assert.equal(res.status, 302);
+    assert.equal(res.headers.location, '/painel/envios/1');
+  }
+  const detalhe = await agente.get('/painel/envios/1');
+  assert.match(detalhe.text, /Retornar ligação/);
+  assert.equal(envio.status, 'EM_ANALISE');
+});
+
+test('somente sugestão abre cadastro preenchido e salva como rascunho', async () => {
+  mockPrisma(prisma.categoria, 'findMany', async () => [{ id: 1, nome: 'ONG', ativa: true }]);
+  mockPrisma(prisma.caracteristica, 'findMany', async () => []);
+  const agente = await logar(app, 'editor@teste.test');
+  assert.equal((await agente.get('/painel/locais/novo?envio=1')).status, 404);
+  Object.assign(envio, {
+    tipo: 'SUGESTAO_LOCAL',
+    nomeLocalSugerido: 'Casa do cuidado',
+    categoriaSugeridaId: 1,
+    enderecoLocalSugerido: 'Rua Teste, 12',
+    contatoLocalSugerido: 'https://servico.test',
+  });
+  const detalhe = await agente.get('/painel/envios/1');
+  assert.match(detalhe.text, /Criar local a partir desta sugestão/);
+  const form = await agente.get('/painel/locais/novo?envio=1');
+  assert.equal(form.status, 200);
+  assert.match(form.text, /value="Casa do cuidado"/);
+  assert.match(form.text, /value="Rua Teste, 12"/);
+  assert.match(form.text, /value="https:\/\/servico.test"/);
+  assert.match(form.text, /Salvar como rascunho/);
+  let criado;
+  mockPrisma(prisma.local, 'findUnique', async () => null);
+  mockPrisma(prisma.local, 'create', async ({ data }) => {
+    criado = { id: 10, publicado: false, ...data };
+    return criado;
+  });
+  const salvo = await enviarFormulario(agente, '/painel/locais', {
+    nome: 'Casa do cuidado',
+    categoriaId: '1',
+    logradouro: 'Rua Teste',
+    numero: '12',
+    cidade: 'Porto Alegre',
+    uf: 'RS',
+    latitude: '-30.03',
+    longitude: '-51.22',
+  });
+  assert.equal(salvo.status, 302);
+  assert.equal(criado.publicado, false);
+  assert.equal(envio.status, 'NOVO');
+});
+
+test('filtros inválidos são recusados e paginação mantém filtros', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  for (const query of ['tipo=INVALIDO', 'status=INVALIDO', 'pagina=0', 'pagina=1.5']) {
+    assert.equal((await agente.get(`/painel/envios?${query}`)).status, 400);
+  }
+  mockPrisma(prisma.envio, 'findMany', async () =>
+    Array.from({ length: 51 }, (_, i) => ({ ...envio, id: i + 1 })),
+  );
+  const res = await agente.get('/painel/envios?tipo=RECLAMACAO&status=NOVO');
+  assert.match(res.text, /pagina=2&amp;tipo=RECLAMACAO&amp;status=NOVO/);
+  assert.doesNotMatch(res.text, /href="\/painel\/envios\/51"/);
+});
+
+test('início mostra contador de novos e link para a caixa de entrada filtrada', async () => {
+  mockPrisma(prisma.local, 'count', async () => 0);
+  mockPrisma(prisma.envio, 'count', async ({ where }) => {
+    assert.deepEqual(where, { status: 'NOVO' });
+    return 7;
+  });
+  const agente = await logar(app, 'editor@teste.test');
+  const res = await agente.get('/painel');
+  assert.match(res.text, /indicador__numero">7</);
+  assert.match(res.text, /href="\/painel\/envios\?status=NOVO"/);
 });
