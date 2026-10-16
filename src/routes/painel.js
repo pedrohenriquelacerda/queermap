@@ -10,6 +10,8 @@ import * as locais from '../controllers/painel/locaisController.js';
 import * as classificacao from '../controllers/painel/classificacaoController.js';
 import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
 
+import * as envios from '../controllers/painel/enviosController.js';
+
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 
 // Só ids numéricos; o resto cai no 404.
@@ -95,5 +97,20 @@ rotasCanaisDenuncia.param('id', soNumeros);
 rotasCanaisDenuncia.get('/', canaisDenuncia.listar);
 rotasCanaisDenuncia.post('/:id', canaisDenuncia.salvar);
 router.use('/canais-denuncia', rotasCanaisDenuncia);
+
+// Base da caixa de entrada: ambos os papéis, sempre depois de exigirLogin.
+const rotasEnvios = Router();
+rotasEnvios.param('id', (req, res, next, id) => {
+  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
+    return res.status(404).json({ erro: 'Envio não encontrado.' });
+  }
+  next();
+});
+rotasEnvios.get('/', envios.listar);
+rotasEnvios.get('/:id', envios.mostrar);
+rotasEnvios.post('/:id/ler', envios.ler);
+rotasEnvios.post('/:id/situacao', envios.mudarSituacao);
+rotasEnvios.post('/:id/notas', envios.anotar);
+router.use('/envios', rotasEnvios);
 
 export default router;

@@ -74,6 +74,29 @@ No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStr
 
 Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, sessão que expira após 30 min sem uso e no máximo 8 h depois do login, troca ou redefinição de senha encerra as outras sessões da conta, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
+## Base da caixa de envios (rotas JSON)
+
+A base de armazenamento e fluxo está disponível em `/painel/envios`, com a mesma
+sessão e proteção de origem do painel. Administração e Edição têm acesso.
+A interface da caixa de entrada continua pendente (F6).
+
+| Método e caminho                   | Comportamento                                                     |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `GET /painel/envios`               | Lista até os 100 envios mais recentes, sem mensagem ou contato    |
+| `GET /painel/envios/:id`           | Consulta o conteúdo completo, sem alterar dados                   |
+| `POST /painel/envios/:id/ler`      | Registra automaticamente a primeira leitura                       |
+| `POST /painel/envios/:id/situacao` | Recebe `status`: `NOVO`, `EM_ANALISE`, `RESOLVIDO` ou `ARQUIVADO` |
+| `POST /painel/envios/:id/notas`    | Recebe `notasInternas` (até 5.000 caracteres; vazio limpa)        |
+
+Qualquer situação pode mudar para outra. Resolver grava `resolvidoEm`; sair de
+`RESOLVIDO` limpa essa data. Repetir a mesma situação ou leitura preserva a data e
+não cria auditoria duplicada. A futura interface deve chamar `/ler` ao abrir o envio.
+Cada alteração efetiva de leitura, situação ou notas grava auditoria na mesma
+transação; notas e relatos não são copiados para o log. Conflitos concorrentes
+respondem `409`, para atualizar e tentar novamente. Sem login, as rotas redirecionam
+para a entrada do painel. IDs inexistentes retornam `404`; dados inválidos, `400`.
+O schema existente já contém os campos necessários, sem nova migration.
+
 ## Scripts
 
 | Comando                    | O que faz                                               |
