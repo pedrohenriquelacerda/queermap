@@ -102,6 +102,11 @@ envie `Accept: application/json` (consultas JSON não marcam leitura).
 | `POST /painel/envios/:id/situacao` | Recebe `status`: `NOVO`, `EM_ANALISE`, `RESOLVIDO` ou `ARQUIVADO` |
 | `POST /painel/envios/:id/notas`    | Recebe `notasInternas` (até 5.000 caracteres; vazio limpa)        |
 
+Para salvar notas, envie também `versaoNotas`, retornado no detalhe JSON ou
+incluído no formulário HTML. Uma versão antiga retorna `409`, mantém o texto
+digitado e mostra as notas atuais para comparação antes de salvar novamente.
+`HEAD /painel/envios/:id` só verifica a existência do envio, sem marcar leitura.
+
 Qualquer situação pode mudar para outra. Resolver grava `resolvidoEm`; sair de
 `RESOLVIDO` limpa essa data. Repetir a mesma situação ou leitura preserva a data e
 não cria auditoria duplicada. Cada alteração efetiva de leitura, situação ou notas

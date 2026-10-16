@@ -27,7 +27,16 @@
       </section>
       <form method="post" action="/painel/envios/<%= envio.id %>/notas" class="cartao">
         <h2>Anotações internas</h2>
-        <%- include('../../partials/campo', { nome: 'notasInternas', rotulo: 'Anotações da ONG', tipo: 'textarea', valor: envio.notasInternas, ajuda: 'Visíveis somente à equipe. Até 5.000 caracteres.', attrs: { maxlength: 5000, rows: 6 } }) %>
+        <input type="hidden" name="versaoNotas" value="<%= envio.versaoNotas %>" />
+        <% if (locals.conflitoNotas) { %>
+        <div class="alerta alerta--aviso" role="alert">
+          <p><strong>Suas anotações não foram salvas.</strong> <%= conflitoNotas %></p>
+          <p>Versão atual salva pela equipe:</p>
+          <p class="texto-envio"><%= envio.notasInternas || 'Sem anotações.' %></p>
+          <p>Seu texto foi preservado no campo abaixo. Revise antes de salvar.</p>
+        </div>
+        <% } %>
+        <%- include('../../partials/campo', { nome: 'notasInternas', rotulo: 'Anotações da ONG', tipo: 'textarea', valor: locals.notasDigitadas ?? envio.notasInternas, ajuda: 'Visíveis somente à equipe. Até 5.000 caracteres.', attrs: { maxlength: 5000, rows: 6 } }) %>
         <button class="botao" type="submit">Salvar anotações</button>
       </form>
     </div>

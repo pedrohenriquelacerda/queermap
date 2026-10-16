@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma.js';
+import { hmac, mesmoHash } from '../utils/hash.js';
 
 export const STATUS = ['NOVO', 'EM_ANALISE', 'RESOLVIDO', 'ARQUIVADO'];
 
@@ -33,9 +34,14 @@ export function buscar(id) {
   });
 }
 
-// Alteração e auditoria são indivisíveis. A serialização impede que duas pessoas
-// sobrescrevam silenciosamente a mesma situação ou a primeira data de leitura.
-export async function alterar(id, adminId, acao, valor) {
+// A versão depende só das notas: leitura e situação não invalidam o formulário.
+export function versaoNotas(envio) {
+  return hmac(JSON.stringify(['notas-envio', envio.id, envio.notasInternas ?? null]));
+}
+
+// Alteração e auditoria são indivisíveis. A versão detecta formulários antigos;
+// Serializable protege a comparação e gravação contra transações concorrentes.
+export async function alterar(id, adminId, acao, valor, versaoEsperada) {
   try {
     return await prisma.$transaction(
       async (tx) => {
@@ -55,6 +61,13 @@ export async function alterar(id, adminId, acao, valor) {
           };
           detalhes = { anterior: atual.status, novo: valor };
         } else {
+          if (!mesmoHash(versaoEsperada, versaoNotas(atual))) {
+            const conflito = new Error(
+              'As anotações foram alteradas por outra pessoa. Compare os textos antes de salvar novamente.',
+            );
+            conflito.status = 409;
+            throw conflito;
+          }
           if (atual.notasInternas === valor) return atual;
           data = { notasInternas: valor };
           // Não duplica conteúdo sensível na auditoria.
