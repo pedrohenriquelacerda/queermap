@@ -69,14 +69,8 @@ export async function listar(req, res) {
 export async function novo(req, res) {
   let local = { cidade: 'Porto Alegre', uf: 'RS', caracteristicas: [] };
   if (req.query.envio !== undefined) {
-    const id = String(req.query.envio);
-    if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
-      return res.status(404).send('Sugestão não encontrada.');
-    }
-    const sugestao = await envios.buscar(Number(id));
-    if (!sugestao || sugestao.tipo !== 'SUGESTAO_LOCAL') {
-      return res.status(404).send('Sugestão não encontrada.');
-    }
+    const sugestao = await buscarSugestao(req.query.envio);
+    if (!sugestao) return res.status(404).send('Sugestão não encontrada.');
     // Preenche contatos reconhecíveis; preserva o texto original para revisão.
     // A ONG confere endereço e coordenadas antes de salvar o rascunho.
     local = {
@@ -95,9 +89,19 @@ export async function novo(req, res) {
 }
 
 export async function criar(req, res) {
+  // Só o identificador vem do formulário; o contexto original é relido do banco.
+  const temSugestao = req.body.envioId !== undefined;
+  const sugestao = temSugestao ? await buscarSugestao(req.body.envioId) : null;
+  if (temSugestao && !sugestao) return res.status(404).send('Sugestão não encontrada.');
+
   const { dados, erros } = validar(esquema, req.body);
-  if (erros)
-    return renderizarFormulario(res.status(400), { local: corpoParaLocal(req.body), erros });
+  if (erros) {
+    return renderizarFormulario(res.status(400), {
+      local: corpoParaLocal(req.body),
+      erros,
+      sugestao,
+    });
+  }
 
   const local = await service.criar(dados, req.admin.id);
   await auditoria.registrar(req, 'local.criar', 'Local', local.id, { nome: local.nome });
@@ -160,6 +164,13 @@ export async function geocodificar(req, res) {
     console.error('Busca de endereço falhou:', err.message);
     res.status(502).json({ erro: 'A busca de endereço não respondeu. Posicione o pino no mapa.' });
   }
+}
+
+async function buscarSugestao(valor) {
+  const id = String(valor);
+  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) return null;
+  const envio = await envios.buscar(Number(id));
+  return envio?.tipo === 'SUGESTAO_LOCAL' ? envio : null;
 }
 
 async function renderizarFormulario(res, { local, erros = {}, sugestao = null }) {
