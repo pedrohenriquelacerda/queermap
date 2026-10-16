@@ -40,6 +40,9 @@
 
   <div class="form-local">
     <form class="form-local__principal" method="post" action="<%= acao %>" id="form-local" novalidate>
+      <% if (locals.sugestao) { %>
+      <input type="hidden" name="envioId" value="<%= sugestao.id %>" />
+      <% } %>
       <section class="cartao">
         <h2>Identificação</h2>
         <%- campo({ nome: 'nome', rotulo: 'Nome do local', valor: local.nome, attrs: { required: true, maxlength: 150 } }) %>

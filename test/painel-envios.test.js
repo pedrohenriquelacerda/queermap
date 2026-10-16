@@ -301,3 +301,50 @@ test('início mostra contador de novos e link para a caixa de entrada filtrada',
   assert.match(res.text, /indicador__numero">7</);
   assert.match(res.text, /href="\/painel\/envios\?status=NOVO"/);
 });
+
+test('cadastro preserva contexto da sugestão e valores digitados após erros repetidos', async () => {
+  mockPrisma(prisma.categoria, 'findMany', async () => [{ id: 1, nome: 'ONG', ativa: true }]);
+  mockPrisma(prisma.caracteristica, 'findMany', async () => []);
+  Object.assign(envio, {
+    tipo: 'SUGESTAO_LOCAL',
+    nomeLocalSugerido: 'Casa sugerida',
+    categoriaSugeridaId: 1,
+    enderecoLocalSugerido: 'Rua Original, 10',
+    contatoLocalSugerido: 'Contato original da recepção',
+    mensagem: 'Mensagem original privada',
+  });
+  const agente = await logar(app, 'editor@teste.test');
+  const abertura = await agente.get('/painel/locais/novo?envio=1');
+  assert.equal(abertura.status, 200);
+  assert.match(abertura.text, /name="envioId" value="1"/);
+  const dados = {
+    envioId: '1',
+    nome: 'Nome revisado pela ONG',
+    categoriaId: '1',
+    logradouro: 'Rua Revisada',
+    cidade: 'Porto Alegre',
+    uf: 'RS',
+    latitude: '',
+    longitude: '',
+    contatoLocalSugerido: 'Contato adulterado no navegador',
+  };
+  for (let i = 0; i < 2; i++) {
+    const res = await enviarFormulario(agente, '/painel/locais', dados);
+    assert.equal(res.status, 400);
+    assert.match(res.text, /name="envioId" value="1"/);
+    assert.match(res.text, /Contato original da recepção/);
+    assert.match(res.text, /Mensagem original privada/);
+    assert.match(res.text, /Rua Original, 10/);
+    assert.match(res.text, /value="Nome revisado pela ONG"/);
+    assert.match(res.text, /value="Rua Revisada"/);
+    assert.doesNotMatch(res.text, /Contato adulterado no navegador/);
+  }
+});
+
+test('cadastro recusa referência inexistente, inválida ou que não seja sugestão', async () => {
+  const agente = await logar(app, 'editor@teste.test');
+  for (const envioId of ['0', '-1', 'abc', '999', '9007199254740992', '1']) {
+    const res = await enviarFormulario(agente, '/painel/locais', { envioId });
+    assert.equal(res.status, 404);
+  }
+});
