@@ -1,0 +1,16 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
+  <h1>Excluir local definitivamente</h1>
+  <div class="alerta alerta--aviso" role="alert">
+    <p>Você está prestes a excluir <strong><%= local.nome %></strong>. Esta ação não pode ser desfeita. Os relatos serão mantidos, com o nome do local preservado.</p>
+  </div>
+  <form class="cartao" method="post" action="/painel/locais/<%= local.id %>/apagar">
+    <input type="hidden" name="token" value="<%= token %>" />
+    <label><input type="checkbox" name="confirmacao" value="excluir" required /> Confirmo a exclusão definitiva deste local.</label>
+    <div class="pilha-acoes">
+      <button type="submit" class="botao">Excluir definitivamente</button>
+      <a class="botao botao--secundario" href="/painel/locais/<%= local.id %>">Cancelar</a>
+    </div>
+  </form>
+</main>
+<%- include('../../partials/foot') %>

@@ -36,6 +36,8 @@ const valido = {
 
 beforeEach(async () => {
   ({ auditoria } = await prepararAdmins());
+  mockPrisma(prisma, '$transaction', async (fn) => fn(prisma));
+  mockPrisma(prisma, '$queryRaw', async () => []);
   locais = [];
   const achar = (where) =>
     locais.find((l) => (where.id ? l.id === where.id : l.slug === where.slug)) ?? null;
@@ -145,7 +147,7 @@ test('publicar, arquivar e restaurar mudam a situação e são auditados', async
 test('ação desconhecida responde 404', async () => {
   const agente = await logar(app, 'editor@teste.test');
   await enviar(agente, '/painel/locais', valido);
-  const res = await enviar(agente, '/painel/locais/1/apagar', {});
+  const res = await enviar(agente, '/painel/locais/1/acao-inexistente', {});
   assert.equal(res.status, 404);
 });
 

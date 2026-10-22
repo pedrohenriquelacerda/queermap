@@ -1,0 +1,18 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <h1>Relatos e sugestões</h1>
+  <% if (!envios.length) { %><p>Nenhum envio nesta página.</p><% } %>
+  <ul class="lista-locais">
+    <% for (const envio of envios) { %>
+    <li class="cartao">
+      <h2><a href="/painel/envios/<%= envio.id %>"><%= nomeLocal(envio) %></a></h2>
+      <p><%= envio.tipo %> · <%= envio.status %> · <%= envio.criadoEm.toLocaleDateString('pt-BR') %></p>
+    </li>
+    <% } %>
+  </ul>
+  <nav aria-label="Páginas de envios">
+    <% if (pagina > 1) { %><a href="?pagina=<%= pagina - 1 %>">Anterior</a><% } %>
+    <% if (temProxima) { %><a href="?pagina=<%= pagina + 1 %>">Próxima</a><% } %>
+  </nav>
+</main>
+<%- include('../../partials/foot') %>

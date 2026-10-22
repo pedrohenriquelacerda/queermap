@@ -125,6 +125,9 @@
           <form method="post" action="/painel/locais/<%= local.id %>/arquivar"><button class="botao botao--fantasma">Arquivar</button></form>
           <% } else { %>
           <form method="post" action="/painel/locais/<%= local.id %>/restaurar"><button class="botao botao--secundario">Restaurar</button></form>
+          <% if (admin.papel === 'ADMIN') { %>
+          <a class="botao botao--fantasma" href="/painel/locais/<%= local.id %>/excluir">Excluir definitivamente</a>
+          <% } %>
           <% } %>
         </div>
         <% if (situacao === 'rascunho') { %>

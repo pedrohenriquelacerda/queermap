@@ -1,0 +1,9 @@
+<%- include('../../partials/head') %>
+<main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
+  <p><a href="/painel/envios">← Relatos e sugestões</a></p>
+  <h1>Detalhe do envio</h1>
+  <h2><%= nomeLocal %></h2>
+  <p><%= envio.tipo %> · <%= envio.status %></p>
+  <div class="cartao"><p style="white-space: pre-wrap"><%= envio.mensagem %></p></div>
+</main>
+<%- include('../../partials/foot') %>

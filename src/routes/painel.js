@@ -9,11 +9,41 @@ import * as pessoas from '../controllers/painel/pessoasController.js';
 import * as locais from '../controllers/painel/locaisController.js';
 import * as classificacao from '../controllers/painel/classificacaoController.js';
 import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
+import * as envios from '../controllers/painel/enviosController.js';
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 
 // Só ids numéricos; o resto cai no 404.
 const soNumeros = (req, res, next, valor) => (/^\d+$/.test(valor) ? next() : next('router'));
+
+// IDs Prisma Int: validar antes de converter/enviar ao banco.
+const idLocal = (req, res, next, valor) => {
+  const id = Number(valor);
+  if (!/^\d+$/.test(valor) || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
+    return next(Object.assign(new Error('Identificador inválido.'), { status: 400 }));
+  }
+  next();
+};
+
+const corpoLocal = (req, res, next) => {
+  const corpo = req.body;
+  if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo)) {
+    return next(Object.assign(new Error('Informe os dados da requisição.'), { status: 400 }));
+  }
+  const valido = Object.entries(corpo).every(
+    ([campo, valor]) =>
+      typeof valor === 'string' ||
+      (['categoriaId', 'latitude', 'longitude'].includes(campo) &&
+        typeof valor === 'number' &&
+        Number.isFinite(valor)) ||
+      (campo === 'caracteristicas' &&
+        Array.isArray(valor) &&
+        valor.every((v) => typeof v === 'string')),
+  );
+  if (!valido)
+    return next(Object.assign(new Error('Formato dos campos inválido.'), { status: 400 }));
+  next();
+};
 
 // Tentativas de login: só as que falham contam.
 const opcoesLimite = {
@@ -68,15 +98,27 @@ rotasPessoas.post('/:id/senha', pessoas.redefinirSenha);
 router.use('/pessoas', rotasPessoas);
 
 const rotasLocais = Router();
-rotasLocais.param('id', soNumeros);
+rotasLocais.param('id', idLocal);
 rotasLocais.get('/', locais.listar);
 rotasLocais.get('/novo', locais.novo);
 rotasLocais.get('/geocodificar', locais.geocodificar);
-rotasLocais.post('/', locais.criar);
+rotasLocais.post('/', corpoLocal, locais.criar);
 rotasLocais.get('/:id', locais.editar);
-rotasLocais.post('/:id', locais.salvar);
+rotasLocais.post('/:id', corpoLocal, locais.salvar);
+rotasLocais.get('/:id/excluir', exigirPapelAdmin, locais.confirmarExclusao);
+rotasLocais.post('/:id/apagar', exigirPapelAdmin, corpoLocal, locais.apagar);
 rotasLocais.post('/:id/:acao', locais.mudarSituacao);
 router.use('/locais', rotasLocais);
+
+const rotasEnvios = Router();
+rotasEnvios.use((req, res, next) => {
+  if (['ADMIN', 'EDITOR'].includes(req.admin.papel)) return next();
+  next(Object.assign(new Error('Acesso restrito à equipe.'), { status: 403 }));
+});
+rotasEnvios.param('id', idLocal);
+rotasEnvios.get('/', envios.listar);
+rotasEnvios.get('/:id', envios.mostrar);
+router.use('/envios', rotasEnvios);
 
 const rotasClassificacao = Router();
 rotasClassificacao.use(exigirPapelAdmin);

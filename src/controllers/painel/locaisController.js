@@ -3,6 +3,8 @@ import * as auditoria from '../../services/auditoriaService.js';
 import { buscarEndereco } from '../../services/geocodificacaoService.js';
 import { urlSegura } from '../../utils/formatadores.js';
 import { validar, texto, textoOpcional as opcional, z } from '../../utils/validacao.js';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { env } from '../../config/env.js';
 
 // Limites aproximados do Rio Grande do Sul, para pegar coordenadas trocadas ou vazias.
 const coordenada = (min, max) =>
@@ -15,7 +17,8 @@ const esquema = z.object({
   categoriaId: z.coerce
     .number({ error: 'Escolha o tipo de serviço.' })
     .int()
-    .positive('Escolha o tipo de serviço.'),
+    .positive('Escolha o tipo de serviço.')
+    .max(2147483647, 'Escolha um tipo de serviço válido.'),
   descricao: opcional(1000),
   logradouro: texto('a rua ou avenida', 200),
   numero: opcional(20),
@@ -37,7 +40,8 @@ const esquema = z.object({
   caracteristicas: z
     .union([z.string(), z.array(z.string())])
     .optional()
-    .transform((v) => [v ?? []].flat().map(Number).filter(Number.isInteger)),
+    .transform((v) => [v ?? []].flat().map(Number))
+    .pipe(z.array(z.number().int().positive().max(2147483647))),
 });
 
 const ROTULOS_ACAO = {
@@ -106,10 +110,11 @@ export async function salvar(req, res, next) {
     });
   }
 
-  await service.atualizar(id, dados, req.admin.id);
-  await auditoria.registrar(req, 'local.atualizar', 'Local', id, {
-    alterados: camposAlterados(atual, dados),
-  });
+  try {
+    await service.atualizar(id, dados, req, atual.atualizadoEm?.toISOString());
+  } catch (err) {
+    return tratarConcorrencia(err, id, next);
+  }
   req.flash('sucesso', 'Alterações salvas.');
   res.redirect(`/painel/locais/${id}`);
 }
@@ -117,13 +122,59 @@ export async function salvar(req, res, next) {
 export async function mudarSituacao(req, res, next) {
   const id = Number(req.params.id);
   const acao = req.params.acao;
+  if (!service.ACOES_PERMITIDAS.includes(acao)) return next();
   const local = await service.buscar(id);
-  if (!local || !service.ACOES[acao]) return next();
+  if (!local) return next();
 
-  await service.mudarSituacao(id, acao, req.admin.id);
-  await auditoria.registrar(req, `local.${acao}`, 'Local', id, { nome: local.nome });
+  try {
+    await service.mudarSituacao(id, acao, req, local.atualizadoEm?.toISOString());
+  } catch (err) {
+    return tratarConcorrencia(err, id, next);
+  }
   req.flash('sucesso', `“${local.nome}” ${ROTULOS_ACAO[acao]}.`);
   res.redirect(`/painel/locais/${id}`);
+}
+
+function assinaturaExclusao(req, local) {
+  return createHmac('sha256', env.hashSecret)
+    .update(
+      JSON.stringify(['excluir-local', req.sessionID, local.id, local.atualizadoEm.toISOString()]),
+    )
+    .digest('hex');
+}
+
+export async function confirmarExclusao(req, res, next) {
+  const local = await service.buscar(Number(req.params.id));
+  if (!local) return next();
+  if (!local.arquivadoEm || local.publicado) {
+    return res.status(409).render('erro', {
+      title: 'Exclusão indisponível',
+      status: 409,
+      mensagem: 'Apenas locais arquivados podem ser excluídos definitivamente.',
+    });
+  }
+  res.render('painel/locais/excluir', {
+    title: 'Excluir local definitivamente',
+    local,
+    token: assinaturaExclusao(req, local),
+  });
+}
+
+export async function apagar(req, res, next) {
+  const local = await service.buscar(Number(req.params.id));
+  if (!local) return next();
+  const token = req.body?.token;
+  if (
+    req.body?.confirmacao !== 'excluir' ||
+    typeof token !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(token) ||
+    !timingSafeEqual(Buffer.from(token), Buffer.from(assinaturaExclusao(req, local)))
+  ) {
+    throw Object.assign(new Error('Confirme a exclusão na página do local.'), { status: 400 });
+  }
+  await service.apagar(local.id, local.atualizadoEm.toISOString(), req);
+  req.flash('sucesso', 'Local excluído definitivamente. Os relatos foram preservados.');
+  res.redirect('/painel/locais?situacao=arquivado');
 }
 
 export async function geocodificar(req, res) {
@@ -160,14 +211,10 @@ function corpoParaLocal(corpo) {
   return { ...corpo, categoriaId: Number(corpo.categoriaId) || null, caracteristicas };
 }
 
-function camposAlterados(antes, depois) {
-  const ids = antes.caracteristicas
-    .map((c) => c.id)
-    .sort()
-    .join(',');
-  return Object.keys(depois).filter((campo) =>
-    campo === 'caracteristicas'
-      ? [...depois.caracteristicas].sort().join(',') !== ids
-      : String(antes[campo] ?? '') !== String(depois[campo] ?? ''),
-  );
+async function tratarConcorrencia(err, id, next) {
+  if (err.code !== 'P2025') throw err;
+  if (!(await service.buscar(id))) return next();
+  throw Object.assign(new Error('O local ou seus vínculos mudaram. Recarregue a página.'), {
+    status: 409,
+  });
 }
