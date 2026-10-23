@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import { exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
+import { idValido } from '../utils/ids.js';
 import { flash } from '../middlewares/flash.js';
 import * as sessao from '../controllers/painel/sessaoController.js';
 import * as conta from '../controllers/painel/contaController.js';
@@ -9,6 +10,8 @@ import * as pessoas from '../controllers/painel/pessoasController.js';
 import * as locais from '../controllers/painel/locaisController.js';
 import * as classificacao from '../controllers/painel/classificacaoController.js';
 import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
+import * as envios from '../controllers/painel/enviosController.js';
+
 import * as envios from '../controllers/painel/enviosController.js';
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
@@ -137,5 +140,20 @@ rotasCanaisDenuncia.param('id', soNumeros);
 rotasCanaisDenuncia.get('/', canaisDenuncia.listar);
 rotasCanaisDenuncia.post('/:id', canaisDenuncia.salvar);
 router.use('/canais-denuncia', rotasCanaisDenuncia);
+
+// Base da caixa de entrada: ambos os papéis, sempre depois de exigirLogin.
+const rotasEnvios = Router();
+rotasEnvios.param('id', (req, res, next, id) => {
+  if (!idValido(id)) {
+    return res.status(404).json({ erro: 'Envio não encontrado.' });
+  }
+  next();
+});
+rotasEnvios.get('/', envios.listar);
+rotasEnvios.get('/:id', envios.mostrar);
+rotasEnvios.post('/:id/ler', envios.ler);
+rotasEnvios.post('/:id/situacao', envios.mudarSituacao);
+rotasEnvios.post('/:id/notas', envios.anotar);
+router.use('/envios', rotasEnvios);
 
 export default router;

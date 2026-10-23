@@ -1,18 +1,54 @@
 <%- include('../../partials/head') %>
 <main id="conteudo" class="painel-conteudo">
-  <h1>Relatos e sugestões</h1>
-  <% if (!envios.length) { %><p>Nenhum envio nesta página.</p><% } %>
-  <ul class="lista-locais">
-    <% for (const envio of envios) { %>
-    <li class="cartao">
-      <h2><a href="/painel/envios/<%= envio.id %>"><%= nomeLocal(envio) %></a></h2>
-      <p><%= envio.tipo %> · <%= envio.status %> · <%= envio.criadoEm.toLocaleDateString('pt-BR') %></p>
-    </li>
-    <% } %>
-  </ul>
-  <nav aria-label="Páginas de envios">
-    <% if (pagina > 1) { %><a href="?pagina=<%= pagina - 1 %>">Anterior</a><% } %>
-    <% if (temProxima) { %><a href="?pagina=<%= pagina + 1 %>">Próxima</a><% } %>
+  <div class="cabecalho-pagina"><h1>Envios</h1><p>Sugestões e relatos recebidos pela ONG</p></div>
+  <form method="get" class="cartao filtros-envios">
+    <div class="campo">
+      <label for="tipo" class="campo__rotulo">Tipo</label>
+      <select id="tipo" name="tipo"><option value="">Todos os tipos</option>
+        <% for (const [valor, nome] of Object.entries(tipos)) { %>
+        <option value="<%= valor %>" <%= filtros.tipo === valor ? 'selected' : '' %>><%= nome %></option>
+        <% } %>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="status" class="campo__rotulo">Situação</label>
+      <select id="status" name="status"><option value="">Todas as situações</option>
+        <% for (const [valor, nome] of Object.entries(situacoes)) { %>
+        <option value="<%= valor %>" <%= filtros.status === valor ? 'selected' : '' %>><%= nome %></option>
+        <% } %>
+      </select>
+    </div>
+    <button class="botao" type="submit">Filtrar</button>
+    <a class="botao botao--fantasma" href="/painel/envios">Limpar</a>
+  </form>
+  <% if (!envios.length) { %>
+  <div class="cartao estado-vazio"><p>Nenhum envio encontrado para estes filtros.</p></div>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption class="visualmente-oculto">Envios recebidos, do mais recente para o mais antigo</caption>
+      <thead><tr><th scope="col">Tipo</th><th scope="col">Local</th><th scope="col">Data</th><th scope="col">Situação</th><th scope="col">Avisos</th></tr></thead>
+      <tbody>
+        <% for (const e of envios) { %>
+        <tr class="<%= e.sinalizado ? 'envio-sinalizado' : '' %>">
+          <td><a href="/painel/envios/<%= e.id %>"><%= tipos[e.tipo] %> #<%= e.id %></a></td>
+          <td><%= e.local?.nome || e.nomeLocalSugerido || e.nomeLocalRelato || 'Não informado' %></td>
+          <td><%= fmt.data(e.criadoEm) %></td>
+          <td><span class="etiqueta etiqueta--<%= e.status === 'NOVO' ? 'aviso' : 'neutra' %>"><%= situacoes[e.status] %></span></td>
+          <td>
+            <% if (!e.lidoEm) { %><span class="etiqueta etiqueta--neutra">Não lido</span><% } %>
+            <% if (e.sinalizado) { %><strong>Sinalizado</strong><p class="campo__ajuda"><%= e.motivoFiltro || 'Revisar conteúdo' %></p><% } %>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+  <nav class="paginacao-envios" aria-label="Páginas de envios">
+    <% if (filtros.pagina > 1) { %><a class="botao botao--secundario" href="<%= urlPagina(filtros.pagina - 1) %>">Anterior</a><% } %>
+    <span>Página <%= filtros.pagina %></span>
+    <% if (proxima) { %><a class="botao botao--secundario" href="<%= urlPagina(filtros.pagina + 1) %>">Próxima</a><% } %>
   </nav>
 </main>
 <%- include('../../partials/foot') %>

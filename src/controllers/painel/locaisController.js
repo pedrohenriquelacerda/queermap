@@ -1,3 +1,5 @@
+import { idValido } from '../../utils/ids.js';
+import * as envios from '../../services/enviosPainelService.js';
 import * as service from '../../services/locaisPainelService.js';
 import * as auditoria from '../../services/auditoriaService.js';
 import { buscarEndereco } from '../../services/geocodificacaoService.js';
@@ -70,15 +72,41 @@ export async function listar(req, res) {
 }
 
 export async function novo(req, res) {
-  await renderizarFormulario(res, {
-    local: { cidade: 'Porto Alegre', uf: 'RS', caracteristicas: [] },
-  });
+  let local = { cidade: 'Porto Alegre', uf: 'RS', caracteristicas: [] };
+  if (req.query.envio !== undefined) {
+    const sugestao = await buscarSugestao(req.query.envio);
+    if (!sugestao) return res.status(404).send('Sugestão não encontrada.');
+    // Preenche contatos reconhecíveis; preserva o texto original para revisão.
+    // A ONG confere endereço e coordenadas antes de salvar o rascunho.
+    local = {
+      ...local,
+      nome: sugestao.nomeLocalSugerido,
+      categoriaId: sugestao.categoriaSugeridaId,
+      logradouro: sugestao.enderecoLocalSugerido,
+    };
+    const contato = sugestao.contatoLocalSugerido?.trim() || '';
+    if (z.email().safeParse(contato).success) local.email = contato;
+    else if (urlSegura(contato)) local.site = contato;
+    else if (/^[+()\d\s.-]{8,30}$/.test(contato)) local.telefone = contato;
+    return renderizarFormulario(res, { local, sugestao });
+  }
+  await renderizarFormulario(res, { local });
 }
 
 export async function criar(req, res) {
+  // Só o identificador vem do formulário; o contexto original é relido do banco.
+  const temSugestao = req.body.envioId !== undefined;
+  const sugestao = temSugestao ? await buscarSugestao(req.body.envioId) : null;
+  if (temSugestao && !sugestao) return res.status(404).send('Sugestão não encontrada.');
+
   const { dados, erros } = validar(esquema, req.body);
-  if (erros)
-    return renderizarFormulario(res.status(400), { local: corpoParaLocal(req.body), erros });
+  if (erros) {
+    return renderizarFormulario(res.status(400), {
+      local: corpoParaLocal(req.body),
+      erros,
+      sugestao,
+    });
+  }
 
   const local = await service.criar(dados, req.admin.id);
   await auditoria.registrar(req, 'local.criar', 'Local', local.id, { nome: local.nome });
@@ -190,7 +218,13 @@ export async function geocodificar(req, res) {
   }
 }
 
-async function renderizarFormulario(res, { local, erros = {} }) {
+async function buscarSugestao(valor) {
+  if (!idValido(valor)) return null;
+  const envio = await envios.buscar(Number(valor));
+  return envio?.tipo === 'SUGESTAO_LOCAL' ? envio : null;
+}
+
+async function renderizarFormulario(res, { local, erros = {}, sugestao = null }) {
   const opcoes = await service.opcoesFormulario();
   const editando = Boolean(local.id);
   res.render('painel/locais/form', {
@@ -198,6 +232,7 @@ async function renderizarFormulario(res, { local, erros = {} }) {
     usaLeaflet: true,
     scripts: ['/js/painel-local.js'],
     local,
+    sugestao,
     editando,
     situacao: editando ? service.situacao(local) : 'rascunho',
     erros,
