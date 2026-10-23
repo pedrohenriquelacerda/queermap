@@ -184,7 +184,7 @@ test('rejeita situação e notas inválidas e envio inexistente', async () => {
   }
   assert.equal((await agente.get('/painel/envios/999')).status, 404);
   assert.equal((await enviar(agente, '/painel/envios/999/ler', {})).status, 404);
-  assert.equal((await agente.get('/painel/envios/9007199254740992')).status, 404);
+  assert.equal((await agente.get('/painel/envios/9007199254740992')).status, 400);
   assert.equal(envio.status, 'NOVO');
 });
 
@@ -570,8 +570,8 @@ test('IDs fora da faixa Int são recusados antes de consultar o banco', async ()
   });
   const agente = await logar(app, 'editor@teste.test');
   for (const id of ['2147483648', '9007199254740991', '0', '-1', '01', 'abc']) {
-    assert.equal((await agente.get(`/painel/envios/${id}`)).status, 404);
-    assert.equal((await agente.head(`/painel/envios/${id}`)).status, 404);
+    assert.equal((await agente.get(`/painel/envios/${id}`)).status, 400);
+    assert.equal((await agente.head(`/painel/envios/${id}`)).status, 400);
     assert.equal((await agente.get(`/painel/locais/novo?envio=${id}`)).status, 404);
     assert.equal((await enviarFormulario(agente, '/painel/locais', { envioId: id })).status, 404);
   }

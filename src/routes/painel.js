@@ -19,7 +19,7 @@ const soNumeros = (req, res, next, valor) => (/^\d+$/.test(valor) ? next() : nex
 // IDs Prisma Int: validar antes de converter/enviar ao banco.
 const idLocal = (req, res, next, valor) => {
   const id = Number(valor);
-  if (!/^\d+$/.test(valor) || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
+  if (!/^[1-9]\d*$/.test(valor) || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
     return next(Object.assign(new Error('Identificador inválido.'), { status: 400 }));
   }
   next();
@@ -118,6 +118,9 @@ rotasEnvios.use((req, res, next) => {
 rotasEnvios.param('id', idLocal);
 rotasEnvios.get('/', envios.listar);
 rotasEnvios.get('/:id', envios.mostrar);
+rotasEnvios.post('/:id/ler', envios.ler);
+rotasEnvios.post('/:id/situacao', envios.mudarSituacao);
+rotasEnvios.post('/:id/notas', envios.anotar);
 router.use('/envios', rotasEnvios);
 
 const rotasClassificacao = Router();

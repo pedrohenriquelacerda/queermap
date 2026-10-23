@@ -57,6 +57,13 @@ beforeEach(async () => {
       }),
     },
     envio: {
+      findUnique: mock.fn(async ({ where }) => prisma.envio.findUnique({ where })),
+      update: mock.fn(async ({ where, data }) => {
+        const envio = await prisma.envio.findUnique({ where });
+        if (!envio) throw Object.assign(new Error('Envio ausente'), { code: 'P2025' });
+        Object.assign(envio, data);
+        return envio;
+      }),
       updateMany: mock.fn(async ({ where, data }) => {
         ordem.push('preservar');
         const vinculados = relatos.filter((relato) => relato.localId === where.localId);
