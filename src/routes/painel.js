@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import { exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
-import { idValido } from '../utils/ids.js';
 import { flash } from '../middlewares/flash.js';
 import * as sessao from '../controllers/painel/sessaoController.js';
 import * as conta from '../controllers/painel/contaController.js';
