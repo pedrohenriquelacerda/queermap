@@ -73,6 +73,13 @@ export function createApp({ sessionStore } = {}) {
     }),
   );
 
+  // Até 5.000 caracteres de notas podem ocupar 45 KB no formulário URL-encoded.
+  // Amplia apenas esta rota; o restante mantém o limite original de 20 KB.
+  app.post(
+    '/painel/envios/:id/notas',
+    express.urlencoded({ extended: false, limit: '64kb' }),
+    express.json({ limit: '64kb' }),
+  );
   app.use(express.urlencoded({ extended: false, limit: '20kb' }));
   app.use(express.json({ limit: '20kb' }));
 

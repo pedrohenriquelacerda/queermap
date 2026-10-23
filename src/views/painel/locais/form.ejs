@@ -23,6 +23,15 @@
     <% } %>
   </div>
 
+  <% if (locals.sugestao) { %>
+  <div class="alerta alerta--aviso">
+    <p><strong>Rascunho a partir da sugestão #<%= sugestao.id %>.</strong> Confira os dados e posicione o pino antes de salvar. O local só aparece no mapa após publicação.</p>
+    <p>Endereço informado: <%= sugestao.enderecoLocalSugerido %></p>
+    <p>Contato informado: <%= sugestao.contatoLocalSugerido %></p>
+    <p class="texto-envio"><%= sugestao.mensagem %></p>
+    <a href="/painel/envios/<%= sugestao.id %>">Voltar à sugestão original</a>
+  </div>
+  <% } %>
   <% if (temErros) { %>
   <div class="alerta alerta--erro" role="alert">
     <p><strong>Revise os campos marcados.</strong> Nada foi salvo ainda.</p>
@@ -31,6 +40,9 @@
 
   <div class="form-local">
     <form class="form-local__principal" method="post" action="<%= acao %>" id="form-local" novalidate>
+      <% if (locals.sugestao) { %>
+      <input type="hidden" name="envioId" value="<%= sugestao.id %>" />
+      <% } %>
       <section class="cartao">
         <h2>Identificação</h2>
         <%- campo({ nome: 'nome', rotulo: 'Nome do local', valor: local.nome, attrs: { required: true, maxlength: 150 } }) %>
