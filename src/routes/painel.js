@@ -12,8 +12,6 @@ import * as classificacao from '../controllers/painel/classificacaoController.js
 import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
 import * as envios from '../controllers/painel/enviosController.js';
 
-import * as envios from '../controllers/painel/enviosController.js';
-
 const QUINZE_MINUTOS = 15 * 60 * 1000;
 
 // Só ids numéricos; o resto cai no 404.
