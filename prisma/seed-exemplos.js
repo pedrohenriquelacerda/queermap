@@ -69,7 +69,7 @@ const exemplos = [
   },
   {
     nome: '[Exemplo] Albergue Santana',
-    categoria: 'abrigo',
+    categoria: 'albergue',
     bairro: 'Santana',
     coords: [-30.048, -51.208],
     horario: 'Acolhimento das 18h às 8h',
@@ -77,7 +77,7 @@ const exemplos = [
   },
   {
     nome: '[Exemplo] Casa de Acolhimento Menino Deus',
-    categoria: 'casa-acolhimento',
+    categoria: 'abrigo',
     bairro: 'Menino Deus',
     coords: [-30.056, -51.225],
     horario: 'Todos os dias, 24h',

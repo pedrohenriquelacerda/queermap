@@ -7,6 +7,9 @@
   --cat-ong: #c2185b;
   --cat-saude-sexual: #00796b;
   --cat-abrigo: #d84315;
+  --cat-albergue: #bf360c;
+  --cat-centro-pop: #5e35b1;
+  --cat-casa-cidadania: #1565c0;
   --cat-acolhimento: #1565c0;
 
   /* Cor usada quando nenhuma classe marcador--* define outra (herdada) */
@@ -63,6 +66,18 @@
 
 .marcador--abrigo {
   --cor-marcador: var(--cat-abrigo);
+}
+
+.marcador--albergue {
+  --cor-marcador: var(--cat-albergue);
+}
+
+.marcador--centro-pop {
+  --cor-marcador: var(--cat-centro-pop);
+}
+
+.marcador--casa-cidadania {
+  --cor-marcador: var(--cat-casa-cidadania);
 }
 
 .marcador--acolhimento {
