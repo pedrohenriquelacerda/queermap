@@ -539,3 +539,72 @@ fieldset.cartao legend + * {
   gap: var(--esp-3);
   margin-top: var(--esp-4);
 }
+
+/* Reordenação de categorias */
+.celula-reordenar {
+  white-space: nowrap;
+  vertical-align: middle;
+  width: 3.5rem;
+  text-align: center;
+}
+
+.alca-arrasto {
+  cursor: grab;
+  font-size: 1.15rem;
+  color: var(--cor-suave);
+  user-select: none;
+  padding: 0 var(--esp-1);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.alca-arrasto:active {
+  cursor: grabbing;
+}
+
+.botoes-reordenar {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  gap: 2px;
+}
+
+.form-mover {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.botao-mover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pequeno);
+  color: var(--cor-suave);
+  cursor: pointer;
+  font-size: 0.6rem;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.botao-mover:hover:not(:disabled) {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  border-color: var(--cor-suave);
+}
+
+.botao-mover:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.linha-arrastavel.arrastando {
+  opacity: 0.35;
+  background: var(--cor-fundo);
+}
+
+.linha-arrastavel.alvo-arrasto {
+  border-top: 2px solid var(--cor-primaria);
+}

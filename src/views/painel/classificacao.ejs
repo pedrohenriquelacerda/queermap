@@ -11,20 +11,33 @@
   <section class="cartao">
     <h2>Tipos de serviço</h2>
     <div class="tabela-rolagem">
-      <table class="tabela tabela--edicao">
+      <table class="tabela tabela--edicao tabela--reordenavel" id="tabela-categorias">
         <thead>
           <tr>
+            <th scope="col" class="celula-reordenar"><span class="visualmente-oculto">Ordem</span></th>
             <th scope="col">Nome</th>
             <th scope="col">Cor no mapa</th>
-            <th scope="col">Ordem</th>
             <th scope="col">Ativo</th>
             <th scope="col">Locais</th>
             <th scope="col"><span class="visualmente-oculto">Ações</span></th>
           </tr>
         </thead>
         <tbody>
-          <% for (const c of categorias) { const f = `cat-${c.id}`; %>
-          <tr>
+          <% categorias.forEach((c, idx) => { const f = `cat-${c.id}`; %>
+          <tr draggable="true" data-id="<%= c.id %>" class="linha-arrastavel">
+            <td class="celula-reordenar">
+              <span class="alca-arrasto" title="Arraste para reordenar" aria-hidden="true" tabindex="0" role="button" aria-label="Arraste para reordenar <%= c.nome %>">⠿</span>
+              <div class="botoes-reordenar">
+                <form method="post" action="/painel/classificacao/categoria/<%= c.id %>/mover" class="form-mover">
+                  <input type="hidden" name="direcao" value="subir">
+                  <button type="submit" class="botao-mover" title="Mover para cima" aria-label="Mover <%= c.nome %> para cima" <%= idx === 0 ? 'disabled' : '' %>>▲</button>
+                </form>
+                <form method="post" action="/painel/classificacao/categoria/<%= c.id %>/mover" class="form-mover">
+                  <input type="hidden" name="direcao" value="descer">
+                  <button type="submit" class="botao-mover" title="Mover para baixo" aria-label="Mover <%= c.nome %> para baixo" <%= idx === categorias.length - 1 ? 'disabled' : '' %>>▼</button>
+                </form>
+              </div>
+            </td>
             <td><input form="<%= f %>" name="nome" value="<%= c.nome %>" aria-label="Nome" required maxlength="80" /></td>
             <td>
               <span class="tipo-celula">
@@ -36,7 +49,6 @@
                 </select>
               </span>
             </td>
-            <td><input form="<%= f %>" name="ordem" type="number" min="0" max="99" value="<%= c.ordem %>" aria-label="Ordem" class="entrada-curta" /></td>
             <td><input form="<%= f %>" name="ativa" type="checkbox" <%= c.ativa ? 'checked' : '' %> aria-label="Ativo" /></td>
             <td><%= c._count.locais %></td>
             <td>
@@ -45,18 +57,20 @@
               </form>
             </td>
           </tr>
-          <% } %>
+          <% }) %>
         </tbody>
       </table>
     </div>
 
     <form class="form-inline" method="post" action="/painel/classificacao/categoria" novalidate>
       <h3>Novo tipo de serviço</h3>
-      <div class="form-inline__campos">
+      <div class="form-inline__campos form-inline__campos--dois">
         <%- include('../partials/campo', { id: 'nova-categoria-nome', nome: 'nome', rotulo: 'Nome', valor: novo_categoria.nome, erros: erros_categoria, attrs: { required: true, maxlength: 80 } }) %>
         <%- include('../partials/campo', { id: 'nova-categoria-icone', nome: 'icone', rotulo: 'Cor no mapa', tipo: 'select', valor: novo_categoria.icone, opcoes: cores, erros: erros_categoria }) %>
-        <%- include('../partials/campo', { id: 'nova-categoria-ordem', nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: novo_categoria.ordem ?? categorias.length, erros: erros_categoria, attrs: { min: 0, max: 99 } }) %>
       </div>
+      <p class="campo__ajuda">
+        Novos tipos de serviço são adicionados ao final da lista e podem ser reordenados arrastando ou usando as setas.
+      </p>
       <button class="botao">Adicionar</button>
     </form>
   </section>

@@ -130,6 +130,8 @@ rotasClassificacao.param('tipo', (req, res, next, tipo) =>
   ['categoria', 'caracteristica'].includes(tipo) ? next() : next('router'),
 );
 rotasClassificacao.get('/', classificacao.listar);
+rotasClassificacao.post('/categoria/reordenar', classificacao.reordenar);
+rotasClassificacao.post('/categoria/:id/mover', classificacao.mover);
 rotasClassificacao.post('/:tipo', classificacao.criar);
 rotasClassificacao.post('/:tipo/:id', classificacao.salvar);
 router.use('/classificacao', rotasClassificacao);

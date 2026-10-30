@@ -22,7 +22,7 @@ const esquemas = {
   categoria: z.object({
     nome: texto('o nome', 80),
     icone: cor,
-    ordem: z.coerce.number().int().min(0).max(99).catch(0),
+    ordem: z.coerce.number().int().min(0).max(99).optional(),
     ativa: caixa(),
   }),
   caracteristica: z.object({
@@ -59,6 +59,13 @@ export async function criar(req, res) {
   const slug = await slugUnico(dados.nome, async (s) =>
     Boolean(await modelos[tipo].findUnique({ where: { slug: s } })),
   );
+
+  // Atribui automaticamente no final da fila se a ordem não foi informada
+  if (tipo === 'categoria' && (dados.ordem === undefined || dados.ordem === null)) {
+    const maior = await prisma.categoria.aggregate({ _max: { ordem: true } });
+    dados.ordem = (maior._max?.ordem ?? -1) + 1;
+  }
+
   const item = await modelos[tipo].create({ data: { ...dados, slug } });
   await auditoria.registrar(req, `${tipo}.criar`, tipo, item.id, { nome: item.nome });
   req.flash('sucesso', `${nomes[tipo]} “${item.nome}” criada.`);
@@ -92,6 +99,91 @@ export async function salvar(req, res, next) {
   res.redirect('/painel/classificacao');
 }
 
+export async function mover(req, res, next) {
+  const id = Number(req.params.id);
+  const direcao = req.body.direcao;
+  if (!['subir', 'descer'].includes(direcao)) {
+    req.flash('erro', 'Direção inválida.');
+    return res.redirect('/painel/classificacao');
+  }
+
+  const todas = await prisma.categoria.findMany({
+    orderBy: [{ ordem: 'asc' }, { nome: 'asc' }],
+  });
+
+  const indice = todas.findIndex((c) => c.id === id);
+  if (indice === -1) return next();
+
+  const outroIndice = direcao === 'subir' ? indice - 1 : indice + 1;
+  if (outroIndice < 0 || outroIndice >= todas.length) {
+    return res.redirect('/painel/classificacao');
+  }
+
+  const reordenadas = [...todas];
+  const item = reordenadas.splice(indice, 1)[0];
+  reordenadas.splice(outroIndice, 0, item);
+
+  await prisma.$transaction(async (tx) => {
+    for (let i = 0; i < reordenadas.length; i++) {
+      if (reordenadas[i].ordem !== i) {
+        await tx.categoria.update({
+          where: { id: reordenadas[i].id },
+          data: { ordem: i },
+        });
+      }
+    }
+  });
+
+  await auditoria.registrar(req, 'categoria.reordenar', 'categoria', id, {
+    movido: item.nome,
+    direcao,
+  });
+
+  req.flash('sucesso', `Ordem de “${item.nome}” alterada.`);
+  res.redirect('/painel/classificacao');
+}
+
+export async function reordenar(req, res) {
+  let ids = req.body.ordem;
+  if (typeof ids === 'string') {
+    try {
+      ids = JSON.parse(ids);
+    } catch {
+      ids = ids.split(',').map((v) => Number(v.trim()));
+    }
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0 || !ids.every((n) => Number.isInteger(Number(n)))) {
+    if (req.accepts('json') && !req.accepts('html')) {
+      return res.status(400).json({ erro: 'Lista de IDs inválida.' });
+    }
+    req.flash('erro', 'Lista de ordenação inválida.');
+    return res.redirect('/painel/classificacao');
+  }
+
+  const idsNumeros = ids.map(Number);
+
+  await prisma.$transaction(async (tx) => {
+    for (let i = 0; i < idsNumeros.length; i++) {
+      await tx.categoria.updateMany({
+        where: { id: idsNumeros[i] },
+        data: { ordem: i },
+      });
+    }
+  });
+
+  await auditoria.registrar(req, 'categoria.reordenar', 'categoria', null, {
+    novaOrdem: idsNumeros,
+  });
+
+  if (req.accepts('json') && !req.accepts('html')) {
+    return res.json({ ok: true });
+  }
+
+  req.flash('sucesso', 'Ordem dos tipos de serviço salva.');
+  res.redirect('/painel/classificacao');
+}
+
 async function renderizar(res, extras) {
   const [categorias, caracteristicas] = await Promise.all([
     prisma.categoria.findMany({
@@ -112,6 +204,7 @@ async function renderizar(res, extras) {
     erros_caracteristica: {},
     novo_categoria: { icone: 'padrao' },
     novo_caracteristica: {},
+    scripts: ['/js/reordenar-categorias.js'],
     ...extras,
   });
 }
