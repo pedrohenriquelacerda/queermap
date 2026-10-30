@@ -1,5 +1,5 @@
 // Dados iniciais: categorias de serviço e características.
-// Idempotente (upsert por slug): pode rodar quantas vezes quiser.
+// Idempotente e preserva customizações administrativas: só cria categorias ausentes.
 // Rode com: npm run db:seed
 
 import { prisma } from '../src/db/prisma.js';
@@ -12,8 +12,10 @@ const categorias = [
     nome: 'Saúde sexual e prevenção (SAE, PEP, PrEP)',
     icone: 'saude-sexual',
   },
-  { slug: 'abrigo', nome: 'Abrigo / albergue', icone: 'abrigo' },
-  { slug: 'casa-acolhimento', nome: 'Casa de acolhimento', icone: 'acolhimento' },
+  { slug: 'abrigo', nome: 'Abrigo', icone: 'abrigo' },
+  { slug: 'albergue', nome: 'Albergue', icone: 'albergue' },
+  { slug: 'centro-pop', nome: 'Centros POP', icone: 'centro-pop' },
+  { slug: 'casa-cidadania', nome: 'Casas de Cidadania', icone: 'casa-cidadania' },
 ];
 
 // Lista provisória: a definitiva será combinada com a ONG.
@@ -31,11 +33,10 @@ const caracteristicas = [
 
 async function main() {
   for (const [ordem, c] of categorias.entries()) {
-    await prisma.categoria.upsert({
-      where: { slug: c.slug },
-      update: { nome: c.nome, icone: c.icone, ordem },
-      create: { ...c, ordem },
-    });
+    const atual = await prisma.categoria.findUnique({ where: { slug: c.slug } });
+    if (!atual) {
+      await prisma.categoria.create({ data: { ...c, ordem } });
+    }
   }
 
   for (const c of caracteristicas) {

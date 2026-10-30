@@ -2,6 +2,7 @@ import { test, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/db/prisma.js';
+import { CORES } from '../src/controllers/painel/classificacaoController.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 import { prepararAdmins, enviar, logar } from './helpers/painel.js';
 
@@ -72,6 +73,15 @@ beforeEach(async () => {
 afterEach(() => {
   restaurarPrisma();
   mock.restoreAll();
+});
+
+test('paleta de cores inclui as categorias da Sprint 5', async () => {
+  const valores = CORES.map((cor) => cor.valor);
+  assert.ok(valores.includes('centro-pop'));
+  assert.ok(valores.includes('casa-cidadania'));
+  assert.ok(valores.includes('albergue'));
+  assert.ok(valores.includes('abrigo'));
+  assert.ok(valores.includes('padrao'));
 });
 
 test('cria local como rascunho, com slug e características', async () => {

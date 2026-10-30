@@ -4,12 +4,16 @@ import { slugUnico } from '../../utils/slug.js';
 import { validar, texto, caixa, z } from '../../utils/validacao.js';
 
 // Cores disponíveis para os marcadores (definidas em mapa.css).
+// Mantém compatibilidade com categorias antigas e com valores desconhecidos.
 export const CORES = [
   { valor: 'ambulatorio', texto: 'Roxo' },
   { valor: 'ong', texto: 'Rosa' },
   { valor: 'saude-sexual', texto: 'Verde-azulado' },
   { valor: 'abrigo', texto: 'Laranja' },
-  { valor: 'acolhimento', texto: 'Azul' },
+  { valor: 'albergue', texto: 'Laranja escuro' },
+  { valor: 'centro-pop', texto: 'Roxo escuro' },
+  { valor: 'casa-cidadania', texto: 'Azul ciano' },
+  { valor: 'acolhimento', texto: 'Azul legado' },
   { valor: 'padrao', texto: 'Cinza' },
 ];
 

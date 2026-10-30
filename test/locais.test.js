@@ -17,8 +17,10 @@ const categorias = [
     icone: 'saude-sexual',
     ordem: 2,
   },
-  { nome: 'Abrigo / albergue', slug: 'abrigo', icone: 'abrigo', ordem: 3 },
-  { nome: 'Casa de acolhimento', slug: 'casa-acolhimento', icone: 'acolhimento', ordem: 4 },
+  { nome: 'Abrigo', slug: 'abrigo', icone: 'abrigo', ordem: 3 },
+  { nome: 'Albergue', slug: 'albergue', icone: 'albergue', ordem: 4 },
+  { nome: 'Centros POP', slug: 'centro-pop', icone: 'centro-pop', ordem: 5 },
+  { nome: 'Casas de Cidadania', slug: 'casa-cidadania', icone: 'casa-cidadania', ordem: 6 },
 ];
 
 beforeEach(() => mockPrisma(prisma.categoria, 'findMany', async () => categorias));
@@ -72,7 +74,7 @@ test('GET / lista os locais publicados', async () => {
   assert.match(res.text, /1 local\b/);
 });
 
-test('GET / mostra as cinco categorias no filtro, com a quantidade de locais de cada', async () => {
+test('GET / mostra as categorias da Sprint 5 no filtro, com a quantidade de locais de cada', async () => {
   mockPrisma(prisma.local, 'findMany', async () => [local()]);
 
   const res = await request(app).get('/');
@@ -84,7 +86,10 @@ test('GET / mostra as cinco categorias no filtro, com a quantidade de locais de 
   const total = (slug) =>
     res.text.match(new RegExp(`value="${slug}" />[\\s\\S]*?opcao__total">\\((\\d+)\\)`))[1];
   assert.equal(total('ambulatorio-trans'), '1');
-  assert.equal(total('abrigo'), '0'); // aparece mesmo sem locais
+  assert.equal(total('abrigo'), '0');
+  assert.equal(total('albergue'), '0');
+  assert.equal(total('centro-pop'), '0');
+  assert.equal(total('casa-cidadania'), '0');
   assert.match(res.text, /<details class="filtros__grupo" open>\s*<summary>Tipo de serviço/);
 });
 
