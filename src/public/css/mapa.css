@@ -553,6 +553,11 @@
   color: var(--cor-suave);
 }
 
+.popup__nota {
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+}
+
 .popup .etiquetas {
   margin-bottom: var(--esp-2);
 }

@@ -11,6 +11,7 @@
   <header class="local__cabecalho">
     <p class="rotulo-categoria <%= fmt.classeCategoria(local.categoria) %>"><%= local.categoria.nome %></p>
     <h1><%= local.nome %></h1>
+    <p><%= notaMedia === null ? 'Ainda sem avaliações' : `${notaMedia.toFixed(1).replace('.', ',')} ★ · ${totalAvaliacoes} ${totalAvaliacoes === 1 ? 'avaliação' : 'avaliações'}` %></p>
     <% if (local.descricao) { %>
     <p class="local__descricao"><%= local.descricao %></p>
     <% } %>
@@ -70,10 +71,27 @@
   </section>
   <% } %>
 
+  <section class="local__secao" aria-labelledby="avaliar-titulo">
+    <h2 id="avaliar-titulo">Avaliar este local</h2>
+    <% if (avaliacaoEnviada) { %><p role="status">Sua avaliação foi registrada. Obrigado!</p><% } %>
+    <form method="post" action="/locais/<%= local.slug %>/avaliacoes">
+      <div class="campo">
+        <label for="nota-local">Sua nota</label>
+        <select id="nota-local" name="nota" required>
+          <option value="">Selecione</option>
+          <% for (let nota = 1; nota <= 5; nota++) { %><option value="<%= nota %>"><%= nota %> <%= nota === 1 ? 'estrela' : 'estrelas' %></option><% } %>
+        </select>
+      </div>
+      <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-language="pt-br"></div>
+      <button class="botao" type="submit">Enviar avaliação</button>
+    </form>
+  </section>
+
   <p class="local__conferido">
     Informações conferidas pela ONG Somos em <%= fmt.data(local.atualizadoEm) %>. Viu algo
     desatualizado ou quer contar como foi o atendimento?
     <a href="/enviar?local=<%= local.slug %>">Envie um relato sobre este local</a>.
   </p>
 </main>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <%- include('../partials/foot') %>

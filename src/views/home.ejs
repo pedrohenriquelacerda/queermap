@@ -64,6 +64,29 @@
           <% } %>
         </details>
         <% } %>
+        <div class="campo filtros__nota">
+          <label for="nota">Nota mínima</label>
+          <select id="nota" name="nota">
+            <option value="">Qualquer nota</option>
+            <option value="1">1 estrela ou mais</option>
+            <option value="2">2 estrelas ou mais</option>
+            <option value="3">3 estrelas ou mais</option>
+            <option value="4">4 estrelas ou mais</option>
+            <option value="5">5 estrelas</option>
+          </select>
+          <small>Locais ainda sem avaliações não aparecem quando há nota mínima.</small>
+        </div>
+        <div class="campo filtros__distancia">
+          <label for="distancia">Distância máxima</label>
+          <select id="distancia" name="distancia" disabled>
+            <option value="">Qualquer distância</option>
+            <option value="1">Até 1 km</option>
+            <option value="5">Até 5 km</option>
+            <option value="10">Até 10 km</option>
+            <option value="25">Até 25 km</option>
+          </select>
+          <small id="distancia-ajuda">Informe sua localização ou escolha um endereço no mapa para usar este filtro.</small>
+        </div>
       </form>
 
       <div class="resultado">
@@ -87,10 +110,14 @@
         data-id="<%= l.id %>"
         data-tipo="<%= l.categoria.slug %>"
         data-car="<%= l.caracteristicas.map((c) => c.slug).join(' ') %>"
+        data-lat="<%= l.latitude %>"
+        data-lng="<%= l.longitude %>"
+        data-nota="<%= locaisService.notaMedia(l) ?? '' %>"
         data-busca="<%= fmt.normalizar([l.nome, l.bairro, l.categoria.nome, ...l.caracteristicas.map((c) => c.nome)].join(' ')) %>"
       >
         <p class="rotulo-categoria <%= fmt.classeCategoria(l.categoria) %>"><%= l.categoria.nome %></p>
         <h2 class="cartao-local__nome"><a href="/locais/<%= l.slug %>"><%= l.nome %></a></h2>
+        <% if (locaisService.notaMedia(l) !== null) { %><p class="cartao-local__nota"><%= locaisService.notaMedia(l).toFixed(1).replace('.', ',') %> ★ · <%= l.avaliacoes.length %> <%= l.avaliacoes.length === 1 ? 'avaliação' : 'avaliações' %></p><% } %>
         <p class="cartao-local__endereco"><%= fmt.endereco(l) %></p>
         <% if (l.caracteristicas.length > 0) { %>
         <ul class="etiquetas">

@@ -27,6 +27,7 @@ const camposPublicos = {
     select: { nome: true, slug: true },
     orderBy: { nome: 'asc' },
   },
+  avaliacoes: { select: { nota: true } },
 };
 
 const visivel = { publicado: true, arquivadoEm: null };
@@ -53,4 +54,16 @@ export function buscarPublicadoPorSlug(slug) {
     where: { ...visivel, slug },
     select: camposPublicos,
   });
+}
+
+export function notaMedia(local) {
+  const notas = local.avaliacoes?.map((a) => a.nota) ?? [];
+  return notas.length ? notas.reduce((soma, nota) => soma + nota, 0) / notas.length : null;
+}
+
+export async function avaliarPublicado(slug, nota) {
+  const local = await prisma.local.findFirst({ where: { ...visivel, slug }, select: { id: true } });
+  if (!local) return false;
+  await prisma.avaliacao.create({ data: { localId: local.id, nota } });
+  return true;
 }

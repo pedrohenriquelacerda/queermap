@@ -1,4 +1,5 @@
 // Mapa SerQueer · mapa da página inicial (com busca/filtros) e mapa da página do local.
+import { localCorresponde } from './filtrosLocais.js';
 // Os dados e a lista vêm prontos do servidor; aqui só filtramos e desenhamos marcadores.
 
 const PORTO_ALEGRE = [-30.0346, -51.2177];
@@ -60,13 +61,15 @@ function iniciarExplorar(locais) {
   let centroPessoa = null;
   const visaoInicial = () => (centroPessoa ? centralizar(mapa, centroPessoa) : enquadrar());
   const { marcarInteracao, interagiu } = reajustarAoRedimensionar(mapa, visaoInicial);
+  let atualizarOrigem = () => {};
   configurarLocalizacao(mapa, {
     interagiu,
     aoCentralizar: (posicao) => (centroPessoa = posicao),
+    aoLocalizar: (posicao) => atualizarOrigem(posicao),
   });
 
   const alternarModo = configurarModos();
-  configurarFiltros({ marcadores, camada, enquadrar });
+  atualizarOrigem = configurarFiltros({ marcadores, camada, enquadrar });
 
   // "Ver no mapa": abre o popup do local (no celular, troca para o modo mapa antes).
   document.getElementById('lista-locais')?.addEventListener('click', (evento) => {
@@ -98,6 +101,9 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   const form = document.getElementById('filtros');
   if (!form) return;
   const busca = form.elements.q;
+  const distancia = form.elements.distancia;
+  const nota = form.elements.nota;
+  let origem = null;
   const itens = [...document.querySelectorAll('.cartao-local')];
   const contagem = document.getElementById('contagem');
   const avisosVazio = document.querySelectorAll('[data-aviso-vazio]');
@@ -108,6 +114,10 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   // Restaura filtros da URL (link compartilhável).
   const params = new URLSearchParams(location.search);
   busca.value = params.get('q') ?? '';
+  if (['1', '2', '3', '4', '5'].includes(params.get('nota'))) nota.value = params.get('nota');
+  if (['1', '5', '10', '25'].includes(params.get('distancia'))) {
+    distancia.value = params.get('distancia');
+  }
   for (const caixa of form.querySelectorAll('input[type=checkbox]')) {
     caixa.checked = params.getAll(caixa.name).includes(caixa.value);
   }
@@ -116,15 +126,24 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     const termos = normalizar(busca.value).split(/\s+/).filter(Boolean);
     const tipos = marcados('tipo');
     const caracteristicas = marcados('car');
+    const limite = distancia.value ? Number(distancia.value) : null;
+    const notaMinima = nota.value ? Number(nota.value) : null;
+    const aguardandoOrigem = limite !== null && origem === null;
 
     let visiveis = 0;
     for (const item of itens) {
-      const { id, tipo, car, busca: texto } = item.dataset;
-      const lista = car.split(' ');
-      const mostra =
-        termos.every((t) => texto.includes(t)) &&
-        (tipos.length === 0 || tipos.includes(tipo)) &&
-        caracteristicas.every((c) => lista.includes(c));
+      const { id, tipo, car, busca: texto, lat, lng, nota: notaLocal } = item.dataset;
+      const mostra = localCorresponde(
+        {
+          tipo,
+          busca: texto,
+          caracteristicas: car.split(' '),
+          lat: Number(lat),
+          lng: Number(lng),
+          nota: notaLocal === '' ? null : Number(notaLocal),
+        },
+        { termos, tipos, caracteristicas, nota: notaMinima, distancia: limite, origem },
+      );
 
       item.hidden = !mostra;
       const marcador = marcadores.get(id);
@@ -136,8 +155,10 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
       }
     }
 
-    contagem.textContent = `${visiveis} ${visiveis === 1 ? 'local' : 'locais'}`;
-    const mensagem = mensagemVazio({ termos, tipos, caracteristicas });
+    contagem.textContent = aguardandoOrigem
+      ? 'Aguardando localização'
+      : `${visiveis} ${visiveis === 1 ? 'local' : 'locais'}`;
+    const mensagem = mensagemVazio({ termos, tipos, caracteristicas, aguardandoOrigem });
     for (const aviso of avisosVazio) {
       aviso.textContent = mensagem;
       aviso.hidden = visiveis > 0;
@@ -145,11 +166,16 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     for (const atalho of atalhos) {
       atalho.setAttribute('aria-pressed', String(tipos.includes(atalho.dataset.atalhoTipo)));
     }
-    const temFiltro = termos.length > 0 || tipos.length > 0 || caracteristicas.length > 0;
+    const temFiltro =
+      termos.length > 0 ||
+      tipos.length > 0 ||
+      caracteristicas.length > 0 ||
+      Boolean(nota.value) ||
+      Boolean(distancia.value);
     limpar.hidden = !temFiltro;
     atualizarContador('tipo', tipos.length);
     atualizarContador('car', caracteristicas.length);
-    atualizarUrl(busca.value.trim(), tipos, caracteristicas);
+    atualizarUrl(busca.value.trim(), tipos, caracteristicas, nota.value, distancia.value);
     if (reenquadrar) enquadrar();
   };
 
@@ -178,6 +204,8 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   limpar.addEventListener('click', () => {
     form.reset();
     busca.value = '';
+    distancia.value = '';
+    nota.value = '';
     for (const caixa of form.querySelectorAll('input[type=checkbox]')) caixa.checked = false;
     aplicar();
     busca.focus();
@@ -188,6 +216,13 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     if (grupo.querySelector('input:checked')) grupo.open = true;
   }
   aplicar({ reenquadrar: params.size > 0 });
+  return (posicao) => {
+    origem = [posicao.lat, posicao.lng];
+    distancia.disabled = false;
+    document.getElementById('distancia-ajuda').textContent =
+      'Distância em linha reta da localização escolhida.';
+    aplicar();
+  };
 }
 
 function faixaRolavel(faixa) {
@@ -246,7 +281,10 @@ function faixaRolavel(faixa) {
 }
 
 // Quando só o tipo de serviço está filtrando, a mensagem fala da categoria.
-function mensagemVazio({ termos, tipos, caracteristicas }) {
+function mensagemVazio({ termos, tipos, caracteristicas, aguardandoOrigem }) {
+  if (aguardandoOrigem) {
+    return 'Informe sua localização ou escolha um endereço no mapa para aplicar a distância.';
+  }
   if (tipos.length > 0 && termos.length === 0 && caracteristicas.length === 0) {
     return tipos.length === 1
       ? 'Nenhum local encontrado para esta categoria.'
@@ -262,11 +300,13 @@ function atualizarContador(nome, quantidade) {
   }
 }
 
-function atualizarUrl(q, tipos, caracteristicas) {
+function atualizarUrl(q, tipos, caracteristicas, nota, distancia) {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
   for (const t of tipos) params.append('tipo', t);
   for (const c of caracteristicas) params.append('car', c);
+  if (nota) params.set('nota', nota);
+  if (distancia) params.set('distancia', distancia);
   const busca = params.toString();
   history.replaceState(null, '', busca ? `?${busca}` : location.pathname);
 }
@@ -275,10 +315,11 @@ function atualizarUrl(q, tipos, caracteristicas) {
 // A posição do GPS fica só no navegador: nunca é enviada ao servidor. Só o endereço
 // digitado (quando a pessoa não libera o GPS) passa pelo servidor, a caminho do Nominatim.
 
-function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
+function configurarLocalizacao(mapa, { interagiu, aoCentralizar, aoLocalizar }) {
   const regiao = L.latLngBounds(GRANDE_POA);
   const painel = configurarPainelEndereco(mapa, (posicao) => {
     mostrarPessoa(posicao, 'Endereço informado');
+    aoLocalizar(posicao);
     irPara(posicao);
   });
   let marcador = null;
@@ -326,6 +367,7 @@ function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
         botao.removeAttribute('aria-busy');
         const posicao = L.latLng(coords.latitude, coords.longitude);
         mostrarPessoa(posicao, 'Você está aqui', coords.accuracy);
+        aoLocalizar(posicao);
         if (!automatico) {
           painel.fechar();
           return irPara(posicao);
@@ -493,6 +535,15 @@ function montarPopup(local) {
   const raiz = criar('div', 'popup');
   raiz.append(criar('p', `rotulo-categoria ${local.categoria.classe}`, local.categoria.nome));
   raiz.append(criar('h2', 'popup__titulo', local.nome));
+  raiz.append(
+    criar(
+      'p',
+      'popup__nota',
+      local.nota === null
+        ? 'Ainda sem avaliações'
+        : `${local.nota.toFixed(1).replace('.', ',')} ★ · ${local.totalAvaliacoes} ${local.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações'}`,
+    ),
+  );
   raiz.append(criar('p', 'popup__endereco', local.endereco));
 
   if (local.caracteristicas.length > 0) {

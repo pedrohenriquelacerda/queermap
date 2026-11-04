@@ -146,10 +146,23 @@ model Local {
   criadoPor       Admin?           @relation("LocalCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
   atualizadoPor   Admin?           @relation("LocalAtualizadoPor", fields: [atualizadoPorId], references: [id], onDelete: SetNull)
   envios          Envio[]
+  avaliacoes      Avaliacao[]
 
   @@index([publicado, arquivadoEm])
   @@index([categoriaId])
   @@map("local")
+}
+
+// Notas públicas sem texto ou identificação pessoal.
+model Avaliacao {
+  id        Int      @id @default(autoincrement())
+  localId   Int      @map("local_id")
+  nota      Int
+  criadoEm  DateTime @default(now()) @map("criado_em")
+  local     Local    @relation(fields: [localId], references: [id], onDelete: Cascade)
+
+  @@index([localId])
+  @@map("avaliacao")
 }
 
 // ─── Envios do público ──────────────────────────────────────────────────────

@@ -45,6 +45,7 @@ export default function rotas() {
   router.get('/privacidade', paginasController.privacidade);
   router.get('/health', healthController.check);
   router.get('/locais/:slug', locaisController.mostrar);
+  router.post('/locais/:slug/avaliacoes', limite(15, 5), locaisController.avaliar);
   router.get('/buscar-endereco', limiteBusca(), locaisController.buscarEndereco);
   router.get('/enviar', enviosController.formulario);
   router.post('/enviar', limite(60, 10), enviosController.enviar);

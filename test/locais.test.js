@@ -203,3 +203,20 @@ test('GET / traz o campo de endereço para quando a localização não estiver d
   assert.match(res.text, /id="painel-localizacao"[^>]*hidden/);
   assert.match(res.text, /<input[^>]*id="endereco-pessoa"/);
 });
+
+test('GET / entrega a mesma nota para cartão e mapa e oferece filtros combináveis', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [
+    local({ avaliacoes: [{ nota: 4 }, { nota: 5 }] }),
+  ]);
+
+  const res = await request(app).get('/');
+  assert.equal(res.status, 200);
+  assert.match(res.text, /data-nota="4\.5"/);
+  assert.match(res.text, /name="nota"/);
+  assert.match(res.text, /name="distancia"/);
+  const json = res.text.match(
+    /<script type="application\/json" id="dados-mapa">(.*?)<\/script>/s,
+  )[1];
+  assert.equal(JSON.parse(json)[0].nota, 4.5);
+  assert.equal(JSON.parse(json)[0].totalAvaliacoes, 2);
+});

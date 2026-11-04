@@ -28,6 +28,8 @@ export async function index(req, res) {
     endereco: fmt.endereco(l),
     caracteristicas: l.caracteristicas.map((c) => c.nome),
     comoChegar: fmt.linkComoChegar(l),
+    nota: locaisService.notaMedia(l),
+    totalAvaliacoes: l.avaliacoes?.length ?? 0,
   }));
 
   res.render('home', {
@@ -37,6 +39,7 @@ export async function index(req, res) {
     categorias,
     caracteristicas,
     dadosMapa,
+    locaisService,
   });
 }
 
