@@ -1,0 +1,62 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina"><h1>Histórico de ações</h1></div>
+
+  <form class="cartao" method="get" action="/painel/auditoria" role="search">
+    <div class="grade-formulario">
+      <div class="campo">
+        <label for="pessoa">Pessoa</label>
+        <select id="pessoa" name="pessoa">
+          <option value="">Todas</option>
+          <% for (const pessoa of pessoas) { %>
+          <option value="<%= pessoa.id %>" <%= filtros.pessoa === String(pessoa.id) ? 'selected' : '' %>><%= pessoa.nome %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="acao">Tipo de ação</label>
+        <select id="acao" name="acao">
+          <option value="">Todos</option>
+          <% for (const item of acoes) { %>
+          <option value="<%= item.acao %>" <%= filtros.acao === item.acao ? 'selected' : '' %>><%= item.acao %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="campo"><label for="inicio">De</label><input type="date" id="inicio" name="inicio" value="<%= filtros.inicio %>" /></div>
+      <div class="campo"><label for="fim">Até</label><input type="date" id="fim" name="fim" value="<%= filtros.fim %>" /></div>
+    </div>
+    <button class="botao" type="submit">Filtrar</button>
+    <a class="botao botao--fantasma" href="/painel/auditoria">Limpar</a>
+  </form>
+
+  <p><%= total %> <%= total === 1 ? 'registro encontrado' : 'registros encontrados' %>.</p>
+  <% if (registros.length === 0) { %>
+  <div class="cartao estado-vazio"><p>Nenhuma ação encontrada para os filtros escolhidos.</p></div>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <thead><tr><th scope="col">Data</th><th scope="col">Pessoa</th><th scope="col">Ação</th><th scope="col">Registro</th></tr></thead>
+      <tbody>
+        <% for (const registro of registros) { %>
+        <tr>
+          <td><%= fmt.dataHora(registro.criadoEm) %></td>
+          <td><%= registro.admin?.nome || 'Conta removida' %><% if (registro.admin) { %><br /><small><%= registro.admin.email %></small><% } %></td>
+          <td><%= registro.acao %></td>
+          <td><%= registro.entidade %><%= registro.entidadeId == null ? '' : ` #${registro.entidadeId}` %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+
+  <% if (paginas > 1) { %>
+  <nav aria-label="Páginas do histórico" class="abas">
+    <% const parametros = new URLSearchParams(filtros); %>
+    <% if (pagina > 1) { parametros.set('pagina', String(pagina - 1)); %><a href="?<%= parametros.toString() %>">← Anterior</a><% } %>
+    <span>Página <%= pagina %> de <%= paginas %></span>
+    <% if (pagina < paginas) { parametros.set('pagina', String(pagina + 1)); %><a href="?<%= parametros.toString() %>">Próxima →</a><% } %>
+  </nav>
+  <% } %>
+</main>
+<%- include('../partials/foot') %>
