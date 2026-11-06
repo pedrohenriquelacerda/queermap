@@ -123,11 +123,18 @@ test(
       }
 
       const antes = await prisma.logAuditoria.count({ where: { adminId: admin.id } });
-      assert.ok(
-        (await agenteAdmin.post('/painel/auditoria').set('Origin', env.siteUrl).send({})).status >=
-          400,
-      );
-      assert.ok((await agenteAdmin.delete('/painel/auditoria')).status >= 400);
+      for (const caminho of [
+        '/painel/auditoria',
+        '/painel/auditoria/1',
+        '/painel/auditoria/1/apagar',
+      ]) {
+        for (const metodo of ['post', 'put', 'patch', 'delete']) {
+          const resposta = await agenteAdmin[metodo](caminho)
+            .set('Origin', env.siteUrl)
+            .send({ id: 1 });
+          assert.equal(resposta.status, 404, `${metodo.toUpperCase()} ${caminho}`);
+        }
+      }
       assert.equal(await prisma.logAuditoria.count({ where: { adminId: admin.id } }), antes);
     } finally {
       await prisma.logAuditoria.deleteMany({ where: { adminId: { in: ids } } });

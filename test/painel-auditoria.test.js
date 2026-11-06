@@ -4,7 +4,8 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
-import { prepararAdmins, logar, enviar } from './helpers/painel.js';
+import { prepararAdmins, logar } from './helpers/painel.js';
+import { env } from '../src/config/env.js';
 
 const app = createApp();
 let consulta;
@@ -64,6 +65,14 @@ test('filtros de pessoa, ação e período são combinados na consulta', async (
 
 test('histórico não oferece alteração nem exclusão por HTTP', async () => {
   const admin = await logar(app, 'admin@teste.test');
-  assert.ok((await enviar(admin, '/painel/auditoria', {})).status >= 400);
-  assert.ok((await admin.delete('/painel/auditoria')).status >= 400);
+  for (const caminho of [
+    '/painel/auditoria',
+    '/painel/auditoria/1',
+    '/painel/auditoria/1/apagar',
+  ]) {
+    for (const metodo of ['post', 'put', 'patch', 'delete']) {
+      const resposta = await admin[metodo](caminho).set('Origin', env.siteUrl).send({ id: 1 });
+      assert.equal(resposta.status, 404, `${metodo.toUpperCase()} ${caminho}`);
+    }
+  }
 });
