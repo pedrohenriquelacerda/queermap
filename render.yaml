@@ -25,6 +25,8 @@ services:
         generateValue: true
       - key: HASH_SECRET
         generateValue: true
+      - key: TOTP_KEY
+        generateValue: true # cifra os segredos da 2FA do painel; trocar invalida todas as 2FA
       - key: TURNSTILE_SITE_KEY
         sync: false
       - key: TURNSTILE_SECRET_KEY
