@@ -55,6 +55,17 @@
     </div>
   </form>
 
+  <% if (editando && !ehVoce && pessoa.totpAtivadoEm) { %>
+  <form class="cartao zona-perigo" method="post" action="/painel/pessoas/<%= pessoa.id %>/2fa">
+    <h2>Redefinir verificação em duas etapas</h2>
+    <p>
+      Remove o aplicativo autenticador e os códigos de recuperação. No próximo login, a pessoa
+      ativa de novo.
+    </p>
+    <button type="submit" class="botao botao--secundario">Redefinir 2FA</button>
+  </form>
+  <% } %>
+
   <% if (editando && !ehVoce) { %>
   <form class="cartao zona-perigo" method="post" action="/painel/pessoas/<%= pessoa.id %>/senha">
     <h2>Redefinir senha</h2>

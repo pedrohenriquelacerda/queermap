@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="entrar">
+  <div class="cartao entrar__cartao">
+    <h1>Verificação em duas etapas</h1>
+    <p class="campo__ajuda">
+      Digite o código de 6 dígitos do seu aplicativo autenticador. Sem o celular, use um código de
+      recuperação.
+    </p>
+
+    <form method="post" action="/painel/entrar/2fa" novalidate>
+      <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código', tipo: 'text', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, autocomplete: 'one-time-code', autofocus: true } }) %>
+      <button type="submit" class="botao entrar__botao">Verificar</button>
+    </form>
+  </div>
+  <p class="entrar__rodape">
+    <a href="/painel/entrar">Voltar ao login</a>
+  </p>
+</main>
+<%- include('../partials/foot') %>

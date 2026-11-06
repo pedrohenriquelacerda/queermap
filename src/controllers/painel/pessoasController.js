@@ -92,6 +92,17 @@ export async function redefinirSenha(req, res, next) {
   mostrarSenha(res, pessoa, senha, 'Senha redefinida');
 }
 
+export async function redefinirDoisFatores(req, res, next) {
+  const id = Number(req.params.id);
+  const pessoa = await adminsService.buscarParaSessao(id);
+  if (!pessoa || id === req.admin.id) return next();
+
+  await adminsService.redefinirDoisFatores(id);
+  await auditoria.registrar(req, 'admin.redefinir_2fa', 'Admin', id);
+  req.flash('sucesso', `Verificação em duas etapas de ${pessoa.nome} redefinida.`);
+  res.redirect(`/painel/pessoas/${id}`);
+}
+
 // A senha provisória aparece uma única vez; não fica salva em lugar nenhum.
 function mostrarSenha(res, pessoa, senha, titulo) {
   res.set('Cache-Control', 'no-store');

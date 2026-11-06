@@ -29,6 +29,9 @@ export const env = {
   // Segredo do hash (HMAC) dos e-mails e códigos. Trocar invalida os limites em andamento.
   hashSecret: required('HASH_SECRET', 'dev-hash-nao-use-em-producao'),
 
+  // Chave que cifra os segredos da autenticação em dois fatores. Trocar invalida todas as 2FA.
+  totpKey: required('TOTP_KEY', 'dev-totp-nao-use-em-producao'),
+
   // Cloudflare Turnstile (anti-robô). Em desenvolvimento, as chaves de teste públicas da
   // Cloudflare, que sempre aprovam: https://developers.cloudflare.com/turnstile/troubleshooting/testing/
   turnstile: {
