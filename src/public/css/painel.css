@@ -608,3 +608,22 @@ fieldset.cartao legend + * {
 .linha-arrastavel.alvo-arrasto {
   border-top: 2px solid var(--cor-primaria);
 }
+
+/* 2FA: QR code e códigos de recuperação */
+.qr {
+  display: flex;
+  justify-content: center;
+  margin: var(--esp-3) 0;
+}
+.qr svg {
+  width: 12rem;
+  height: 12rem;
+  background: #fff;
+}
+.codigos-recuperacao {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-2);
+  padding: 0;
+  list-style: none;
+}

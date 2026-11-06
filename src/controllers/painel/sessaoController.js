@@ -1,6 +1,6 @@
 import * as adminsService from '../../services/adminsService.js';
 import * as auditoria from '../../services/auditoriaService.js';
-import { destinoSeguro, iniciarSessaoAdmin } from '../../middlewares/auth.js';
+import * as doisFatores from './doisFatoresController.js';
 import { verificarSenha, verificarSenhaFicticia } from '../../utils/senha.js';
 import { validar, email, z } from '../../utils/validacao.js';
 
@@ -32,15 +32,8 @@ export async function entrar(req, res, next) {
     });
   }
 
-  // Nova sessão a cada login: impede que alguém reaproveite um cookie anterior.
-  req.session.regenerate(async (erro) => {
-    if (erro) return next(erro);
-    iniciarSessaoAdmin(req, admin);
-    req.admin = admin;
-    await adminsService.atualizar(admin.id, { ultimoLoginEm: new Date() });
-    await auditoria.registrar(req, 'sessao.entrar', 'Admin', admin.id);
-    res.redirect(admin.precisaTrocarSenha ? '/painel/conta' : destinoSeguro(dados.volta));
-  });
+  // A senha só abre a etapa do código de 2FA; quem entra de fato é o doisFatoresController.
+  doisFatores.iniciar(req, res, next, admin, dados.volta);
 }
 
 export async function sair(req, res, next) {
