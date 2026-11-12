@@ -3,6 +3,7 @@ import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import { exigirLogin, exigirPapelAdmin } from '../middlewares/auth.js';
 import { flash } from '../middlewares/flash.js';
 import * as sessao from '../controllers/painel/sessaoController.js';
+import * as doisFatores from '../controllers/painel/doisFatoresController.js';
 import * as conta from '../controllers/painel/contaController.js';
 import * as inicio from '../controllers/painel/inicioController.js';
 import * as pessoas from '../controllers/painel/pessoasController.js';
@@ -57,10 +58,16 @@ const opcoesLimite = {
 const limitePorConta = rateLimit({
   ...opcoesLimite,
   limit: 5,
-  keyGenerator: (req) =>
-    `${ipKeyGenerator(req.ip)}|${String(req.body?.email ?? '')
+  // No passo do código de 2FA o e-mail vem da sessão (não do corpo), e a chave é a mesma:
+  // erros de senha e de código somam no mesmo bloqueio.
+  keyGenerator: (req) => {
+    const email = req.path.startsWith('/entrar/2fa')
+      ? req.session?.pendente?.email
+      : req.body?.email;
+    return `${ipKeyGenerator(req.ip)}|${String(email ?? '')
       .trim()
-      .toLowerCase()}`,
+      .toLowerCase()}`;
+  },
 });
 // ...e 30 por IP, para quem tenta vários e-mails.
 const limitePorIp = rateLimit({ ...opcoesLimite, limit: 30 });
@@ -77,6 +84,10 @@ router.use(flash);
 
 router.get('/entrar', sessao.formulario);
 router.post('/entrar', limitePorIp, limitePorConta, sessao.entrar);
+router.get('/entrar/2fa', doisFatores.formulario);
+router.post('/entrar/2fa', limitePorIp, limitePorConta, doisFatores.verificar);
+router.get('/entrar/2fa/ativar', doisFatores.ativarFormulario);
+router.post('/entrar/2fa/ativar', limitePorIp, limitePorConta, doisFatores.ativar);
 
 // Daqui para baixo, só com login.
 router.use(exigirLogin);
@@ -95,6 +106,7 @@ rotasPessoas.post('/', pessoas.criar);
 rotasPessoas.get('/:id', pessoas.editar);
 rotasPessoas.post('/:id', pessoas.salvar);
 rotasPessoas.post('/:id/senha', pessoas.redefinirSenha);
+rotasPessoas.post('/:id/2fa', pessoas.redefinirDoisFatores);
 router.use('/pessoas', rotasPessoas);
 
 const rotasLocais = Router();

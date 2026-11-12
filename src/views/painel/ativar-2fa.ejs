@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="entrar">
+  <div class="cartao entrar__cartao">
+    <h1>Ative a verificação em duas etapas</h1>
+    <p class="campo__ajuda">
+      Ela é obrigatória para entrar no painel. Leia o QR code com um aplicativo autenticador
+      (Google Authenticator, Authy, Microsoft Authenticator etc.) e digite o código que ele mostrar.
+    </p>
+
+    <div class="qr" role="img" aria-label="QR code para o aplicativo autenticador"><%- qr %></div>
+    <p class="campo__ajuda">
+      Sem câmera? Digite este código no aplicativo: <code><%= segredo %></code>
+    </p>
+
+    <form method="post" action="/painel/entrar/2fa/ativar" novalidate>
+      <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código de 6 dígitos', tipo: 'text', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, autocomplete: 'one-time-code', inputmode: 'numeric', autofocus: true } }) %>
+      <button type="submit" class="botao entrar__botao">Confirmar e ativar</button>
+    </form>
+  </div>
+  <p class="entrar__rodape">
+    <a href="/painel/entrar">Cancelar</a>
+  </p>
+</main>
+<%- include('../partials/foot') %>

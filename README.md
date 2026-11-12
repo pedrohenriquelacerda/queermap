@@ -68,6 +68,8 @@ npm run admin:criar -- --nome "Nome da Pessoa" --email pessoa@exemplo.org
 
 O comando mostra uma senha provisória; no primeiro acesso o painel pede uma senha nova. Depois disso, quem tem papel de **administração** cadastra as outras pessoas pelo próprio painel (em _Pessoas_).
 
+**Verificação em duas etapas (2FA).** Depois da senha, o painel pede um código de 6 dígitos de um aplicativo autenticador (Google Authenticator, Authy etc.). É obrigatória: quem ainda não ativou lê um QR code e confirma o primeiro código no próximo login, e recebe 10 códigos de recuperação de uso único (guardados só como hash). Erros de código contam no mesmo bloqueio de tentativas do login. Quem administra pode redefinir a 2FA de outra conta em _Pessoas_ (fica na auditoria). O segredo de cada conta é cifrado com `TOTP_KEY` (obrigatória em produção; trocá-la invalida todas as 2FA).
+
 Em desenvolvimento, `npm run db:seed:exemplos` cria duas contas de teste (`admin@queermap.test` e `editor@queermap.test`); as senhas estão em `prisma/seed-exemplos.js`.
 
 No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStreetMap (Nominatim, no máximo 1 consulta por segundo, feita pelo servidor) e o pino pode ser ajustado arrastando no mapa. Todo local nasce como **rascunho** e só aparece no site depois de **publicado**; arquivar tira do mapa sem apagar. Em **Tipos e características** (só administração) dá para criar, renomear e desativar itens; o endereço usado nos links de filtro não muda ao renomear. Em **Canais de denúncia** (só administração), a ONG pode atualizar nome, descrição, telefone e link dos canais exibidos no formulário de discriminação e no site, além de mudar sua ordem ou ocultá-los.

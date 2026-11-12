@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="entrar">
+  <div class="cartao entrar__cartao">
+    <h1>Guarde seus códigos de recuperação</h1>
+    <p>
+      Se você perder o celular, cada código abaixo vale <strong>uma única vez</strong> no lugar do
+      código do aplicativo.
+    </p>
+    <ul class="codigos-recuperacao">
+      <% for (const c of codigos) { %><li><code><%= c %></code></li><% } %>
+    </ul>
+    <div class="alerta alerta--aviso">
+      <p>
+        Eles aparecem <strong>só agora</strong>. Guarde em um lugar seguro (gerenciador de senhas ou
+        papel). Se perder tudo, uma pessoa administradora pode redefinir sua verificação.
+      </p>
+    </div>
+    <a class="botao" href="<%= destino %>">Já guardei, continuar</a>
+  </div>
+</main>
+<%- include('../partials/foot') %>
