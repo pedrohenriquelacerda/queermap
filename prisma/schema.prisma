@@ -33,14 +33,32 @@ model Admin {
   papel              PapelAdmin @default(EDITOR)
   ativo              Boolean    @default(true)
   ultimoLoginEm      DateTime?  @map("ultimo_login_em")
+  // 2FA (TOTP): segredo cifrado; vazio até a pessoa ativar. Obrigatória no painel.
+  totpSegredo        String?    @map("totp_segredo")
+  totpAtivadoEm      DateTime?  @map("totp_ativado_em")
+  totpUltimoPasso    Int?       @map("totp_ultimo_passo") // impede reaproveitar o mesmo código
   criadoEm           DateTime   @default(now()) @map("criado_em")
   atualizadoEm       DateTime   @updatedAt @map("atualizado_em")
 
-  locaisCriados     Local[]        @relation("LocalCriadoPor")
-  locaisAtualizados Local[]        @relation("LocalAtualizadoPor")
-  logs              LogAuditoria[]
+  locaisCriados      Local[]             @relation("LocalCriadoPor")
+  locaisAtualizados  Local[]             @relation("LocalAtualizadoPor")
+  logs               LogAuditoria[]
+  codigosRecuperacao CodigoRecuperacao[]
 
   @@map("admin")
+}
+
+// Códigos de recuperação da 2FA: uso único, guardados só como hash.
+model CodigoRecuperacao {
+  id      Int       @id @default(autoincrement())
+  adminId Int       @map("admin_id")
+  hash    String
+  usadoEm DateTime? @map("usado_em")
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, hash])
+  @@map("codigo_recuperacao")
 }
 
 // Registro de todas as ações feitas no painel.

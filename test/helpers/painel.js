@@ -3,9 +3,11 @@ import request from 'supertest';
 import { env } from '../../src/config/env.js';
 import { prisma } from '../../src/db/prisma.js';
 import { gerarHash } from '../../src/utils/senha.js';
+import { cifrar, codigoDoPasso, passoAtual } from '../../src/utils/totp.js';
 import { mockPrisma } from './mockPrisma.js';
 
 export const SENHA = 'senha-de-teste-123';
+export const SEGREDO_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 let hash;
 
 // Cria as "tabelas" em memória de pessoas e auditoria e liga os mocks do Prisma.
@@ -19,6 +21,10 @@ export async function prepararAdmins(extras = []) {
     ativo: true,
     precisaTrocarSenha: false,
     senhaHash: hash,
+    // Todas as contas de teste já têm a 2FA ativa (obrigatória no painel).
+    totpSegredo: cifrar(SEGREDO_TOTP),
+    totpAtivadoEm: new Date(),
+    totpUltimoPasso: null,
     ...outros,
   });
   const admins = [
@@ -41,6 +47,8 @@ export async function prepararAdmins(extras = []) {
   mockPrisma(prisma.admin, 'update', async ({ where, data }) =>
     Object.assign(achar({ where }), data),
   );
+  // Anti-reuso do código: o helper repete logins no mesmo passo, então aqui sempre libera.
+  mockPrisma(prisma.admin, 'updateMany', async () => ({ count: 1 }));
   mockPrisma(prisma.admin, 'create', async ({ data }) => {
     const nova = { id: admins.length + 1, ativo: true, ...data };
     admins.push(nova);
@@ -54,9 +62,15 @@ export async function prepararAdmins(extras = []) {
 export const enviar = (agente, url, dados) =>
   agente.post(url).type('form').set('Origin', env.siteUrl).send(dados);
 
+export const codigoTotp = (segredo = SEGREDO_TOTP) => codigoDoPasso(segredo, passoAtual());
+
+// Login completo: senha e depois o código de 2FA.
 export async function logar(app, email) {
   const agente = request.agent(app);
   const res = await enviar(agente, '/painel/entrar', { email, senha: SENHA });
   assert.equal(res.status, 302, 'login deveria funcionar');
+  assert.equal(res.headers.location, '/painel/entrar/2fa');
+  const res2 = await enviar(agente, '/painel/entrar/2fa', { codigo: codigoTotp() });
+  assert.equal(res2.status, 302, '2FA deveria funcionar');
   return agente;
 }

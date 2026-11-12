@@ -4,7 +4,13 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
-import { prepararAdmins, enviar, logar as logarNoApp, SENHA } from './helpers/painel.js';
+import {
+  prepararAdmins,
+  enviar,
+  logar as logarNoApp,
+  codigoTotp,
+  SENHA,
+} from './helpers/painel.js';
 
 const app = createApp();
 let admins; // "tabela" em memória
@@ -76,8 +82,13 @@ test('login certo cria sessão, registra auditoria e abre o painel', async () =>
     senha: SENHA,
   });
   assert.equal(res.status, 302);
-  assert.equal(res.headers.location, '/painel');
-  assert.match(res.headers['set-cookie'][0], /HttpOnly/i);
+  assert.equal(res.headers.location, '/painel/entrar/2fa');
+  assert.equal((await agente.get('/painel')).status, 302); // só a senha não basta
+
+  const res2 = await enviar(agente, '/painel/entrar/2fa', { codigo: codigoTotp() });
+  assert.equal(res2.status, 302);
+  assert.equal(res2.headers.location, '/painel');
+  assert.match(res2.headers['set-cookie'][0], /HttpOnly/i);
   assert.ok(auditoria.some((a) => a.acao === 'sessao.entrar' && a.adminId === 1));
 
   const inicio = await agente.get('/painel');
@@ -87,21 +98,25 @@ test('login certo cria sessão, registra auditoria e abre o painel', async () =>
 });
 
 test('login retorna à página administrativa pedida', async () => {
-  const res = await enviar(request(app), '/painel/entrar', {
+  const agente = request.agent(app);
+  await enviar(agente, '/painel/entrar', {
     email: 'admin@teste.test',
     senha: SENHA,
     volta: '/painel/locais?status=rascunho',
   });
+  const res = await enviar(agente, '/painel/entrar/2fa', { codigo: codigoTotp() });
   assert.equal(res.status, 302);
   assert.equal(res.headers.location, '/painel/locais?status=rascunho');
 });
 
 test('depois do login não redireciona para outro site', async () => {
-  const res = await enviar(request(app), '/painel/entrar', {
+  const agente = request.agent(app);
+  await enviar(agente, '/painel/entrar', {
     email: 'admin@teste.test',
     senha: SENHA,
     volta: '//site-malicioso.example',
   });
+  const res = await enviar(agente, '/painel/entrar/2fa', { codigo: codigoTotp() });
   assert.equal(res.headers.location, '/painel');
 });
 
