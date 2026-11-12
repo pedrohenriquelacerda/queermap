@@ -43,6 +43,16 @@ export function data(valor) {
   return valor ? formatoData.format(new Date(valor)) : '';
 }
 
+const formatoDataHora = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'America/Sao_Paulo',
+});
+
+export function dataHora(valor) {
+  return valor ? formatoDataHora.format(new Date(valor)) : '';
+}
+
 // Para usar como classe CSS: só letras minúsculas, números e hífen.
 export function classeSegura(texto) {
   return String(texto ?? '').replace(/[^a-z0-9-]/g, '');
