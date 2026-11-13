@@ -21,8 +21,15 @@
           <% } %>
         </dl>
         <h3>Mensagem</h3><p class="texto-envio"><%= envio.mensagem %></p>
-        <% if (envio.desejaContato && envio.emailContato) { %>
-        <h3>Contato solicitado</h3><p class="texto-envio"><%= envio.emailContato %></p>
+        <% if (envio.desejaContato && (envio.emailContato || envio.telefoneContato)) { const telContato = fmt.linkTelefone(envio.telefoneContato); const zapContato = fmt.linkWhatsapp(envio.telefoneContato); %>
+        <h3>Contato solicitado</h3>
+        <dl class="dados">
+          <% if (envio.emailContato) { %><dt>E-mail</dt><dd><a href="mailto:<%= envio.emailContato %>"><%= envio.emailContato %></a></dd><% } %>
+          <% if (envio.telefoneContato) { %>
+          <dt>Telefone</dt>
+          <dd><a href="<%= telContato %>"><%= envio.telefoneContato %></a><% if (zapContato) { %> · <a href="<%= zapContato %>" target="_blank" rel="noopener noreferrer">WhatsApp</a><% } %></dd>
+          <% } %>
+        </dl>
         <% } %>
       </section>
       <form method="post" action="/painel/envios/<%= envio.id %>/notas" class="cartao">

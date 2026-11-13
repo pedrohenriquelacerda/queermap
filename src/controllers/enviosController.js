@@ -11,7 +11,10 @@ export const TIPOS = {
   SUGESTAO_LOCAL: { rotulo: 'Sugerir um local', ajuda: 'Um serviço que deveria estar no mapa.' },
   ELOGIO: { rotulo: 'Elogio', ajuda: 'Um atendimento que foi bom.' },
   RECLAMACAO: { rotulo: 'Reclamação', ajuda: 'Um problema no atendimento ou informação errada.' },
-  DISCRIMINACAO: { rotulo: 'Discriminação', ajuda: 'Você sofreu preconceito ou violência.' },
+  DISCRIMINACAO: {
+    rotulo: 'Denúncia de discriminação',
+    ajuda: 'Você sofreu preconceito ou violência.',
+  },
 };
 
 // No relato, a pessoa escolhe um local do mapa ou "outro lugar" e digita o nome.
@@ -39,9 +42,14 @@ const esquema = z
       .max(2000, 'Use no máximo 2.000 caracteres.'),
     email: email(),
     desejaContato: caixa(),
+    // Opcional, só usado (e validado) quando a pessoa pede contato.
+    telefoneContato: textoOpcional(30),
   })
   .superRefine((d, ctx) => {
     const erro = (campo, message) => ctx.addIssue({ code: 'custom', path: [campo], message });
+    if (d.desejaContato && d.telefoneContato && !telefoneValido(d.telefoneContato)) {
+      erro('telefoneContato', 'Informe o telefone com DDD, só com números (ex.: 51 99999-9999).');
+    }
     if (d.tipo === 'SUGESTAO_LOCAL') {
       if (!d.nomeLocalSugerido) erro('nomeLocalSugerido', 'Informe o nome do local sugerido.');
       if (!d.categoriaSugeridaId) erro('categoriaSugeridaId', 'Escolha o tipo de serviço.');
@@ -55,6 +63,12 @@ const esquema = z
       erro('localId', 'Escolha o local ou "Outro lugar".');
     }
   });
+
+// Aceita os formatos comuns ("(51) 99999-9999", "+55 51 99999 9999") com 10 a 13 dígitos.
+function telefoneValido(valor) {
+  const digitos = valor.replace(/\D/g, '').length;
+  return /^[\d\s()+.-]+$/.test(valor) && digitos >= 10 && digitos <= 13;
+}
 
 const MENSAGENS_CODIGO = {
   incorreto: 'Código incorreto. Confira o e-mail e tente de novo.',
@@ -153,6 +167,7 @@ export async function enviar(req, res) {
       mensagem: dados.mensagem,
       desejaContato: dados.desejaContato,
       emailContato: dados.desejaContato ? dados.email : null,
+      telefoneContato: dados.desejaContato ? dados.telefoneContato : null,
     },
   };
   res.redirect('/enviar/confirmar');

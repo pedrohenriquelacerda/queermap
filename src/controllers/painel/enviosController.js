@@ -14,7 +14,7 @@ export const TIPOS = {
   SUGESTAO_LOCAL: 'Sugestão de local',
   ELOGIO: 'Elogio',
   RECLAMACAO: 'Reclamação',
-  DISCRIMINACAO: 'Discriminação',
+  DISCRIMINACAO: 'Denúncia de discriminação',
 };
 const filtros = z.object({
   tipo: z.enum(service.TIPOS).optional(),
@@ -167,6 +167,7 @@ function protegerContato(envio) {
     envio && {
       ...envio,
       emailContato: envio.desejaContato ? envio.emailContato : null,
+      telefoneContato: envio.desejaContato ? envio.telefoneContato : null,
       versaoNotas: service.versaoNotas(envio),
       versaoSituacao: service.versaoSituacao(envio),
     }

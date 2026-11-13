@@ -6,6 +6,7 @@ const form = document.getElementById('form-envio');
 if (form) {
   const blocos = form.querySelectorAll('[data-se-tipo]');
   const outroLugar = form.querySelector('[data-se-outro-lugar]');
+  const contato = form.querySelector('[data-se-contato]');
   const modalCanais = document.getElementById('modal-canais');
 
   const atualizar = () => {
@@ -15,10 +16,12 @@ if (form) {
     }
     // "Nome do lugar" só quando o relato é sobre um lugar fora do mapa.
     outroLugar.hidden = form.elements.localId.value !== 'outro';
+    // Telefone só quando a pessoa pede contato da ONG.
+    if (contato) contato.hidden = !form.elements.desejaContato.checked;
   };
 
   form.addEventListener('change', (e) => {
-    if (e.target.name === 'tipo' || e.target.name === 'localId') atualizar();
+    if (['tipo', 'localId', 'desejaContato'].includes(e.target.name)) atualizar();
     if (e.target.name === 'tipo' && e.target.value === 'DISCRIMINACAO') {
       modalCanais?.showModal();
     }

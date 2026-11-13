@@ -577,3 +577,20 @@ test('IDs fora da faixa Int são recusados antes de consultar o banco', async ()
   }
   assert.equal(consulta.mock.callCount(), 0);
 });
+
+test('detalhe mostra o telefone de contato só com consentimento', async () => {
+  envio.telefoneContato = '(55) 99999-0000';
+  envio.desejaContato = true;
+  const agente = await logar(app, 'editor@teste.test');
+  const res = await agente.get('/painel/envios/1');
+  assert.match(res.text, /href="tel:55999990000"/);
+  // DDD 55 (Santa Maria): o link do WhatsApp ganha o código do país.
+  assert.match(res.text, /href="https:\/\/wa\.me\/5555999990000"/);
+
+  envio.desejaContato = false;
+  const json = await agente.get('/painel/envios/1').set('Accept', 'application/json');
+  assert.equal(json.body.envio.telefoneContato, null);
+  assert.doesNotMatch((await agente.get('/painel/envios/1')).text, /99999-0000/);
+  delete envio.telefoneContato;
+  envio.desejaContato = true;
+});

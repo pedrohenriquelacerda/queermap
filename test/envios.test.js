@@ -330,3 +330,58 @@ test('telas do fluxo não abrem fora de ordem', async () => {
   assert.equal((await request(app).get('/enviar/confirmar')).headers.location, '/enviar');
   assert.equal((await request(app).get('/enviar/obrigado')).headers.location, '/');
 });
+
+test('tipo de relato aparece como "Denúncia de discriminação" e há campo de telefone', async () => {
+  const res = await request(app).get('/enviar');
+  assert.match(res.text, /<strong>Denúncia de discriminação<\/strong>/);
+  assert.match(res.text, /data-se-contato[\s\S]*?name="telefoneContato"/);
+  assert.match(res.text, /type="tel"/);
+});
+
+test('telefone só é salvo quando a pessoa pede contato', async () => {
+  const comContato = request.agent(app);
+  await enviar(comContato, '/enviar', {
+    ...relato,
+    tipo: 'DISCRIMINACAO',
+    desejaContato: 'on',
+    telefoneContato: '(51) 99999-8888',
+  });
+  await enviar(comContato, '/enviar/confirmar', { codigo: codigoDoEmail() });
+  assert.equal(envios[0].telefoneContato, '(51) 99999-8888');
+  assert.equal(envios[0].emailContato, 'pessoa@teste.test');
+
+  const semContato = request.agent(app);
+  await enviar(semContato, '/enviar', {
+    ...relato,
+    email: 'outra@teste.test',
+    telefoneContato: '51 99999-8888',
+  });
+  await enviar(semContato, '/enviar/confirmar', { codigo: codigoDoEmail() });
+  assert.equal(envios[1].telefoneContato, null);
+  assert.equal(envios[1].emailContato, null);
+});
+
+test('telefone inválido é recusado só quando a pessoa pede contato', async () => {
+  const invalido = await enviar(request.agent(app), '/enviar', {
+    ...relato,
+    desejaContato: 'on',
+    telefoneContato: '9999',
+  });
+  assert.equal(invalido.status, 400);
+  assert.match(invalido.text, /Informe o telefone com DDD/);
+  assert.match(invalido.text, /value="9999"/); // mantém o que foi digitado
+
+  const letras = await enviar(request.agent(app), '/enviar', {
+    ...relato,
+    desejaContato: 'on',
+    telefoneContato: 'liga pra mim 51999998888',
+  });
+  assert.equal(letras.status, 400);
+
+  // Sem pedir contato, o campo é ignorado (não há por que travar o envio).
+  const ignorado = await enviar(request.agent(app), '/enviar', {
+    ...relato,
+    telefoneContato: '9999',
+  });
+  assert.equal(ignorado.status, 302);
+});

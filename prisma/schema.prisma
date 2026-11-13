@@ -209,8 +209,9 @@ model Envio {
   contatoLocalSugerido  String? @map("contato_local_sugerido") // telefone, site ou e-mail do local
 
   // Contato opcional: só é salvo se a pessoa marcar que deseja ser contatada.
-  desejaContato Boolean @default(false) @map("deseja_contato")
-  emailContato  String? @map("email_contato")
+  desejaContato   Boolean @default(false) @map("deseja_contato")
+  emailContato    String? @map("email_contato")
+  telefoneContato String? @map("telefone_contato") // opcional, também só com desejaContato
 
   // Resultado do filtro automático de conteúdo.
   sinalizado   Boolean @default(false)

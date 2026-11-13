@@ -12,10 +12,17 @@ export function linkTelefone(telefone) {
   return digitos ? `tel:${digitos}` : null;
 }
 
+// Número brasileiro: com DDD (10 ou 11 dígitos) ganha o 55 do país; já com o 55 (12 ou 13
+// dígitos) fica como está. Olhar só o "começa com 55" erraria o DDD 55 (Santa Maria e região).
 export function linkWhatsapp(whatsapp) {
-  const digitos = String(whatsapp ?? '').replace(/\D/g, '');
-  if (!digitos) return null;
-  return `https://wa.me/${digitos.startsWith('55') ? digitos : `55${digitos}`}`;
+  const digitos = String(whatsapp ?? '')
+    .replace(/\D/g, '')
+    .replace(/^0+/, '');
+  if (digitos.length === 10 || digitos.length === 11) return `https://wa.me/55${digitos}`;
+  if ((digitos.length === 12 || digitos.length === 13) && digitos.startsWith('55')) {
+    return `https://wa.me/${digitos}`;
+  }
+  return null;
 }
 
 // Só aceita http(s): impede links "javascript:" cadastrados por engano ou má-fé.
@@ -26,6 +33,14 @@ export function urlSegura(valor) {
   } catch {
     return null;
   }
+}
+
+// Endereço do site para mostrar: sem "https://", "www." e barra final.
+export function siteLegivel(url) {
+  return String(url ?? '')
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '');
 }
 
 export function linkComoChegar(l) {
@@ -59,6 +74,32 @@ export function normalizar(texto) {
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
 }
+
+// Texto em que a busca da lista procura: nome, endereço completo (com e sem abreviações
+// comuns, para "av" achar "Avenida"), CEP, tipo de serviço e características.
+export function textoBusca(l) {
+  const endereco = [l.logradouro, l.numero, l.complemento, l.bairro, l.cidade, l.cep];
+  const texto = normalizar(
+    [l.nome, ...endereco, l.categoria.nome, ...l.caracteristicas.map((c) => c.nome)]
+      .filter(Boolean)
+      .join(' '),
+  ).replace(/[^a-z0-9]+/g, ' ');
+  const abreviado = texto.replace(
+    /\b(avenida|rua|travessa|praca|estrada|largo)\b/g,
+    (p) => ABREVIACOES[p],
+  );
+  const cepSemTraco = String(l.cep ?? '').replace(/\D/g, '');
+  return [texto, abreviado !== texto ? abreviado : '', cepSemTraco].filter(Boolean).join(' ');
+}
+
+const ABREVIACOES = {
+  avenida: 'av',
+  rua: 'r',
+  travessa: 'tv',
+  praca: 'pc',
+  estrada: 'estr',
+  largo: 'lgo',
+};
 
 // JSON seguro para colocar dentro de <script type="application/json">.
 export function jsonSeguro(valor) {

@@ -79,9 +79,13 @@
         <input type="checkbox" name="desejaContato" <%= valores.desejaContato === 'on' || valores.desejaContato === true ? 'checked' : '' %> />
         <span>
           Quero que a ONG entre em contato comigo
-          <span class="campo__ajuda">Só nesse caso o e-mail é salvo, e apenas a equipe da ONG tem acesso.</span>
+          <span class="campo__ajuda">Só nesse caso o e-mail (e o telefone, se você informar) é salvo, e apenas a equipe da ONG tem acesso.</span>
         </span>
       </label>
+    </div>
+
+    <div data-se-contato>
+      <%- campo({ nome: 'telefoneContato', rotulo: 'Telefone ou WhatsApp', opcional: true, tipo: 'tel', valor: valores.telefoneContato, ajuda: 'Se preferir que a ONG ligue ou mande mensagem. Com DDD. Só é usado se você marcou a opção acima.', attrs: { maxlength: 30, autocomplete: 'tel', inputmode: 'tel' } }) %>
     </div>
 
     <div class="campo">
