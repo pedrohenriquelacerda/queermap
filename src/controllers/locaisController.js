@@ -25,6 +25,7 @@ export async function buscarEndereco(req, res) {
   try {
     const resultados = await geocodificacao.buscarEndereco(consulta, {
       regiao: geocodificacao.REGIAO_RS,
+      cidadePadrao: 'Porto Alegre',
     });
     res.json({ resultados });
   } catch (err) {

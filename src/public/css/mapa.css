@@ -155,6 +155,15 @@
   cursor: pointer;
 }
 
+.localizar__botao:first-child:not(:last-child) {
+  border-radius: var(--raio) var(--raio) 0 0;
+}
+
+.localizar__botao + .localizar__botao {
+  border-top: 1px solid var(--cor-borda);
+  border-radius: 0 0 var(--raio) var(--raio);
+}
+
 .localizar__botao:hover {
   background: var(--cor-primaria-clara);
 }
@@ -311,6 +320,16 @@
   padding: var(--esp-5) var(--esp-4);
   color: var(--cor-suave);
   text-align: center;
+}
+
+.lateral__como-endereco {
+  margin: 0 var(--esp-4) var(--esp-4);
+  white-space: normal;
+  text-align: left;
+}
+
+.lateral__como-endereco[hidden] {
+  display: none;
 }
 
 .campo--busca {
@@ -617,6 +636,36 @@
 
 .local__info p:last-child {
   margin-bottom: 0;
+}
+
+/* Contato do local: rótulo à esquerda, dado (link) à direita. */
+.contato-local {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--esp-2) var(--esp-3);
+  margin: 0;
+}
+
+.contato-local dt {
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+  line-height: 1.6;
+}
+
+.contato-local dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+/* Contato no cartão da lista e no popup do mapa */
+.contato-curto {
+  margin: var(--esp-1) 0 0;
+  font-size: var(--texto-pequeno);
+}
+
+.contato-curto a + a {
+  margin-left: var(--esp-2);
 }
 
 .mapa-local {

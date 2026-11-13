@@ -12,6 +12,8 @@ const GRANDE_POA = [
   [-29.55, -50.7],
 ];
 const ZOOM_PESSOA = 15;
+const ICONE_BUSCAR =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>';
 const ICONE_LOCALIZAR =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
 const AVISOS = {
@@ -22,6 +24,7 @@ const AVISOS = {
     'A localização está bloqueada para este site. Para liberar, toque no cadeado ao lado do endereço do site. Ou digite seu endereço:',
   indisponivel:
     'Não foi possível descobrir sua localização agora. Digite seu endereço, bairro ou cidade:',
+  buscar: 'Digite um endereço, bairro ou cidade para ver os locais mais perto:',
   foraDaRegiao:
     'Você está fora da região de Porto Alegre, então o mapa mostra todos os locais. Para ver os locais perto de um endereço, digite abaixo:',
 };
@@ -60,13 +63,38 @@ function iniciarExplorar(locais) {
   let centroPessoa = null;
   const visaoInicial = () => (centroPessoa ? centralizar(mapa, centroPessoa) : enquadrar());
   const { marcarInteracao, interagiu } = reajustarAoRedimensionar(mapa, visaoInicial);
-  configurarLocalizacao(mapa, {
+  const localizacao = configurarLocalizacao(mapa, {
     interagiu,
     aoCentralizar: (posicao) => (centroPessoa = posicao),
+    // Endereço digitado: enquadra o ponto com os locais visíveis mais próximos.
+    aoBuscarEndereco: (posicao) => {
+      marcarInteracao();
+      const proximos = maisProximos(camada, posicao, 3);
+      if (proximos.length === 0) return centralizar(mapa, posicao);
+      mapa.fitBounds(L.latLngBounds([posicao, ...proximos]), {
+        // Mais folga à esquerda e no alto: lá ficam os botões de zoom e de localização.
+        paddingTopLeft: [72, 56],
+        paddingBottomRight: [40, 40],
+        maxZoom: 16,
+        animate: false,
+      });
+    },
   });
 
   const alternarModo = configurarModos();
-  configurarFiltros({ marcadores, camada, enquadrar });
+  configurarFiltros({
+    marcadores,
+    camada,
+    enquadrar,
+    // "Procurar como endereço": a busca da lista não achou nenhum local com esse texto.
+    buscarComoEndereco: (texto) => {
+      if (celular.matches) {
+        alternarModo('mapa');
+        mapa.invalidateSize();
+      }
+      localizacao.buscarEndereco(texto);
+    },
+  });
 
   // "Ver no mapa": abre o popup do local (no celular, troca para o modo mapa antes).
   document.getElementById('lista-locais')?.addEventListener('click', (evento) => {
@@ -94,7 +122,19 @@ function configurarModos() {
   return alternar;
 }
 
-function configurarFiltros({ marcadores, camada, enquadrar }) {
+// Até `quantos` marcadores visíveis mais próximos da posição (no máximo a 15 km).
+function maisProximos(camada, posicao, quantos) {
+  return camada
+    .getLayers()
+    .map((m) => m.getLatLng())
+    .map((p) => ({ p, d: posicao.distanceTo(p) }))
+    .filter(({ d }) => d <= 15000)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, quantos)
+    .map(({ p }) => p);
+}
+
+function configurarFiltros({ marcadores, camada, enquadrar, buscarComoEndereco }) {
   const form = document.getElementById('filtros');
   if (!form) return;
   const busca = form.elements.q;
@@ -102,6 +142,7 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   const contagem = document.getElementById('contagem');
   const avisosVazio = document.querySelectorAll('[data-aviso-vazio]');
   const limpar = document.getElementById('limpar');
+  const comoEndereco = document.getElementById('buscar-como-endereco');
   const atalhos = document.querySelectorAll('[data-atalho-tipo]');
   const caixaDoTipo = (slug) => form.querySelector(`input[name=tipo][value="${slug}"]`);
 
@@ -113,7 +154,7 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
   }
 
   const aplicar = ({ reenquadrar = true } = {}) => {
-    const termos = normalizar(busca.value).split(/\s+/).filter(Boolean);
+    const termos = termosBusca(busca.value);
     const tipos = marcados('tipo');
     const caracteristicas = marcados('car');
 
@@ -141,6 +182,12 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     for (const aviso of avisosVazio) {
       aviso.textContent = mensagem;
       aviso.hidden = visiveis > 0;
+    }
+    // Nenhum local com esse texto: talvez seja um endereço (ex.: onde a pessoa mora).
+    const textoBusca = busca.value.trim();
+    if (comoEndereco) {
+      comoEndereco.hidden = visiveis > 0 || textoBusca.length < 3;
+      comoEndereco.textContent = `Procurar “${textoBusca}” como endereço no mapa`;
     }
     for (const atalho of atalhos) {
       atalho.setAttribute('aria-pressed', String(tipos.includes(atalho.dataset.atalhoTipo)));
@@ -174,6 +221,14 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     barraAtalhos.hidden = false; // só funcionam com JavaScript
     faixaRolavel(barraAtalhos.querySelector('.atalhos-tipo__botoes'));
   }
+
+  comoEndereco?.addEventListener('click', () => {
+    const texto = busca.value.trim();
+    // Tira o texto do filtro (senão nenhum local apareceria perto do endereço).
+    busca.value = '';
+    aplicar({ reenquadrar: false });
+    buscarComoEndereco(texto);
+  });
 
   limpar.addEventListener('click', () => {
     form.reset();
@@ -275,11 +330,13 @@ function atualizarUrl(q, tipos, caracteristicas) {
 // A posição do GPS fica só no navegador: nunca é enviada ao servidor. Só o endereço
 // digitado (quando a pessoa não libera o GPS) passa pelo servidor, a caminho do Nominatim.
 
-function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
+function configurarLocalizacao(mapa, { interagiu, aoCentralizar, aoBuscarEndereco }) {
   const regiao = L.latLngBounds(GRANDE_POA);
   const painel = configurarPainelEndereco(mapa, (posicao) => {
     mostrarPessoa(posicao, 'Endereço informado');
-    irPara(posicao);
+    ultimaPosicao = posicao;
+    aoCentralizar(posicao);
+    aoBuscarEndereco(posicao);
   });
   let marcador = null;
   let precisao = null;
@@ -350,11 +407,20 @@ function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
   botao.setAttribute('aria-label', botao.title);
   botao.innerHTML = ICONE_LOCALIZAR;
   botao.addEventListener('click', () => localizar({ automatico: false }));
+  // Buscar um endereço a qualquer momento (não só quando a localização falha).
+  const botaoBuscar = criar('button', 'localizar__botao');
+  botaoBuscar.type = 'button';
+  botaoBuscar.title = 'Buscar um endereço no mapa';
+  botaoBuscar.setAttribute('aria-label', botaoBuscar.title);
+  botaoBuscar.innerHTML = ICONE_BUSCAR;
+  botaoBuscar.addEventListener('click', () => painel.abrir(AVISOS.buscar, { focar: true }));
+
   const barra = criar('div', 'leaflet-bar localizar');
-  barra.append(botao);
+  barra.append(botao, botaoBuscar);
   adicionarControle(mapa, barra, 'topleft');
 
   localizar({ automatico: true });
+  return { buscarEndereco: (texto) => painel.buscar(texto) };
 }
 
 // Campo para digitar o endereço, sobre o mapa. aoEscolher recebe um L.LatLng.
@@ -367,10 +433,11 @@ function configurarPainelEndereco(mapa, aoEscolher) {
   const opcoes = painel.querySelector('.painel-localizacao__opcoes');
   adicionarControle(mapa, painel, 'topright');
 
-  const abrir = (texto) => {
+  const abrir = (texto, { focar = false } = {}) => {
     aviso.textContent = texto;
     opcoes.replaceChildren();
     painel.hidden = false;
+    if (focar) campo.focus();
   };
   const fechar = () => (painel.hidden = true);
   const escolher = (resultado) => {
@@ -420,7 +487,14 @@ function configurarPainelEndereco(mapa, aoEscolher) {
     opcoes.replaceChildren(lista);
   }
 
-  return { abrir, fechar };
+  // Abre o painel já com o texto e busca (vindo da busca da lista).
+  const buscar = (texto) => {
+    abrir('');
+    campo.value = texto.slice(0, 300);
+    form.requestSubmit();
+  };
+
+  return { abrir, fechar, buscar };
 }
 
 // ─── Página do local ────────────────────────────────────────────────────────
@@ -495,6 +569,13 @@ function montarPopup(local) {
   raiz.append(criar('h2', 'popup__titulo', local.nome));
   raiz.append(criar('p', 'popup__endereco', local.endereco));
 
+  if (local.telefone || local.whatsapp) {
+    const contato = criar('p', 'contato-curto');
+    if (local.telefone) contato.append(link(local.telefone.link, local.telefone.texto));
+    if (local.whatsapp) contato.append(link(local.whatsapp, 'WhatsApp', true));
+    raiz.append(contato);
+  }
+
   if (local.caracteristicas.length > 0) {
     const lista = criar('ul', 'etiquetas');
     for (const nome of local.caracteristicas) lista.append(criar('li', 'etiqueta', nome));
@@ -523,6 +604,13 @@ function link(href, texto, externo = false) {
     a.rel = 'noopener noreferrer';
   }
   return a;
+}
+
+// Mesmo critério do servidor (fmt.textoBusca): sem acentos, maiúsculas e pontuação.
+function termosBusca(texto) {
+  return normalizar(texto)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
 }
 
 function normalizar(texto) {

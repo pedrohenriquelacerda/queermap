@@ -30,12 +30,12 @@
       <% if (locais.length > 0) { %>
       <form class="filtros" role="search" action="/" id="filtros">
         <div class="campo campo--busca">
-          <label class="visualmente-oculto" for="busca">Buscar por nome, bairro ou serviço</label>
+          <label class="visualmente-oculto" for="busca">Buscar por nome, endereço, bairro ou serviço</label>
           <input
             type="search"
             id="busca"
             name="q"
-            placeholder="Buscar por nome, bairro ou serviço"
+            placeholder="Buscar por nome, endereço, bairro ou serviço"
             autocomplete="off"
           />
         </div>
@@ -87,11 +87,18 @@
         data-id="<%= l.id %>"
         data-tipo="<%= l.categoria.slug %>"
         data-car="<%= l.caracteristicas.map((c) => c.slug).join(' ') %>"
-        data-busca="<%= fmt.normalizar([l.nome, l.bairro, l.categoria.nome, ...l.caracteristicas.map((c) => c.nome)].join(' ')) %>"
+        data-busca="<%= fmt.textoBusca(l) %>"
       >
         <p class="rotulo-categoria <%= fmt.classeCategoria(l.categoria) %>"><%= l.categoria.nome %></p>
         <h2 class="cartao-local__nome"><a href="/locais/<%= l.slug %>"><%= l.nome %></a></h2>
         <p class="cartao-local__endereco"><%= fmt.endereco(l) %></p>
+        <% const tel = fmt.linkTelefone(l.telefone); const zap = fmt.linkWhatsapp(l.whatsapp); %>
+        <% if (tel || zap) { %>
+        <p class="contato-curto">
+          <% if (tel) { %><a href="<%= tel %>" aria-label="Telefone de <%= l.nome %>: <%= l.telefone %>"><%= l.telefone %></a><% } %>
+          <% if (zap) { %><a href="<%= zap %>" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp de <%= l.nome %>">WhatsApp</a><% } %>
+        </p>
+        <% } %>
         <% if (l.caracteristicas.length > 0) { %>
         <ul class="etiquetas">
           <% for (const c of l.caracteristicas.slice(0, 3)) { %>
@@ -110,6 +117,8 @@
     <p class="lateral__vazio" id="lista-vazia" data-aviso-vazio role="status" hidden>
       Nenhum local encontrado com esses filtros.
     </p>
+    <%# O mapa.js mostra quando a busca não acha nenhum local: o texto pode ser um endereço. %>
+    <button type="button" class="botao botao--secundario botao--pequeno lateral__como-endereco" id="buscar-como-endereco" hidden></button>
     <% } %>
   </aside>
 

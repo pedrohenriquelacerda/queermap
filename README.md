@@ -46,13 +46,13 @@ Ele serve para desenvolvimento, mas é uma versão simplificada do Postgres. Ant
 
 ## Envios do público
 
-Em `/enviar` qualquer pessoa sugere um local ou manda um relato (elogio, reclamação ou discriminação), sem criar conta:
+Em `/enviar` qualquer pessoa sugere um local ou manda um relato (elogio, reclamação ou denúncia de discriminação), sem criar conta:
 
 1. preenche o formulário e passa pelo anti-robô (Cloudflare Turnstile);
 2. recebe um código de 6 números por e-mail (válido por 15 min, até 5 tentativas);
 3. confirma o código e o envio chega ao painel da ONG.
 
-O e-mail não é guardado: só um hash (HMAC com `HASH_SECRET`) para limitar a **5 envios a cada 30 dias**. A exceção é quando a pessoa pede contato da ONG. Textos com link, ofensas ou spam são **sinalizados** para a ONG, nunca bloqueados.
+O e-mail não é guardado: só um hash (HMAC com `HASH_SECRET`) para limitar a **5 envios a cada 30 dias**. A exceção é quando a pessoa pede contato da ONG: aí o e-mail (e um telefone/WhatsApp opcional) fica salvo com o envio. Textos com link, ofensas ou spam são **sinalizados** para a ONG, nunca bloqueados.
 
 O endereço IP é usado de forma transitória pelo limitador de requisições e pelo Cloudflare Turnstile, mas não é salvo no banco nem associado ao envio. O conteúdo enviado e os dados opcionais de contato são acessíveis somente no painel da ONG.
 
@@ -72,7 +72,7 @@ O comando mostra uma senha provisória; no primeiro acesso o painel pede uma sen
 
 Em desenvolvimento, `npm run db:seed:exemplos` cria duas contas de teste (`admin@queermap.test` e `editor@queermap.test`); as senhas estão em `prisma/seed-exemplos.js`.
 
-No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStreetMap (Nominatim, no máximo 1 consulta por segundo, feita pelo servidor) e o pino pode ser ajustado arrastando no mapa. Todo local nasce como **rascunho** e só aparece no site depois de **publicado**; arquivar tira do mapa sem apagar. Em **Tipos e características** (só administração) dá para criar, renomear e desativar itens; o endereço usado nos links de filtro não muda ao renomear. Em **Canais de denúncia** (só administração), a ONG pode atualizar nome, descrição, telefone e link dos canais exibidos no formulário de discriminação e no site, além de mudar sua ordem ou ocultá-los.
+No painel, **Locais** tem o cadastro completo: o endereço é buscado no OpenStreetMap (Nominatim, no máximo 1 consulta por segundo, feita pelo servidor) e o pino pode ser ajustado arrastando no mapa. Todo local nasce como **rascunho** e só aparece no site depois de **publicado**; arquivar tira do mapa sem apagar. Em **Tipos e características** (só administração) dá para criar, renomear e desativar itens; o endereço usado nos links de filtro não muda ao renomear. Em **Canais de denúncia** (só administração), a ONG pode adicionar canais novos (ex.: o 156 de outro município, quando o mapa se expandir) e atualizar nome, descrição, telefone, link e abrangência (onde o canal atende) dos canais exibidos no formulário de denúncia e no site, além de mudar sua ordem ou ocultá-los.
 
 Segurança do painel: senhas com hash `scrypt`, sessão nova a cada login, sessão que expira após 30 min sem uso e no máximo 8 h depois do login, troca ou redefinição de senha encerra as outras sessões da conta, bloqueio após 5 tentativas erradas (15 min), envios de formulário aceitos só a partir do próprio site (proteção CSRF pelo cabeçalho `Origin`), páginas sem cache e fora dos buscadores, e registro de cada ação na auditoria.
 
@@ -204,4 +204,5 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - A página inicial já vem com a lista de locais pronta do servidor (funciona sem JavaScript); o `mapa.js` só filtra e desenha os marcadores. Os filtros ficam na URL, então dá para compartilhar um link como `/?car=oferece-prep`.
 - Cada local publicado tem sua página em `/locais/<slug>`.
 - Ao abrir, o mapa pede a localização ao navegador e centraliza na pessoa (só dentro da Grande Porto Alegre). A posição nunca sai do navegador. Sem permissão, aparece um campo de endereço que usa `GET /buscar-endereco` (Nominatim, só no RS, 20 buscas a cada 15 min por IP). O GPS só funciona em `localhost` ou HTTPS.
+- A busca da lista procura em nome, endereço (com ou sem abreviações como "Av."), CEP, bairro, tipo e características. Se nenhum local bater com o texto, aparece o botão para procurá-lo como endereço no mapa; a lupa abaixo do botão de localização abre a mesma busca a qualquer momento. Sem resultado no Nominatim, o servidor tenta até duas variações (abreviações por extenso + "Porto Alegre", e sem o número).
 - Os locais de exemplo começam com "[Exemplo]" e não podem ser inseridos com `NODE_ENV=production`.

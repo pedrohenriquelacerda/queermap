@@ -28,6 +28,11 @@ export async function index(req, res) {
     endereco: fmt.endereco(l),
     caracteristicas: l.caracteristicas.map((c) => c.nome),
     comoChegar: fmt.linkComoChegar(l),
+    telefone:
+      l.telefone && fmt.linkTelefone(l.telefone)
+        ? { texto: l.telefone, link: fmt.linkTelefone(l.telefone) }
+        : null,
+    whatsapp: fmt.linkWhatsapp(l.whatsapp),
   }));
 
   res.render('home', {
