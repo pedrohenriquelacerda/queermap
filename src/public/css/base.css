@@ -793,6 +793,33 @@ textarea {
   gap: var(--esp-3);
 }
 
+.canais-painel__novo {
+  margin-top: var(--esp-5);
+}
+
+.canais-painel__novo summary {
+  cursor: pointer;
+}
+
+.canais-painel__novo summary h2 {
+  display: inline;
+  margin: 0;
+  font-size: var(--titulo-3);
+}
+
+.canais-painel__novo[open] summary {
+  margin-bottom: var(--esp-3);
+}
+
+.canais-painel__novo form {
+  display: grid;
+  gap: var(--esp-3);
+}
+
+.contatos .contatos__abrangencia {
+  margin-bottom: var(--esp-2);
+}
+
 /* Formulário de envio (sugestão/relato) */
 .conteudo--estreito {
   max-width: 32rem;

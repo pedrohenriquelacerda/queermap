@@ -4,11 +4,12 @@
     <h1>Canais de denúncia</h1>
   </div>
   <p class="campo__ajuda">
-    Atualize os contatos oficiais exibidos no formulário de discriminação e na página pública.
+    Atualize os contatos oficiais exibidos no formulário de denúncia de discriminação e na página
+    pública, ou adicione canais novos (por exemplo, o atendimento da prefeitura de outra cidade).
     Canais inativos deixam de aparecer para o público, mas podem ser reativados depois.
   </p>
 
-  <% if (emEdicao) { %>
+  <% if (emEdicao || novoComErro) { %>
   <div class="alerta alerta--erro" role="alert"><p><strong>Revise os campos marcados.</strong></p></div>
   <% } %>
 
@@ -34,6 +35,7 @@
           <%- campoCanal({ nome: 'link', rotulo: 'Link oficial', tipo: 'url', valor: v.link, ajuda: 'Começa com http:// ou https://', attrs: { required: true, maxlength: 500 } }) %>
           <%- campoCanal({ nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: v.ordem, attrs: { min: 0, max: 99 } }) %>
         </div>
+        <%- campoCanal({ nome: 'abrangencia', rotulo: 'Abrangência', opcional: true, valor: v.abrangencia, ajuda: 'Onde o canal atende. Ex.: Porto Alegre, Rio Grande do Sul, Todo o Brasil.', attrs: { maxlength: 80 } }) %>
         <label class="opcao">
           <input type="checkbox" name="ativo" <%= v.ativo ? 'checked' : '' %> />
           <span>Exibir para o público</span>
@@ -43,5 +45,31 @@
     </form>
     <% } %>
   </div>
+
+  <%
+    const campoNovo = (dados) =>
+      include('../partials/campo', { id: `canal-novo-${dados.nome}`, erros: novo.erros, ...dados });
+    const n = novo.valores;
+  %>
+  <details class="cartao canais-painel__novo" <%= novoComErro ? 'open' : '' %>>
+    <summary><h2>Adicionar canal</h2></summary>
+    <form method="post" action="/painel/canais-denuncia" novalidate>
+      <div class="canais-painel__campos">
+        <%- campoNovo({ nome: 'nome', rotulo: 'Nome', valor: n.nome, ajuda: 'Ex.: 156 · Prefeitura de Canoas', attrs: { required: true, maxlength: 120 } }) %>
+        <%- campoNovo({ nome: 'descricao', rotulo: 'Descrição', tipo: 'textarea', valor: n.descricao, attrs: { required: true, maxlength: 500, rows: 3 } }) %>
+        <div class="form-inline__campos">
+          <%- campoNovo({ nome: 'telefone', rotulo: 'Telefone', valor: n.telefone, attrs: { required: true, maxlength: 40 } }) %>
+          <%- campoNovo({ nome: 'link', rotulo: 'Link oficial', tipo: 'url', valor: n.link, ajuda: 'Começa com http:// ou https://', attrs: { required: true, maxlength: 500 } }) %>
+          <%- campoNovo({ nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: n.ordem, attrs: { min: 0, max: 99 } }) %>
+        </div>
+        <%- campoNovo({ nome: 'abrangencia', rotulo: 'Abrangência', opcional: true, valor: n.abrangencia, ajuda: 'Onde o canal atende. Ex.: Porto Alegre, Rio Grande do Sul, Todo o Brasil.', attrs: { maxlength: 80 } }) %>
+        <label class="opcao">
+          <input type="checkbox" name="ativo" <%= n.ativo ? 'checked' : '' %> />
+          <span>Exibir para o público</span>
+        </label>
+      </div>
+      <button class="botao">Adicionar canal</button>
+    </form>
+  </details>
 </main>
 <%- include('../partials/foot') %>

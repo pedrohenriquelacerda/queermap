@@ -152,6 +152,7 @@ const rotasCanaisDenuncia = Router();
 rotasCanaisDenuncia.use(exigirPapelAdmin);
 rotasCanaisDenuncia.param('id', soNumeros);
 rotasCanaisDenuncia.get('/', canaisDenuncia.listar);
+rotasCanaisDenuncia.post('/', canaisDenuncia.criar);
 rotasCanaisDenuncia.post('/:id', canaisDenuncia.salvar);
 router.use('/canais-denuncia', rotasCanaisDenuncia);
 

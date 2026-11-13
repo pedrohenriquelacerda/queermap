@@ -116,6 +116,8 @@ model CanalDenuncia {
   descricao    String
   telefone     String
   link         String
+  // Onde o canal atende (ex.: "Porto Alegre", "Rio Grande do Sul", "Todo o Brasil"). Vazio = não informado.
+  abrangencia  String?
   ordem        Int      @default(0)
   ativo        Boolean  @default(true)
   criadoEm     DateTime @default(now()) @map("criado_em")

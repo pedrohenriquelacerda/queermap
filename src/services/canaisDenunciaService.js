@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma.js';
+import { slugUnico } from '../utils/slug.js';
 
 const ordenacao = [{ ordem: 'asc' }, { nome: 'asc' }];
 
@@ -16,4 +17,11 @@ export function buscar(id) {
 
 export function atualizar(id, dados) {
   return prisma.canalDenuncia.update({ where: { id }, data: dados });
+}
+
+export async function criar(dados) {
+  const slug = await slugUnico(dados.nome, async (s) =>
+    Boolean(await prisma.canalDenuncia.findUnique({ where: { slug: s }, select: { id: true } })),
+  );
+  return prisma.canalDenuncia.create({ data: { ...dados, slug } });
 }

@@ -115,3 +115,72 @@ test('erro ao salvar mostra todos os problemas e mantém o que foi digitado', as
   assert.match(res.text, /value="Nome digitado agora"/);
   assert.equal(canais[0].nome, 'Disque 100 · Direitos Humanos');
 });
+
+test('admin adiciona canal novo com abrangência, que aparece para o público', async () => {
+  mockPrisma(prisma.canalDenuncia, 'findUnique', async ({ where }) =>
+    where.slug
+      ? (canais.find((canal) => canal.slug === where.slug) ?? null)
+      : (canais.find((canal) => canal.id === where.id) ?? null),
+  );
+  mockPrisma(prisma.canalDenuncia, 'create', async ({ data }) => {
+    const canal = { id: canais.length + 1, ...data };
+    canais.push(canal);
+    return canal;
+  });
+  canais.push({ ...canais[0], id: 2, slug: '156-prefeitura-de-canoas', ativo: false });
+
+  const admin = await logar(app, 'admin@teste.test');
+  const pagina = await admin.get('/painel/canais-denuncia');
+  assert.match(pagina.text, /Adicionar canal/);
+  assert.match(
+    pagina.text,
+    /id="canal-novo-ordem"[^>]*value="2"|value="2"[^>]*id="canal-novo-ordem"/,
+  );
+
+  const res = await enviar(admin, '/painel/canais-denuncia', {
+    nome: '156 · Prefeitura de Canoas',
+    descricao: 'Central de atendimento da prefeitura.',
+    telefone: '156',
+    link: 'https://www.canoas.rs.gov.br',
+    abrangencia: 'Canoas',
+    ordem: '5',
+    ativo: 'on',
+  });
+  assert.equal(res.status, 302);
+  const novo = canais.at(-1);
+  assert.equal(novo.slug, '156-prefeitura-de-canoas-2'); // não repete o endereço existente
+  assert.equal(novo.abrangencia, 'Canoas');
+  assert.equal(novo.ativo, true);
+  const log = auditoria.find((item) => item.acao === 'canal_denuncia.criar');
+  assert.ok(log);
+
+  const publico = await request(app).get('/canais-de-denuncia');
+  assert.match(publico.text, /156 · Prefeitura de Canoas/);
+  assert.match(publico.text, /Atende: Canoas/);
+});
+
+test('canal novo com erro mantém o que foi digitado e não salva', async () => {
+  mockPrisma(prisma.canalDenuncia, 'create', async () => assert.fail('não deveria salvar'));
+  const admin = await logar(app, 'admin@teste.test');
+  const res = await enviar(admin, '/painel/canais-denuncia', {
+    nome: 'Canal digitado',
+    descricao: '',
+    telefone: '156',
+    link: 'ftp://exemplo',
+    abrangencia: 'Viamão',
+    ordem: '3',
+  });
+  assert.equal(res.status, 400);
+  assert.match(res.text, /<details[^>]*canais-painel__novo[^>]*open/);
+  assert.match(res.text, /value="Canal digitado"/);
+  assert.match(res.text, /value="Viamão"/);
+  assert.match(res.text, /Informe a descrição/);
+  assert.match(res.text, /Use um link http:\/\/ ou https:\/\/ válido/);
+  assert.equal(canais.length, 1);
+});
+
+test('editor não adiciona canal', async () => {
+  const editor = await logar(app, 'editor@teste.test');
+  const res = await enviar(editor, '/painel/canais-denuncia', { nome: 'X' });
+  assert.equal(res.status, 403);
+});

@@ -5,6 +5,7 @@
   <% for (const canal of canais) { const telefone = fmt.linkTelefone(canal.telefone); const link = fmt.urlSegura(canal.link); %>
   <li class="cartao">
     <h3><%= canal.nome %></h3>
+    <% if (canal.abrangencia) { %><p class="contatos__abrangencia"><span class="etiqueta etiqueta--neutra">Atende: <%= canal.abrangencia %></span></p><% } %>
     <p><%= canal.descricao %></p>
     <div class="contatos__acoes">
       <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>">Ligar <%= canal.telefone %></a><% } %>
