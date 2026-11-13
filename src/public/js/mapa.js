@@ -66,12 +66,16 @@ function iniciarExplorar(locais) {
   const localizacao = configurarLocalizacao(mapa, {
     interagiu,
     aoCentralizar: (posicao) => (centroPessoa = posicao),
-    // Endereço digitado: enquadra o ponto com os locais visíveis mais próximos.
+    // Endereço digitado: o endereço fica no centro e os locais visíveis mais próximos à vista.
     aoBuscarEndereco: (posicao) => {
       marcarInteracao();
       const proximos = maisProximos(camada, posicao, 3);
       if (proximos.length === 0) return centralizar(mapa, posicao);
-      mapa.fitBounds(L.latLngBounds([posicao, ...proximos]), {
+      // Cada local ganha um "reflexo" do outro lado do endereço: o enquadramento fica simétrico.
+      const reflexos = proximos.map((p) =>
+        L.latLng(2 * posicao.lat - p.lat, 2 * posicao.lng - p.lng),
+      );
+      mapa.fitBounds(L.latLngBounds([posicao, ...proximos, ...reflexos]), {
         // Mais folga à esquerda e no alto: lá ficam os botões de zoom e de localização.
         paddingTopLeft: [72, 56],
         paddingBottomRight: [40, 40],
