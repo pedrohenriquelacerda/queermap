@@ -16,7 +16,7 @@ export async function mostrar(req, res, next) {
 
 // Endereço digitado no mapa quando a pessoa não libera a localização (Nominatim).
 export async function buscarEndereco(req, res) {
-  const consulta = String(req.query.q ?? '')
+  const consulta = String(req.body?.q ?? '')
     .trim()
     .slice(0, 300);
   if (consulta.length < 3) {

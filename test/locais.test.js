@@ -2,6 +2,7 @@ import { test, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { env } from '../src/config/env.js';
 import { prisma } from '../src/db/prisma.js';
 import { mockPrisma, restaurarPrisma } from './helpers/mockPrisma.js';
 
@@ -165,7 +166,10 @@ test('GET /locais/:slug responde 404 para local inexistente ou não publicado', 
   assert.match(res.text, /Página não encontrada/);
 });
 
-test('GET /buscar-endereco busca só no RS e não exige login', async (t) => {
+const buscarEndereco = (q) =>
+  request(app).post('/buscar-endereco').set('Origin', env.siteUrl).send({ q });
+
+test('POST /buscar-endereco busca só no RS e não exige login', async (t) => {
   t.after(() => mock.restoreAll());
   const chamadas = [];
   mock.method(globalThis, 'fetch', async (url) => {
@@ -177,7 +181,7 @@ test('GET /buscar-endereco busca só no RS e não exige login', async (t) => {
     );
   });
 
-  const res = await request(app).get('/buscar-endereco?q=Cidade%20Baixa');
+  const res = await buscarEndereco('Cidade Baixa');
   assert.equal(res.status, 200);
   assert.deepEqual(res.body.resultados, [
     { lat: -30.04, lng: -51.22, descricao: 'Cidade Baixa, Porto Alegre' },
@@ -185,14 +189,40 @@ test('GET /buscar-endereco busca só no RS e não exige login', async (t) => {
   assert.match(chamadas[0], /viewbox=-57\.65%2C-27\.08%2C-49\.69%2C-33\.75/);
   assert.match(chamadas[0], /bounded=1/);
 
-  const curta = await request(app).get('/buscar-endereco?q=ab');
+  const curta = await buscarEndereco('ab');
   assert.equal(curta.status, 400);
   assert.equal(chamadas.length, 1); // consulta curta nem chega ao Nominatim
 
+  // O endereço não é mais aceito na URL.
+  assert.equal((await request(app).get('/buscar-endereco?q=Cidade%20Baixa')).status, 404);
+
   mock.method(globalThis, 'fetch', async () => new Response('erro', { status: 503 }));
   mock.method(console, 'error', () => {});
-  const falha = await request(app).get('/buscar-endereco?q=Rua%20B');
+  const falha = await buscarEndereco('Rua B');
   assert.equal(falha.status, 502);
+});
+
+test('busca de endereço de outro site é bloqueada (CSRF)', async () => {
+  const res = await request(app)
+    .post('/buscar-endereco')
+    .set('Origin', 'https://outro.example')
+    .send({ q: 'Cidade Baixa' });
+  assert.equal(res.status, 403);
+});
+
+test('health check com banco fora do ar não grava o endereço do banco no log', async (t) => {
+  const logs = [];
+  t.mock.method(console, 'error', (...args) => logs.push(args.join(' ')));
+  mockPrisma(prisma, '$queryRaw', async () => {
+    throw Object.assign(new Error("Can't reach database server at `ep-segredo.neon.tech:5432`"), {
+      code: 'P1001',
+    });
+  });
+
+  const res = await request(app).get('/health');
+
+  assert.equal(res.status, 503);
+  assert.deepEqual(logs, ['Health check falhou: P1001']);
 });
 
 test('GET / traz o campo de endereço para quando a localização não estiver disponível', async () => {
