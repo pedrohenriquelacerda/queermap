@@ -63,6 +63,28 @@ test('filtros de pessoa, ação e período são combinados na consulta', async (
   });
 });
 
+test('ações e registros aparecem com nomes legíveis para a equipe', async () => {
+  const admin = await logar(app, 'admin@teste.test');
+  const resposta = await admin.get('/painel/auditoria');
+  // Tabela: rótulo da ação e do tipo de registro, não o código interno.
+  assert.match(resposta.text, /<td>Cadastrou um local<\/td>/);
+  assert.match(resposta.text, /<td>Local #42<\/td>/);
+  // Filtro: o valor continua sendo o código; o texto é o rótulo.
+  assert.match(resposta.text, /<option value="local\.criar"\s*>Cadastrou um local<\/option>/);
+  assert.match(resposta.text, /<option value="sessao\.entrar"\s*>Entrou no painel<\/option>/);
+});
+
+test('filtro inválido mostra a página de erro do site, não texto puro', async () => {
+  const admin = await logar(app, 'admin@teste.test');
+  for (const filtro of ['pessoa=abc', 'inicio=2026-02-30', 'inicio=2026-11-06&fim=2026-11-05']) {
+    const resposta = await admin.get(`/painel/auditoria?${filtro}`);
+    assert.equal(resposta.status, 400, filtro);
+    assert.match(resposta.headers['content-type'], /text\/html/, filtro);
+    assert.match(resposta.text, /Filtros inválidos/, filtro);
+    assert.match(resposta.text, /<html/, filtro);
+  }
+});
+
 test('histórico não oferece alteração nem exclusão por HTTP', async () => {
   const admin = await logar(app, 'admin@teste.test');
   for (const caminho of [

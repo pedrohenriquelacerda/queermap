@@ -53,6 +53,53 @@ export function dataHora(valor) {
   return valor ? formatoDataHora.format(new Date(valor)) : '';
 }
 
+// Histórico de ações: o código gravado na auditoria vira um texto para a equipe da ONG.
+// Ação nova sem rótulo aparece com o próprio código (nunca some do histórico).
+const ROTULOS_ACAO = {
+  'sessao.entrar': 'Entrou no painel',
+  'sessao.sair': 'Saiu do painel',
+  'sessao.falha_2fa': 'Errou o código da verificação em duas etapas',
+  '2fa.ativar': 'Ativou a verificação em duas etapas',
+  'conta.trocar_senha': 'Trocou a própria senha',
+  'admin.criar': 'Criou uma conta da equipe',
+  'admin.atualizar': 'Editou uma conta da equipe',
+  'admin.redefinir_senha': 'Redefiniu a senha de uma conta',
+  'admin.redefinir_2fa': 'Redefiniu a verificação em duas etapas de uma conta',
+  'local.criar': 'Cadastrou um local',
+  'local.atualizar': 'Editou um local',
+  'local.publicar': 'Publicou um local',
+  'local.despublicar': 'Tirou um local do mapa',
+  'local.arquivar': 'Arquivou um local',
+  'local.restaurar': 'Restaurou um local arquivado',
+  'local.apagar': 'Excluiu um local',
+  'categoria.criar': 'Criou um tipo de serviço',
+  'categoria.atualizar': 'Editou um tipo de serviço',
+  'categoria.reordenar': 'Reordenou os tipos de serviço',
+  'caracteristica.criar': 'Criou uma característica',
+  'caracteristica.atualizar': 'Editou uma característica',
+  'canal_denuncia.atualizar': 'Editou um canal de denúncia',
+  'envio.ler': 'Abriu um envio pela primeira vez',
+  'envio.situacao': 'Mudou a situação de um envio',
+  'envio.anotar': 'Editou as anotações de um envio',
+};
+
+export function acaoAuditoria(codigo) {
+  return ROTULOS_ACAO[codigo] ?? codigo;
+}
+
+const ROTULOS_ENTIDADE = {
+  Admin: 'Conta',
+  Local: 'Local',
+  Envio: 'Envio',
+  categoria: 'Tipo de serviço',
+  caracteristica: 'Característica',
+  CanalDenuncia: 'Canal de denúncia',
+};
+
+export function entidadeAuditoria(entidade) {
+  return ROTULOS_ENTIDADE[entidade] ?? entidade;
+}
+
 // Para usar como classe CSS: só letras minúsculas, números e hífen.
 export function classeSegura(texto) {
   return String(texto ?? '').replace(/[^a-z0-9-]/g, '');

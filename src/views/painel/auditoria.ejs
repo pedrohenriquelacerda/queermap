@@ -17,8 +17,8 @@
         <label for="acao">Tipo de ação</label>
         <select id="acao" name="acao">
           <option value="">Todos</option>
-          <% for (const item of acoes) { %>
-          <option value="<%= item.acao %>" <%= filtros.acao === item.acao ? 'selected' : '' %>><%= item.acao %></option>
+          <% for (const codigo of acoes) { %>
+          <option value="<%= codigo %>" <%= filtros.acao === codigo ? 'selected' : '' %>><%= fmt.acaoAuditoria(codigo) %></option>
           <% } %>
         </select>
       </div>
@@ -41,8 +41,8 @@
         <tr>
           <td><%= fmt.dataHora(registro.criadoEm) %></td>
           <td><%= registro.admin?.nome || 'Conta removida' %><% if (registro.admin) { %><br /><small><%= registro.admin.email %></small><% } %></td>
-          <td><%= registro.acao %></td>
-          <td><%= registro.entidade %><%= registro.entidadeId == null ? '' : ` #${registro.entidadeId}` %></td>
+          <td><%= fmt.acaoAuditoria(registro.acao) %></td>
+          <td><%= fmt.entidadeAuditoria(registro.entidade) %><%= registro.entidadeId == null ? '' : ` #${registro.entidadeId}` %></td>
         </tr>
         <% } %>
       </tbody>

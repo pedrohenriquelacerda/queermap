@@ -14,22 +14,38 @@ test(
     assert.equal(destino.port, '55434');
     assert.equal(destino.pathname, '/queermap_ct_piloto');
 
-    const [{ default: request }, { createApp }, { prisma }, { gerarHash }, { env }] =
-      await Promise.all([
-        import('supertest'),
-        import('../src/app.js'),
-        import('../src/db/prisma.js'),
-        import('../src/utils/senha.js'),
-        import('../src/config/env.js'),
-      ]);
+    const [
+      { default: request },
+      { createApp },
+      { prisma },
+      { gerarHash },
+      { env },
+      { cifrar, codigoDoPasso, gerarSegredo, passoAtual },
+    ] = await Promise.all([
+      import('supertest'),
+      import('../src/app.js'),
+      import('../src/db/prisma.js'),
+      import('../src/utils/senha.js'),
+      import('../src/config/env.js'),
+      import('../src/utils/totp.js'),
+    ]);
     const app = createApp();
     const sufixo = randomUUID();
     const senha = 'e2e-senha-de-teste-123';
     const ids = [];
+    // A 2FA é obrigatória no painel: as contas do teste já nascem com ela ativa.
+    const segredoTotp = gerarSegredo();
     try {
       const senhaHash = await gerarHash(senha);
+      const comDoisFatores = { totpSegredo: cifrar(segredoTotp), totpAtivadoEm: new Date() };
       const admin = await prisma.admin.create({
-        data: { nome: 'Admin E2E', email: `admin-${sufixo}@teste.test`, senhaHash, papel: 'ADMIN' },
+        data: {
+          nome: 'Admin E2E',
+          email: `admin-${sufixo}@teste.test`,
+          senhaHash,
+          papel: 'ADMIN',
+          ...comDoisFatores,
+        },
       });
       const editor = await prisma.admin.create({
         data: {
@@ -37,6 +53,7 @@ test(
           email: `editor-${sufixo}@teste.test`,
           senhaHash,
           papel: 'EDITOR',
+          ...comDoisFatores,
         },
       });
       ids.push(admin.id, editor.id);
@@ -79,6 +96,13 @@ test(
           .set('Origin', env.siteUrl)
           .send({ email: pessoa.email, senha });
         assert.equal(resposta.status, 302);
+        assert.equal(resposta.headers.location, '/painel/entrar/2fa');
+        const codigo = await agente
+          .post('/painel/entrar/2fa')
+          .type('form')
+          .set('Origin', env.siteUrl)
+          .send({ codigo: codigoDoPasso(segredoTotp, passoAtual()) });
+        assert.equal(codigo.status, 302, '2FA deveria funcionar');
         return agente;
       };
       const agenteEditor = await autenticar(editor);
