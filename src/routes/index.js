@@ -45,7 +45,8 @@ export default function rotas() {
   router.get('/privacidade', paginasController.privacidade);
   router.get('/health', healthController.check);
   router.get('/locais/:slug', locaisController.mostrar);
-  router.get('/buscar-endereco', limiteBusca(), locaisController.buscarEndereco);
+  // POST: o endereço digitado vai no corpo, fora da URL (e dos logs de proxy).
+  router.post('/buscar-endereco', limiteBusca(), locaisController.buscarEndereco);
   router.get('/enviar', enviosController.formulario);
   router.post('/enviar', limite(60, 10), enviosController.enviar);
   router.get('/enviar/confirmar', enviosController.formularioCodigo);

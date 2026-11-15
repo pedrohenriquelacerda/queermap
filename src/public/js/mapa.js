@@ -385,8 +385,10 @@ function configurarPainelEndereco(mapa, aoEscolher) {
     aviso.textContent = 'Buscando…';
     opcoes.replaceChildren();
     try {
-      const resposta = await fetch(`/buscar-endereco?q=${encodeURIComponent(campo.value)}`, {
-        headers: { Accept: 'application/json' },
+      const resposta = await fetch('/buscar-endereco', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: campo.value }),
       });
       const dados = await resposta.json();
       if (!resposta.ok) {
