@@ -47,4 +47,10 @@
   <body>
     <div class="pagina<%= locals.usaMapa ? ' pagina--mapa' : '' %>">
       <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+      <% if (locals.demonstracao) { %>
+      <p class="faixa-demonstracao" role="note">
+        <strong>Ambiente de demonstração:</strong> os locais são fictícios. Não envie relatos reais
+        nem dados pessoais.
+      </p>
+      <% } %>
       <%- include(locals.painel ? 'topo-painel' : 'topo') %>

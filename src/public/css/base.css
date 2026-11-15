@@ -235,6 +235,18 @@ textarea {
   border-bottom: 1px solid var(--cor-borda);
 }
 
+/* Faixa do ambiente de demonstração (AMBIENTE_DEMONSTRACAO=true), acima de tudo */
+.faixa-demonstracao {
+  position: relative;
+  z-index: 1100;
+  margin: 0;
+  padding: var(--esp-1) var(--esp-4);
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso);
+  font-size: var(--texto-pequeno);
+  text-align: center;
+}
+
 /* Faixa "Conta da equipe": só para quem está logado no painel, acima do cabeçalho */
 .barra-equipe {
   position: relative;
