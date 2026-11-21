@@ -1,16 +1,6 @@
 import * as auditoria from '../../services/auditoriaService.js';
 import * as fmt from '../../utils/formatadores.js';
-
-// As datas do filtro são dias no horário de Brasília. O Brasil não tem horário de verão
-// desde 2019, então o fuso é fixo em -03:00 (o mesmo usado em fmt.dataHora).
-const FUSO_BRASILIA = '-03:00';
-
-// "2026-11-05" -> início desse dia em Brasília; null se a data não existir (ex.: 30/02).
-function dataValida(valor) {
-  if (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return null;
-  const data = new Date(`${valor}T00:00:00${FUSO_BRASILIA}`);
-  return !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === valor ? data : null;
-}
+import { dataValida, fimDoDia } from '../../utils/periodo.js';
 
 function filtrosInvalidos(next) {
   next(Object.assign(new Error('Filtros inválidos.'), { status: 400 }));
@@ -51,9 +41,7 @@ export async function listar(req, res, next) {
     if (dataInicio) onde.criadoEm.gte = dataInicio;
     if (dataFim) {
       // Até o fim do dia escolhido: limite exclusivo no início do dia seguinte.
-      const exclusivo = new Date(dataFim);
-      exclusivo.setUTCDate(exclusivo.getUTCDate() + 1);
-      onde.criadoEm.lt = exclusivo;
+      onde.criadoEm.lt = fimDoDia(dataFim);
     }
   }
 

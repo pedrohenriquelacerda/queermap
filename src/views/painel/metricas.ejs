@@ -1,0 +1,77 @@
+<%- include('../partials/head') %>
+<main id="conteudo" class="painel-conteudo">
+  <div class="cabecalho-pagina"><h1>Métricas</h1></div>
+
+  <form class="cartao" method="get" action="/painel/metricas" role="search">
+    <div class="grade-formulario">
+      <div class="campo">
+        <label for="ano">Ano dos visualizadores</label>
+        <select id="ano" name="ano">
+          <% for (const a of anos) { %>
+          <option value="<%= a %>" <%= a === ano ? 'selected' : '' %>><%= a %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="campo"><label for="inicio">Envios de</label><input type="date" id="inicio" name="inicio" value="<%= filtros.inicio %>" /></div>
+      <div class="campo"><label for="fim">Envios até</label><input type="date" id="fim" name="fim" value="<%= filtros.fim %>" /></div>
+    </div>
+    <button class="botao" type="submit">Aplicar</button>
+    <a class="botao botao--fantasma" href="/painel/metricas">Limpar</a>
+  </form>
+
+  <section aria-labelledby="titulo-visualizadores">
+    <h2 id="titulo-visualizadores">Visualizadores por mês em <%= ano %></h2>
+    <p>
+      Cada pessoa conta uma vez por mês, no primeiro acesso ao site. Nenhum dado que identifique
+      quem acessou é guardado.
+    </p>
+    <p><strong><%= visitasTotal %></strong> <%= visitasTotal === 1 ? 'visualizador' : 'visualizadores' %> no ano (a soma dos meses: quem volta em outro mês conta de novo).</p>
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <thead><tr><th scope="col">Mês</th><th scope="col">Visualizadores</th><th scope="col"><span class="visualmente-oculto">Proporção</span></th></tr></thead>
+        <tbody>
+          <% for (const m of visitasPorMes) { %>
+          <tr>
+            <th scope="row"><%= m.nome %></th>
+            <td><%= m.total %></td>
+            <td><progress value="<%= m.total %>" max="<%= maiorMes %>" aria-label="<%= m.nome %>: <%= m.total %>"></progress></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="titulo-envios">
+    <h2 id="titulo-envios">Envios por tipo e situação</h2>
+    <p>
+      <% if (filtros.inicio || filtros.fim) { %>
+      Período: <%= filtros.inicio ? fmt.data(filtros.inicio + 'T12:00:00-03:00') : 'início' %> a <%= filtros.fim ? fmt.data(filtros.fim + 'T12:00:00-03:00') : 'hoje' %>.
+      <% } else { %>
+      Todo o período.
+      <% } %>
+      <strong><%= enviosTotal %></strong> <%= enviosTotal === 1 ? 'envio' : 'envios' %>.
+    </p>
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th scope="col">Tipo</th>
+            <% for (const s of situacoes) { %><th scope="col"><%= rotulosSituacao[s] %></th><% } %>
+            <th scope="col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (const e of envios) { %>
+          <tr>
+            <th scope="row"><%= rotulosTipo[e.tipo] %></th>
+            <% for (const s of situacoes) { %><td><%= e.porSituacao[s] %></td><% } %>
+            <td><strong><%= e.total %></strong></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<%- include('../partials/foot') %>

@@ -6,6 +6,7 @@ import * as healthController from '../controllers/healthController.js';
 import * as paginasController from '../controllers/paginasController.js';
 import * as locaisController from '../controllers/locaisController.js';
 import * as enviosController from '../controllers/enviosController.js';
+import { contarVisita } from '../middlewares/visitas.js';
 import painelRoutes from './painel.js';
 
 // Envios do público: além do limite por e-mail, um limite por IP contra abuso.
@@ -39,15 +40,15 @@ const limiteBusca = () =>
 export default function rotas() {
   const router = Router();
 
-  router.get('/', homeController.index);
-  router.get('/sobre', paginasController.sobre);
-  router.get('/canais-de-denuncia', paginasController.canais);
-  router.get('/privacidade', paginasController.privacidade);
+  router.get('/', contarVisita, homeController.index);
+  router.get('/sobre', contarVisita, paginasController.sobre);
+  router.get('/canais-de-denuncia', contarVisita, paginasController.canais);
+  router.get('/privacidade', contarVisita, paginasController.privacidade);
   router.get('/health', healthController.check);
   router.get('/locais/:slug', locaisController.mostrar);
   // POST: o endereço digitado vai no corpo, fora da URL (e dos logs de proxy).
   router.post('/buscar-endereco', limiteBusca(), locaisController.buscarEndereco);
-  router.get('/enviar', enviosController.formulario);
+  router.get('/enviar', contarVisita, enviosController.formulario);
   router.post('/enviar', limite(60, 10), enviosController.enviar);
   router.get('/enviar/confirmar', enviosController.formularioCodigo);
   router.post('/enviar/confirmar', limite(15, 20), enviosController.confirmar);

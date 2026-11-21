@@ -11,6 +11,7 @@ import * as locais from '../controllers/painel/locaisController.js';
 import * as classificacao from '../controllers/painel/classificacaoController.js';
 import * as canaisDenuncia from '../controllers/painel/canaisDenunciaController.js';
 import * as auditoria from '../controllers/painel/auditoriaController.js';
+import * as metricas from '../controllers/painel/metricasController.js';
 import * as envios from '../controllers/painel/enviosController.js';
 
 const QUINZE_MINUTOS = 15 * 60 * 1000;
@@ -110,6 +111,7 @@ rotasPessoas.post('/:id/senha', pessoas.redefinirSenha);
 rotasPessoas.post('/:id/2fa', pessoas.redefinirDoisFatores);
 router.use('/pessoas', rotasPessoas);
 
+router.get('/metricas', metricas.metricas);
 router.get('/auditoria', exigirPapelAdmin, auditoria.listar);
 
 const rotasLocais = Router();
