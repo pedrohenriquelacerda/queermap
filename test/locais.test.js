@@ -10,18 +10,18 @@ const app = createApp();
 
 // As cinco categorias do seed; o filtro do mapa mostra todas, mesmo sem locais.
 const categorias = [
-  { nome: 'Ambulatório trans', slug: 'ambulatorio-trans', icone: 'ambulatorio', ordem: 0 },
-  { nome: 'ONG / coletivo LGBTQIA+', slug: 'ong', icone: 'ong', ordem: 1 },
+  { nome: 'Ambulatório trans', slug: 'ambulatorio-trans', icone: 'trans', ordem: 0 },
+  { nome: 'ONG / coletivo LGBTQIA+', slug: 'ong', icone: 'arco-iris', ordem: 1 },
   {
     nome: 'Saúde sexual e prevenção (SAE, PEP, PrEP)',
     slug: 'saude-sexual',
-    icone: 'saude-sexual',
+    icone: 'bissexual',
     ordem: 2,
   },
-  { nome: 'Abrigo', slug: 'abrigo', icone: 'abrigo', ordem: 3 },
-  { nome: 'Albergue', slug: 'albergue', icone: 'albergue', ordem: 4 },
-  { nome: 'Centros POP', slug: 'centro-pop', icone: 'centro-pop', ordem: 5 },
-  { nome: 'Casas de Cidadania', slug: 'casa-cidadania', icone: 'casa-cidadania', ordem: 6 },
+  { nome: 'Abrigo', slug: 'abrigo', icone: 'lesbica', ordem: 3 },
+  { nome: 'Albergue', slug: 'albergue', icone: 'nao-binaria', ordem: 4 },
+  { nome: 'Centros POP', slug: 'centro-pop', icone: 'aromantica', ordem: 5 },
+  { nome: 'Casas de Cidadania', slug: 'casa-cidadania', icone: 'pansexual', ordem: 6 },
 ];
 
 beforeEach(() => mockPrisma(prisma.categoria, 'findMany', async () => categorias));
@@ -51,7 +51,7 @@ function local(extra = {}) {
     categoria: {
       nome: 'Ambulatório trans',
       slug: 'ambulatorio-trans',
-      icone: 'ambulatorio',
+      icone: 'trans',
       ordem: 0,
     },
     caracteristicas: [{ nome: 'Oferece PrEP', slug: 'oferece-prep' }],

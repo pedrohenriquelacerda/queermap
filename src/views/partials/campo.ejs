@@ -22,9 +22,7 @@
   <textarea <%- comuns %>><%= valorCampo %></textarea>
   <% } else if (tipoCampo === 'select') { %>
   <select <%- comuns %>>
-    <% for (const o of locals.opcoes || []) { %>
-    <option value="<%= o.valor %>" <%= String(o.valor) === String(valorCampo) ? 'selected' : '' %>><%= o.texto %></option>
-    <% } %>
+    <%- include('opcoes', { opcoes: locals.opcoes || [], selecionado: valorCampo }) %>
   </select>
   <% } else { %>
   <input type="<%= tipoCampo %>" value="<%= valorCampo %>" <%- comuns %> />

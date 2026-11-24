@@ -27,7 +27,7 @@ if (elementoMapa) {
   adicionarMapaBase(mapa);
 
   const icone = L.divIcon({
-    className: 'marcador marcador--padrao',
+    className: 'marcador marcador--cor-cinza',
     html: '<span class="marcador__pino" aria-hidden="true"></span>',
     iconSize: [28, 36],
     iconAnchor: [14, 34],

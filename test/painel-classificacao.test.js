@@ -16,16 +16,16 @@ beforeEach(async () => {
       id: 1,
       nome: 'Ambulatório',
       slug: 'ambulatorio',
-      icone: 'ambulatorio',
+      icone: 'trans',
       ordem: 0,
       ativa: true,
     },
-    { id: 2, nome: 'ONG', slug: 'ong', icone: 'ong', ordem: 1, ativa: true },
+    { id: 2, nome: 'ONG', slug: 'ong', icone: 'arco-iris', ordem: 1, ativa: true },
     {
       id: 3,
       nome: 'Saúde Sexual',
       slug: 'saude-sexual',
-      icone: 'saude-sexual',
+      icone: 'bissexual',
       ordem: 2,
       ativa: true,
     },
@@ -72,14 +72,14 @@ test('cria nova categoria calculando ordem automaticamente no final da fila', as
   const admin = await logar(app, 'admin@teste.test');
   const res = await enviar(admin, '/painel/classificacao/categoria', {
     nome: 'Casa de Acolhimento',
-    icone: 'acolhimento',
+    icone: 'progresso',
   });
 
   assert.equal(res.status, 302);
   const criada = categorias.find((c) => c.slug === 'casa-de-acolhimento');
   assert.ok(criada);
   assert.equal(criada.ordem, 3);
-  assert.equal(criada.icone, 'acolhimento');
+  assert.equal(criada.icone, 'progresso');
   assert.ok(auditoria.some((l) => l.acao === 'categoria.criar' && l.entidadeId === criada.id));
 });
 
@@ -163,4 +163,62 @@ test('editor sem permissão de admin recebe 403 ao tentar reordenar', async () =
     ordem: [1, 2, 3],
   });
   assert.equal(res.status, 403);
+});
+
+test('ao criar um tipo, aceita cores lisas e bandeiras novas', async () => {
+  const admin = await logar(app, 'admin@teste.test');
+
+  for (const [nome, icone] of [
+    ['Tipo Turquesa', 'cor-turquesa'],
+    ['Tipo Gay', 'gay'],
+    ['Tipo Gênero Fluido', 'genero-fluido'],
+  ]) {
+    const res = await enviar(admin, '/painel/classificacao/categoria', { nome, icone });
+    assert.equal(res.status, 302, icone);
+    assert.equal(categorias.find((c) => c.nome === nome).icone, icone);
+  }
+});
+
+test('ao editar um tipo, dá para trocar para uma cor lisa', async () => {
+  const admin = await logar(app, 'admin@teste.test');
+  const res = await enviar(admin, '/painel/classificacao/categoria/1', {
+    nome: 'Ambulatório',
+    icone: 'cor-vermelho',
+    ativa: 'on',
+  });
+
+  assert.equal(res.status, 302);
+  assert.equal(categorias.find((c) => c.id === 1).icone, 'cor-vermelho');
+});
+
+test('cor ou bandeira inventada é recusada', async () => {
+  const admin = await logar(app, 'admin@teste.test');
+  const antes = categorias.length;
+  const res = await enviar(admin, '/painel/classificacao/categoria', {
+    nome: 'Tipo Inventado',
+    icone: 'cor-inexistente',
+  });
+
+  assert.notEqual(res.status, 302);
+  assert.equal(categorias.length, antes);
+});
+
+test('a tela de tipos oferece cores lisas e bandeiras ao editar e ao criar', async () => {
+  // A tela mostra quantos locais cada tipo tem e lista as características.
+  mockPrisma(prisma.categoria, 'findMany', async () =>
+    categorias.map((c) => ({ ...c, _count: { locais: 0 } })),
+  );
+  mockPrisma(prisma.caracteristica, 'findMany', async () => []);
+  const admin = await logar(app, 'admin@teste.test');
+  const res = await admin.get('/painel/classificacao');
+
+  assert.equal(res.status, 200);
+  // Uma linha por tipo cadastrado (3) mais o formulário de novo tipo: 4 seletores.
+  const seletores = res.text.match(/<select[^>]*name="icone"/g) ?? [];
+  assert.equal(seletores.length, categorias.length + 1);
+  assert.equal(res.text.match(/<optgroup label="Cores lisas">/g).length, seletores.length);
+  assert.equal(res.text.match(/<optgroup label="Bandeiras do orgulho">/g).length, seletores.length);
+  assert.match(res.text, /value="cor-turquesa"/);
+  assert.match(res.text, /value="genero-fluido"/);
+  assert.match(res.text, /\/js\/classificacao-cores\.js/);
 });

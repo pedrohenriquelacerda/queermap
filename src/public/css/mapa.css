@@ -5,7 +5,7 @@
    * pino e onde um degradê não cabe). As cores sólidas percorrem o espectro (vermelho,
    * laranja, ouro, verde, azul-petróleo, azul, magenta) para as categorias continuarem
    * distinguíveis mesmo quando as bandeiras se parecem.
-   * A chave (ex.: "ong") é o campo "icone" da Categoria, escolhido no painel. */
+   * A chave (ex.: "arco-iris") é o campo "icone" da Categoria, escolhido no painel. */
 
   /* Bandeiras: paradas de cor, listradas de cima para baixo */
   --bandeira-trans: #5bcefa 0 20%, #f5a9b8 20% 40%, #fff 40% 60%, #f5a9b8 60% 80%, #5bcefa 80% 100%;
@@ -28,21 +28,67 @@
   --bandeira-intersexo: #ffd800 0 35%, #7902aa 35% 65%, #ffd800 65% 100%;
 
   /* Cor sólida de cada categoria */
-  --cat-padrao: #5c5768;
-  --cat-ong: #c62828;
-  --cat-abrigo: #c2540a;
-  --cat-albergue: #8a6a00;
-  --cat-centro-pop: #2e7d32;
-  --cat-ambulatorio: #0e7490;
-  --cat-casa-cidadania: #3949ab;
-  --cat-saude-sexual: #ad1a72;
-  --cat-acolhimento: #7d4c98;
+  --cat-cor-cinza: #5c5768;
+  --cat-arco-iris: #c62828;
+  --cat-lesbica: #c2540a;
+  --cat-nao-binaria: #8a6a00;
+  --cat-aromantica: #2e7d32;
+  --cat-trans: #0e7490;
+  --cat-pansexual: #3949ab;
+  --cat-bissexual: #ad1a72;
+  --cat-progresso: #7d4c98;
   --cat-assexual: #3b3b4f;
   --cat-intersexo: #7902aa;
 
+  /* Cores lisas: as três da ONG Somos primeiro, depois as demais */
+  --cat-cor-roxo: #7d4c98;
+  --cat-cor-rosa: #e63087;
+  --cat-cor-turquesa: #5ac0d0;
+  --cat-cor-vermelho: #d32f2f;
+  --cat-cor-laranja: #ef6c00;
+  --cat-cor-amarelo: #f2b705;
+  --cat-cor-verde: #2e9e4f;
+  --cat-cor-azul: #1e6fd9;
+  --cat-cor-marrom: #7b5036;
+  --cat-cor-preto: #222222;
+  --cat-cor-vinho: #8e1b3a;
+  --cat-cor-coral: #ff6f61;
+  --cat-cor-mostarda: #c99700;
+  --cat-cor-verde-limao: #8bc34a;
+  --cat-cor-esmeralda: #00796b;
+  --cat-cor-verde-agua: #26a69a;
+  --cat-cor-azul-claro: #29b6f6;
+  --cat-cor-azul-marinho: #1a237e;
+  --cat-cor-indigo: #3f51b5;
+  --cat-cor-violeta: #6a1b9a;
+  --cat-cor-lilas: #b388ff;
+  --cat-cor-magenta: #c2185b;
+  --cat-cor-areia: #c8a97e;
+  --cat-cor-grafite: #455a64;
+
+  /* Mais bandeiras */
+  --bandeira-gay:
+    #078d70 0 14.29%, #26ceaa 14.29% 28.57%, #98e8c1 28.57% 42.86%, #fff 42.86% 57.14%,
+    #7bade2 57.14% 71.43%, #5049cc 71.43% 85.71%, #3d1a78 85.71% 100%;
+  --bandeira-genero-fluido:
+    #ff76a4 0 20%, #fff 20% 40%, #c011d7 40% 60%, #000 60% 80%, #2f3cbe 80% 100%;
+  --bandeira-agenero:
+    #000 0 14.29%, #bcc4c7 14.29% 28.57%, #fff 28.57% 42.86%, #b7f684 42.86% 57.14%,
+    #fff 57.14% 71.43%, #bcc4c7 71.43% 85.71%, #000 85.71% 100%;
+  --bandeira-genero-queer: #b57edc 0 33.33%, #fff 33.33% 66.67%, #4a8123 66.67% 100%;
+  --bandeira-polissexual: #f714ba 0 33.33%, #01d66a 33.33% 66.67%, #1594f6 66.67% 100%;
+  --bandeira-omnissexual:
+    #fe9ace 0 20%, #ff53bf 20% 40%, #200044 40% 60%, #6760fe 60% 80%, #8ea6ff 80% 100%;
+  --cat-gay: #0b7a65;
+  --cat-genero-fluido: #c011d7;
+  --cat-agenero: #5b8c2a;
+  --cat-genero-queer: #8e5bbf;
+  --cat-polissexual: #d00f9b;
+  --cat-omnissexual: #6760fe;
+
   /* Valores de reserva quando nenhuma classe marcador--* define outros */
-  --cor-marcador: var(--cat-padrao);
-  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
+  --cor-marcador: var(--cat-cor-cinza);
+  --paradas-marcador: var(--cat-cor-cinza), var(--cat-cor-cinza);
 
   /* "Você está aqui": azul, diferente de todas as categorias */
   --cor-pessoa: #1a73e8;
@@ -79,52 +125,52 @@
 
 /* Sem classe de categoria: cinza liso */
 .marcador {
-  --cor-marcador: var(--cat-padrao);
-  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
+  --cor-marcador: var(--cat-cor-cinza);
+  --paradas-marcador: var(--cat-cor-cinza), var(--cat-cor-cinza);
 }
 
-.marcador--padrao {
-  --cor-marcador: var(--cat-padrao);
-  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
+.marcador--cor-cinza {
+  --cor-marcador: var(--cat-cor-cinza);
+  --paradas-marcador: var(--cat-cor-cinza), var(--cat-cor-cinza);
 }
 
-.marcador--ambulatorio {
-  --cor-marcador: var(--cat-ambulatorio);
+.marcador--trans {
+  --cor-marcador: var(--cat-trans);
   --paradas-marcador: var(--bandeira-trans);
 }
 
-.marcador--ong {
-  --cor-marcador: var(--cat-ong);
+.marcador--arco-iris {
+  --cor-marcador: var(--cat-arco-iris);
   --paradas-marcador: var(--bandeira-arco-iris);
 }
 
-.marcador--saude-sexual {
-  --cor-marcador: var(--cat-saude-sexual);
+.marcador--bissexual {
+  --cor-marcador: var(--cat-bissexual);
   --paradas-marcador: var(--bandeira-bissexual);
 }
 
-.marcador--abrigo {
-  --cor-marcador: var(--cat-abrigo);
+.marcador--lesbica {
+  --cor-marcador: var(--cat-lesbica);
   --paradas-marcador: var(--bandeira-lesbica);
 }
 
-.marcador--albergue {
-  --cor-marcador: var(--cat-albergue);
+.marcador--nao-binaria {
+  --cor-marcador: var(--cat-nao-binaria);
   --paradas-marcador: var(--bandeira-nao-binaria);
 }
 
-.marcador--centro-pop {
-  --cor-marcador: var(--cat-centro-pop);
+.marcador--aromantica {
+  --cor-marcador: var(--cat-aromantica);
   --paradas-marcador: var(--bandeira-aromantica);
 }
 
-.marcador--casa-cidadania {
-  --cor-marcador: var(--cat-casa-cidadania);
+.marcador--pansexual {
+  --cor-marcador: var(--cat-pansexual);
   --paradas-marcador: var(--bandeira-pansexual);
 }
 
-.marcador--acolhimento {
-  --cor-marcador: var(--cat-acolhimento);
+.marcador--progresso {
+  --cor-marcador: var(--cat-progresso);
   --paradas-marcador: var(--bandeira-progresso);
 }
 
@@ -136,6 +182,156 @@
 .marcador--intersexo {
   --cor-marcador: var(--cat-intersexo);
   --paradas-marcador: var(--bandeira-intersexo);
+}
+
+.marcador--cor-roxo {
+  --cor-marcador: var(--cat-cor-roxo);
+  --paradas-marcador: var(--cat-cor-roxo), var(--cat-cor-roxo);
+}
+
+.marcador--cor-rosa {
+  --cor-marcador: var(--cat-cor-rosa);
+  --paradas-marcador: var(--cat-cor-rosa), var(--cat-cor-rosa);
+}
+
+.marcador--cor-turquesa {
+  --cor-marcador: var(--cat-cor-turquesa);
+  --paradas-marcador: var(--cat-cor-turquesa), var(--cat-cor-turquesa);
+}
+
+.marcador--cor-vermelho {
+  --cor-marcador: var(--cat-cor-vermelho);
+  --paradas-marcador: var(--cat-cor-vermelho), var(--cat-cor-vermelho);
+}
+
+.marcador--cor-laranja {
+  --cor-marcador: var(--cat-cor-laranja);
+  --paradas-marcador: var(--cat-cor-laranja), var(--cat-cor-laranja);
+}
+
+.marcador--cor-amarelo {
+  --cor-marcador: var(--cat-cor-amarelo);
+  --paradas-marcador: var(--cat-cor-amarelo), var(--cat-cor-amarelo);
+}
+
+.marcador--cor-verde {
+  --cor-marcador: var(--cat-cor-verde);
+  --paradas-marcador: var(--cat-cor-verde), var(--cat-cor-verde);
+}
+
+.marcador--cor-azul {
+  --cor-marcador: var(--cat-cor-azul);
+  --paradas-marcador: var(--cat-cor-azul), var(--cat-cor-azul);
+}
+
+.marcador--cor-marrom {
+  --cor-marcador: var(--cat-cor-marrom);
+  --paradas-marcador: var(--cat-cor-marrom), var(--cat-cor-marrom);
+}
+
+.marcador--cor-preto {
+  --cor-marcador: var(--cat-cor-preto);
+  --paradas-marcador: var(--cat-cor-preto), var(--cat-cor-preto);
+}
+
+.marcador--cor-vinho {
+  --cor-marcador: var(--cat-cor-vinho);
+  --paradas-marcador: var(--cat-cor-vinho), var(--cat-cor-vinho);
+}
+
+.marcador--cor-coral {
+  --cor-marcador: var(--cat-cor-coral);
+  --paradas-marcador: var(--cat-cor-coral), var(--cat-cor-coral);
+}
+
+.marcador--cor-mostarda {
+  --cor-marcador: var(--cat-cor-mostarda);
+  --paradas-marcador: var(--cat-cor-mostarda), var(--cat-cor-mostarda);
+}
+
+.marcador--cor-verde-limao {
+  --cor-marcador: var(--cat-cor-verde-limao);
+  --paradas-marcador: var(--cat-cor-verde-limao), var(--cat-cor-verde-limao);
+}
+
+.marcador--cor-esmeralda {
+  --cor-marcador: var(--cat-cor-esmeralda);
+  --paradas-marcador: var(--cat-cor-esmeralda), var(--cat-cor-esmeralda);
+}
+
+.marcador--cor-verde-agua {
+  --cor-marcador: var(--cat-cor-verde-agua);
+  --paradas-marcador: var(--cat-cor-verde-agua), var(--cat-cor-verde-agua);
+}
+
+.marcador--cor-azul-claro {
+  --cor-marcador: var(--cat-cor-azul-claro);
+  --paradas-marcador: var(--cat-cor-azul-claro), var(--cat-cor-azul-claro);
+}
+
+.marcador--cor-azul-marinho {
+  --cor-marcador: var(--cat-cor-azul-marinho);
+  --paradas-marcador: var(--cat-cor-azul-marinho), var(--cat-cor-azul-marinho);
+}
+
+.marcador--cor-indigo {
+  --cor-marcador: var(--cat-cor-indigo);
+  --paradas-marcador: var(--cat-cor-indigo), var(--cat-cor-indigo);
+}
+
+.marcador--cor-violeta {
+  --cor-marcador: var(--cat-cor-violeta);
+  --paradas-marcador: var(--cat-cor-violeta), var(--cat-cor-violeta);
+}
+
+.marcador--cor-lilas {
+  --cor-marcador: var(--cat-cor-lilas);
+  --paradas-marcador: var(--cat-cor-lilas), var(--cat-cor-lilas);
+}
+
+.marcador--cor-magenta {
+  --cor-marcador: var(--cat-cor-magenta);
+  --paradas-marcador: var(--cat-cor-magenta), var(--cat-cor-magenta);
+}
+
+.marcador--cor-areia {
+  --cor-marcador: var(--cat-cor-areia);
+  --paradas-marcador: var(--cat-cor-areia), var(--cat-cor-areia);
+}
+
+.marcador--cor-grafite {
+  --cor-marcador: var(--cat-cor-grafite);
+  --paradas-marcador: var(--cat-cor-grafite), var(--cat-cor-grafite);
+}
+
+.marcador--gay {
+  --cor-marcador: var(--cat-gay);
+  --paradas-marcador: var(--bandeira-gay);
+}
+
+.marcador--genero-fluido {
+  --cor-marcador: var(--cat-genero-fluido);
+  --paradas-marcador: var(--bandeira-genero-fluido);
+}
+
+.marcador--agenero {
+  --cor-marcador: var(--cat-agenero);
+  --paradas-marcador: var(--bandeira-agenero);
+}
+
+.marcador--genero-queer {
+  --cor-marcador: var(--cat-genero-queer);
+  --paradas-marcador: var(--bandeira-genero-queer);
+}
+
+.marcador--polissexual {
+  --cor-marcador: var(--cat-polissexual);
+  --paradas-marcador: var(--bandeira-polissexual);
+}
+
+.marcador--omnissexual {
+  --cor-marcador: var(--cat-omnissexual);
+  --paradas-marcador: var(--bandeira-omnissexual);
 }
 
 /* Pino em forma de gota: quadrado com três cantos arredondados, girado 45°.
