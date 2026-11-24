@@ -28,8 +28,12 @@ export function urlSegura(valor) {
   }
 }
 
+// Rota até o local no Google Maps (formato oficial de links, sem chave de API; no celular abre o
+// aplicativo). Usa as coordenadas, o pino que a ONG conferiu, e não o texto do endereço. A origem
+// é escolhida pela pessoa dentro do Google Maps, então o nosso servidor não sabe de onde ela parte.
 export function linkComoChegar(l) {
-  return `https://www.openstreetmap.org/directions?to=${encodeURIComponent(`${l.latitude},${l.longitude}`)}`;
+  const destino = `${l.latitude},${l.longitude}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`;
 }
 
 const formatoData = new Intl.DateTimeFormat('pt-BR', {

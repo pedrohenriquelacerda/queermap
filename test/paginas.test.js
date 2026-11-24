@@ -84,11 +84,21 @@ test('canais de denúncia trazem os telefones oficiais', async () => {
   }
 });
 
-test('página de privacidade explica o uso transitório e a não persistência do IP', async () => {
+test('página de privacidade explica o uso do IP e que ele não vai para o banco', async () => {
   const res = await request(app).get('/privacidade');
-  assert.match(res.text, /IP é usado apenas durante a requisição/);
+  assert.match(res.text, /contadores na memória por até 1 hora/);
   assert.match(res.text, /não é salvo no banco de dados/);
   assert.match(res.text, /incluindo o endereço IP/);
+});
+
+test('página de privacidade cita os serviços de terceiros que o site realmente usa', async () => {
+  const res = await request(app).get('/privacidade');
+  assert.match(res.text, /OpenFreeMap/);
+  assert.match(res.text, /Nominatim/);
+  assert.match(res.text, /Cloudflare Turnstile/);
+  assert.match(res.text, /serviço de envio de e-mails/);
+  assert.match(res.text, /Estados Unidos/);
+  assert.match(res.text, /Google Maps/);
 });
 
 test('fonte é servida localmente com cache longo', async () => {

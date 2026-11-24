@@ -28,12 +28,17 @@
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "prepare": "husky",
-    "admin:criar": "node scripts/admin-criar.js"
+    "admin:criar": "node scripts/admin-criar.js",
+    "limpar:dados": "node scripts/limpar-dados.js",
+    "teste:carga": "node scripts/teste-carga.js --modo=carga",
+    "teste:sobrecarga": "node scripts/teste-carga.js --modo=sobrecarga"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.3.0",
+    "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "compression": "^1.8.2",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^18.0.4",
     "ejs": "^6.0.1",
@@ -42,6 +47,7 @@
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
     "leaflet": "^1.9.4",
+    "maplibre-gl": "^6.19.0",
     "nodemailer": "^10.0.13",
     "pg": "^8.23.0",
     "qrcode": "^1.5.4",
@@ -49,6 +55,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "autocannon": "^9.0.0",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.12.0",

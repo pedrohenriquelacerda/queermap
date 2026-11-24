@@ -16,7 +16,7 @@
       <div class="campo">
         <label for="acao">Tipo de ação</label>
         <select id="acao" name="acao">
-          <option value="">Todos</option>
+          <option value="">Todos os tipos</option>
           <% for (const codigo of acoes) { %>
           <option value="<%= codigo %>" <%= filtros.acao === codigo ? 'selected' : '' %>><%= fmt.acaoAuditoria(codigo) %></option>
           <% } %>
@@ -26,12 +26,12 @@
       <div class="campo"><label for="fim">Até</label><input type="date" id="fim" name="fim" value="<%= filtros.fim %>" /></div>
     </div>
     <button class="botao" type="submit">Filtrar</button>
-    <a class="botao botao--fantasma" href="/painel/auditoria">Limpar</a>
+    <a class="botao botao--fantasma" href="/painel/auditoria">Limpar filtros</a>
   </form>
 
   <p><%= total %> <%= total === 1 ? 'registro encontrado' : 'registros encontrados' %>.</p>
   <% if (registros.length === 0) { %>
-  <div class="cartao estado-vazio"><p>Nenhuma ação encontrada para os filtros escolhidos.</p></div>
+  <div class="cartao estado-vazio"><p>Nenhuma ação encontrada para os filtros escolhidos. Tente outros filtros ou use Limpar filtros.</p></div>
   <% } else { %>
   <div class="tabela-rolagem">
     <table class="tabela">
@@ -53,9 +53,9 @@
   <% if (paginas > 1) { %>
   <nav aria-label="Páginas do histórico" class="abas">
     <% const parametros = new URLSearchParams(filtros); %>
-    <% if (pagina > 1) { parametros.set('pagina', String(pagina - 1)); %><a href="?<%= parametros.toString() %>">← Anterior</a><% } %>
+    <% if (pagina > 1) { parametros.set('pagina', String(pagina - 1)); %><a href="?<%= parametros.toString() %>"><span aria-hidden="true">←</span> Anterior</a><% } %>
     <span>Página <%= pagina %> de <%= paginas %></span>
-    <% if (pagina < paginas) { parametros.set('pagina', String(pagina + 1)); %><a href="?<%= parametros.toString() %>">Próxima →</a><% } %>
+    <% if (pagina < paginas) { parametros.set('pagina', String(pagina + 1)); %><a href="?<%= parametros.toString() %>">Próxima <span aria-hidden="true">→</span></a><% } %>
   </nav>
   <% } %>
 </main>

@@ -233,3 +233,67 @@ test('GET / traz o campo de endereço para quando a localização não estiver d
   assert.match(res.text, /id="painel-localizacao"[^>]*hidden/);
   assert.match(res.text, /<input[^>]*id="endereco-pessoa"/);
 });
+
+test('GET / mostra as características mais procuradas como atalhos e o resto em "Mais características"', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [
+    local({
+      caracteristicas: [
+        { nome: 'Oferece PrEP', slug: 'oferece-prep' },
+        { nome: 'Testagem rápida de IST', slug: 'testagem-ist' },
+      ],
+    }),
+  ]);
+
+  const res = await request(app).get('/');
+
+  const atalhos = res.text.match(/<fieldset class="filtros__destaque">[\s\S]*?<\/fieldset>/)[0];
+  assert.match(atalhos, /name="car" value="oferece-prep"/);
+  assert.doesNotMatch(atalhos, /testagem-ist/);
+
+  const mais = res.text.match(
+    /<details class="filtros__grupo filtros__mais">[\s\S]*?<\/details>/,
+  )[0];
+  assert.match(mais, /name="car" value="testagem-ist"/);
+  assert.match(mais, /Mais características/);
+
+  // Cada característica aparece uma só vez nos filtros (os atalhos usam as mesmas caixas).
+  assert.equal(res.text.match(/name="car"/g).length, 2);
+});
+
+test('GET / desabilita tipos sem locais e explica como os filtros se combinam', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [local()]);
+
+  const res = await request(app).get('/');
+
+  assert.match(res.text, /disabled name="tipo" value="abrigo"/);
+  assert.doesNotMatch(res.text, /disabled name="tipo" value="ambulatorio-trans"/);
+  // No celular o atalho de um tipo sem locais nem aparece.
+  assert.match(res.text, /data-atalho-tipo="abrigo" aria-pressed="false" hidden/);
+  assert.doesNotMatch(res.text, /data-atalho-tipo="ambulatorio-trans" aria-pressed="false" hidden/);
+
+  assert.match(res.text, /Marque mais de um para ver todos eles/);
+  assert.match(res.text, /Mostra só os locais que têm todas as marcadas/);
+});
+
+test('GET / traz a busca, o "Perto de mim" e a folha de filtros do celular', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [local()]);
+
+  const res = await request(app).get('/');
+
+  assert.match(res.text, /placeholder="Buscar local ou serviço"/);
+  assert.match(res.text, /id="perto-de-mim"[^>]*hidden/); // o JavaScript mostra o botão
+  assert.match(res.text, /id="abrir-filtros"[\s\S]*?aria-controls="filtros-corpo"/);
+  assert.match(res.text, /id="filtros-corpo"/);
+  assert.match(res.text, /data-ir-para="lista"[\s\S]*?data-contagem-numero>1</);
+});
+
+test('GET / com locais sem as características em destaque mostra todas em "Características"', async () => {
+  mockPrisma(prisma.local, 'findMany', async () => [
+    local({ caracteristicas: [{ nome: 'Testagem rápida de IST', slug: 'testagem-ist' }] }),
+  ]);
+
+  const res = await request(app).get('/');
+
+  assert.doesNotMatch(res.text, /filtros__destaque/);
+  assert.match(res.text, /<summary>\s*Características\s/);
+});

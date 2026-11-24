@@ -5,20 +5,21 @@
   </div>
 
   <% if (tipo === 'SUGESTAO_LOCAL') { %>
-  <h1>Sua sugestão chegou à ONG</h1>
+  <h1>Sua sugestão chegou à ONG Somos</h1>
   <p class="lead">
-    A equipe da Somos vai conferir as informações. Se o local for validado, ele passa a aparecer no
-    mapa.
+    A equipe da ONG Somos vai conferir as informações. Se o local for validado, ele passa a
+    aparecer no mapa.
   </p>
   <% } else if (tipo === 'DISCRIMINACAO') { %>
-  <h1>Seu relato chegou à ONG</h1>
+  <h1>Seu relato chegou à ONG Somos</h1>
   <p class="lead">
-    Sentimos muito pelo que você passou. A ONG Somos vai usar seu relato para cobrar providências.
-    Você também pode registrar uma denúncia oficial:
+    Sentimos muito pelo que você passou. A ONG Somos pode usar seu relato para cobrar
+    providências. Ele não substitui uma denúncia: você pode registrá-la nos canais oficiais
+    abaixo.
   </p>
   <%- include('../partials/canais-denuncia') %>
   <% } else { %>
-  <h1>Seu relato chegou à ONG</h1>
+  <h1>Seu relato chegou à ONG Somos</h1>
   <p class="lead">
     Relatos como o seu ajudam a ONG Somos a acompanhar os serviços e cobrar melhorias.
   </p>
@@ -26,7 +27,7 @@
 
   <p class="acoes">
     <a class="botao" href="/">Voltar para o mapa</a>
-    <a class="botao botao--fantasma" href="/enviar">Enviar outro</a>
+    <a class="botao botao--fantasma" href="/enviar">Enviar outra sugestão ou relato</a>
   </p>
 </main>
 <%- include('../partials/foot') %>

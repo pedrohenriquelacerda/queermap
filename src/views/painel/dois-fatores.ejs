@@ -9,11 +9,11 @@
 
     <form method="post" action="/painel/entrar/2fa" novalidate>
       <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código', tipo: 'text', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, autocomplete: 'one-time-code', autofocus: true } }) %>
-      <button type="submit" class="botao entrar__botao">Verificar</button>
+      <button type="submit" class="botao entrar__botao">Verificar código</button>
     </form>
   </div>
   <p class="entrar__rodape">
-    <a href="/painel/entrar">Voltar ao login</a>
+    <a href="/painel/entrar">Voltar para a entrada</a>
   </p>
 </main>
 <%- include('../partials/foot') %>

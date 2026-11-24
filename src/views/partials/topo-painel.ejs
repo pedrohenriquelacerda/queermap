@@ -26,7 +26,7 @@
     </a>
     <% if (locals.admin) { %>
     <div class="topo-painel__conta">
-      <a href="/painel/conta" class="topo-painel__nome" <% if (caminho === '/painel/conta') { %>aria-current="page"<% } %>>
+      <a href="/painel/conta" class="topo-painel__nome" aria-label="Minha conta: <%= admin.nome %>" <% if (caminho === '/painel/conta') { %>aria-current="page"<% } %>>
         <%= admin.nome %>
       </a>
       <form method="post" action="/painel/sair">
@@ -38,11 +38,11 @@
     <% } %>
   </div>
   <% if (links.length > 0) { %>
-  <nav class="nav-painel" aria-label="Painel">
+  <nav class="nav-painel" aria-label="Menu do painel">
     <% for (const l of links) { %>
     <a href="<%= l.href %>" <% if (ativo(l)) { %>aria-current="page"<% } %>><%= l.texto %></a>
     <% } %>
-    <a href="/" class="nav-painel__site">Ver o site ↗</a>
+    <a href="/" class="nav-painel__site">Ver o site <span aria-hidden="true">↗</span></a>
   </nav>
   <% } %>
 </header>

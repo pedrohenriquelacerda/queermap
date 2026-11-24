@@ -3,13 +3,13 @@
   <div class="cartao entrar__cartao">
     <h1>Ative a verificação em duas etapas</h1>
     <p class="campo__ajuda">
-      Ela é obrigatória para entrar no painel. Leia o QR code com um aplicativo autenticador
-      (Google Authenticator, Authy, Microsoft Authenticator etc.) e digite o código que ele mostrar.
+      Ela é obrigatória para entrar no painel. Leia o QR code com um aplicativo autenticador (como
+      Google Authenticator, Authy ou Microsoft Authenticator) e digite o código que ele mostrar.
     </p>
 
-    <div class="qr" role="img" aria-label="QR code para o aplicativo autenticador"><%- qr %></div>
+    <div class="qr" role="img" aria-label="QR code para o aplicativo autenticador. Sem câmera, use a chave em texto logo abaixo."><%- qr %></div>
     <p class="campo__ajuda">
-      Sem câmera? Digite este código no aplicativo: <code><%= segredo %></code>
+      Sem câmera? Digite esta chave no aplicativo: <code><%= segredo %></code>
     </p>
 
     <form method="post" action="/painel/entrar/2fa/ativar" novalidate>

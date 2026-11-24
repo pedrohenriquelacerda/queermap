@@ -1,6 +1,6 @@
 <%- include('../../partials/head') %>
 <main id="conteudo" class="painel-conteudo">
-  <p><a class="voltar" href="/painel/envios">← Envios</a></p>
+  <p><a class="voltar" href="/painel/envios"><span aria-hidden="true">←</span> Voltar para Envios</a></p>
   <div class="cabecalho-pagina"><h1><%= tipos[envio.tipo] %> #<%= envio.id %></h1><span class="etiqueta etiqueta--neutra"><%= situacoes[envio.status] %></span></div>
   <% if (envio.sinalizado) { %>
   <div class="alerta alerta--aviso"><p><strong>Sinalizado pelo filtro automático.</strong> <%= envio.motivoFiltro || 'Revisar conteúdo.' %></p></div>
@@ -36,7 +36,7 @@
           <p>Seu texto foi preservado no campo abaixo. Revise antes de salvar.</p>
         </div>
         <% } %>
-        <%- include('../../partials/campo', { nome: 'notasInternas', rotulo: 'Anotações da ONG', tipo: 'textarea', valor: locals.notasDigitadas ?? envio.notasInternas, ajuda: 'Visíveis somente à equipe. Até 5.000 caracteres.', attrs: { maxlength: 5000, rows: 6 } }) %>
+        <%- include('../../partials/campo', { nome: 'notasInternas', rotulo: 'Anotações internas', tipo: 'textarea', valor: locals.notasDigitadas ?? envio.notasInternas, ajuda: 'Visíveis somente à equipe. Até 5.000 caracteres.', attrs: { maxlength: 5000, rows: 6 } }) %>
         <button class="botao" type="submit">Salvar anotações</button>
       </form>
     </div>

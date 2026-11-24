@@ -2,12 +2,12 @@
 <%
   const campo = (dados) => include('../../partials/campo', { erros, ...dados });
   const opcoesCategoria = [
-    { valor: '', texto: 'Escolha…' },
+    { valor: '', texto: 'Escolha o tipo de serviço' },
     ...categorias.map((c) => ({ valor: c.id, texto: c.nome })),
   ];
   const situacoes = {
     rascunho: ['aviso', 'Rascunho', 'Não aparece no mapa. Publique quando as informações estiverem conferidas.'],
-    publicado: ['sucesso', 'Publicado', 'Visível para todo mundo no mapa.'],
+    publicado: ['sucesso', 'Publicado', 'Visível para todas as pessoas no mapa.'],
     arquivado: ['neutra', 'Arquivado', 'Fora do mapa e da lista principal. Pode ser restaurado.'],
   };
   const [corSituacao, rotuloSituacao, textoSituacao] = situacoes[situacao];
@@ -15,11 +15,11 @@
   const acao = editando ? `/painel/locais/${local.id}` : '/painel/locais';
 %>
 <main id="conteudo" class="painel-conteudo">
-  <p><a class="voltar" href="/painel/locais">← Locais</a></p>
+  <p><a class="voltar" href="/painel/locais"><span aria-hidden="true">←</span> Voltar para Locais</a></p>
   <div class="cabecalho-pagina">
     <h1><%= editando ? local.nome : 'Novo local' %></h1>
     <% if (editando && situacao === 'publicado') { %>
-    <a class="botao botao--fantasma" href="/locais/<%= local.slug %>" target="_blank" rel="noopener">Ver no site ↗</a>
+    <a class="botao botao--fantasma" href="/locais/<%= local.slug %>" target="_blank" rel="noopener" aria-label="Ver no site (abre em nova aba)">Ver no site <span aria-hidden="true">↗</span></a>
     <% } %>
   </div>
 
@@ -29,7 +29,7 @@
     <p>Endereço informado: <%= sugestao.enderecoLocalSugerido %></p>
     <p>Contato informado: <%= sugestao.contatoLocalSugerido %></p>
     <p class="texto-envio"><%= sugestao.mensagem %></p>
-    <a href="/painel/envios/<%= sugestao.id %>">Voltar à sugestão original</a>
+    <a href="/painel/envios/<%= sugestao.id %>">Voltar para a sugestão original</a>
   </div>
   <% } %>
   <% if (temErros) { %>
@@ -70,7 +70,8 @@
             </button>
           </div>
           <p class="campo__ajuda" id="posicionar-ajuda">
-            Busque pelo endereço preenchido acima e ajuste arrastando o pino ou clicando no mapa.
+            Busque pelo endereço preenchido acima e ajuste arrastando o pino ou clicando no mapa. Se
+            preferir, preencha as coordenadas abaixo.
           </p>
           <div id="resultados-endereco" class="resultados-endereco" role="status" aria-live="polite"></div>
           <div

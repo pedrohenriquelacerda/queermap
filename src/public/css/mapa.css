@@ -1,19 +1,48 @@
 /* Mapa SerQueer · página do mapa (lateral, lista, marcadores, popup) e página do local */
 
 :root {
-  /* Cor de cada categoria (campo "icone" da Categoria) */
-  --cat-padrao: #5c5768;
-  --cat-ambulatorio: #6b3fa0;
-  --cat-ong: #c2185b;
-  --cat-saude-sexual: #00796b;
-  --cat-abrigo: #d84315;
-  --cat-albergue: #bf360c;
-  --cat-centro-pop: #5e35b1;
-  --cat-casa-cidadania: #1565c0;
-  --cat-acolhimento: #1565c0;
+  /* Cada categoria tem uma bandeira do orgulho (pino e bolinha) e uma cor sólida (miolo do
+   * pino e onde um degradê não cabe). As cores sólidas percorrem o espectro (vermelho,
+   * laranja, ouro, verde, azul-petróleo, azul, magenta) para as categorias continuarem
+   * distinguíveis mesmo quando as bandeiras se parecem.
+   * A chave (ex.: "ong") é o campo "icone" da Categoria, escolhido no painel. */
 
-  /* Cor usada quando nenhuma classe marcador--* define outra (herdada) */
+  /* Bandeiras: paradas de cor, listradas de cima para baixo */
+  --bandeira-trans: #5bcefa 0 20%, #f5a9b8 20% 40%, #fff 40% 60%, #f5a9b8 60% 80%, #5bcefa 80% 100%;
+  --bandeira-arco-iris:
+    #e40303 0 16.67%, #ff8c00 16.67% 33.33%, #ffed00 33.33% 50%, #008026 50% 66.67%,
+    #24408e 66.67% 83.33%, #732982 83.33% 100%;
+  --bandeira-bissexual: #d60270 0 40%, #9b4f96 40% 60%, #0038a8 60% 100%;
+  --bandeira-lesbica:
+    #d52d00 0 14.29%, #ef7627 14.29% 28.57%, #ff9a56 28.57% 42.86%, #fff 42.86% 57.14%,
+    #d162a4 57.14% 71.43%, #b55690 71.43% 85.71%, #a30262 85.71% 100%;
+  --bandeira-nao-binaria: #fcf434 0 25%, #fff 25% 50%, #9c59d1 50% 75%, #2c2c2c 75% 100%;
+  --bandeira-aromantica:
+    #3da542 0 20%, #a7d379 20% 40%, #fff 40% 60%, #a9a9a9 60% 80%, #000 80% 100%;
+  --bandeira-pansexual: #ff218c 0 33.33%, #ffd800 33.33% 66.67%, #21b1ff 66.67% 100%;
+  --bandeira-progresso:
+    #000 0 9.09%, #784f17 9.09% 18.18%, #5bcefa 18.18% 27.27%, #f5a9b8 27.27% 36.36%,
+    #fff 36.36% 45.45%, #e40303 45.45% 54.54%, #ff8c00 54.54% 63.63%, #ffed00 63.63% 72.72%,
+    #008026 72.72% 81.81%, #24408e 81.81% 90.9%, #732982 90.9% 100%;
+  --bandeira-assexual: #000 0 25%, #a3a3a3 25% 50%, #fff 50% 75%, #800080 75% 100%;
+  --bandeira-intersexo: #ffd800 0 35%, #7902aa 35% 65%, #ffd800 65% 100%;
+
+  /* Cor sólida de cada categoria */
+  --cat-padrao: #5c5768;
+  --cat-ong: #c62828;
+  --cat-abrigo: #c2540a;
+  --cat-albergue: #8a6a00;
+  --cat-centro-pop: #2e7d32;
+  --cat-ambulatorio: #0e7490;
+  --cat-casa-cidadania: #3949ab;
+  --cat-saude-sexual: #ad1a72;
+  --cat-acolhimento: #7d4c98;
+  --cat-assexual: #3b3b4f;
+  --cat-intersexo: #7902aa;
+
+  /* Valores de reserva quando nenhuma classe marcador--* define outros */
   --cor-marcador: var(--cat-padrao);
+  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
 
   /* "Você está aqui": azul, diferente de todas as categorias */
   --cor-pessoa: #1a73e8;
@@ -26,6 +55,7 @@
 
 /* O Leaflet define a própria fonte; usamos a do site */
 .leaflet-container {
+  background: #f8f4f0; /* mesma cor de fundo do mapa base, evita o clarão antes de carregar */
   font-family: var(--fonte);
   font-size: var(--texto-pequeno);
 }
@@ -47,44 +77,69 @@
 
 /* ─── Marcadores ─────────────────────────────────────────────────────────── */
 
-.marcador,
+/* Sem classe de categoria: cinza liso */
+.marcador {
+  --cor-marcador: var(--cat-padrao);
+  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
+}
+
 .marcador--padrao {
   --cor-marcador: var(--cat-padrao);
+  --paradas-marcador: var(--cat-padrao), var(--cat-padrao);
 }
 
 .marcador--ambulatorio {
   --cor-marcador: var(--cat-ambulatorio);
+  --paradas-marcador: var(--bandeira-trans);
 }
 
 .marcador--ong {
   --cor-marcador: var(--cat-ong);
+  --paradas-marcador: var(--bandeira-arco-iris);
 }
 
 .marcador--saude-sexual {
   --cor-marcador: var(--cat-saude-sexual);
+  --paradas-marcador: var(--bandeira-bissexual);
 }
 
 .marcador--abrigo {
   --cor-marcador: var(--cat-abrigo);
+  --paradas-marcador: var(--bandeira-lesbica);
 }
 
 .marcador--albergue {
   --cor-marcador: var(--cat-albergue);
+  --paradas-marcador: var(--bandeira-nao-binaria);
 }
 
 .marcador--centro-pop {
   --cor-marcador: var(--cat-centro-pop);
+  --paradas-marcador: var(--bandeira-aromantica);
 }
 
 .marcador--casa-cidadania {
   --cor-marcador: var(--cat-casa-cidadania);
+  --paradas-marcador: var(--bandeira-pansexual);
 }
 
 .marcador--acolhimento {
   --cor-marcador: var(--cat-acolhimento);
+  --paradas-marcador: var(--bandeira-progresso);
 }
 
-/* Pino em forma de gota: quadrado com três cantos arredondados, girado 45° */
+.marcador--assexual {
+  --cor-marcador: var(--cat-assexual);
+  --paradas-marcador: var(--bandeira-assexual);
+}
+
+.marcador--intersexo {
+  --cor-marcador: var(--cat-intersexo);
+  --paradas-marcador: var(--bandeira-intersexo);
+}
+
+/* Pino em forma de gota: quadrado com três cantos arredondados, girado 45°.
+ * O fundo é a bandeira da categoria; o miolo, a cor sólida dela. */
 .marcador__pino {
   position: absolute;
   top: 2px;
@@ -93,21 +148,24 @@
   height: 24px;
   border: 2px solid #fff;
   border-radius: 50% 50% 50% 0;
-  background: var(--cor-marcador);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 40%);
+  /* O pino gira -45°; o degradê a 225° desfaz isso e deixa as listras na horizontal */
+  background: linear-gradient(225deg, var(--paradas-marcador));
+  box-shadow:
+    0 0 0 1px rgb(31 29 36 / 55%),
+    0 1px 4px rgb(0 0 0 / 40%);
   transform: rotate(-45deg);
-  transition: transform 0.15s;
 }
 
 .marcador__pino::after {
   content: '';
   position: absolute;
-  top: 7px;
-  left: 7px;
-  width: 6px;
-  height: 6px;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cor-marcador);
+  box-shadow: 0 0 0 2px #fff;
 }
 
 .marcador:hover .marcador__pino {
@@ -250,14 +308,15 @@
   background: var(--cor-primaria-clara);
 }
 
-/* Bolinha com a cor da categoria (filtros e rótulos) */
+/* Bolinha com a bandeira da categoria (filtros e rótulos) */
 .bolinha,
 .rotulo-categoria::before {
   flex: none;
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgb(31 29 36 / 45%);
   border-radius: 50%;
-  background: var(--cor-marcador);
+  background: linear-gradient(180deg, var(--paradas-marcador));
 }
 
 .rotulo-categoria {
@@ -266,10 +325,8 @@
   gap: var(--esp-2);
   margin: 0 0 var(--esp-1);
   color: var(--cor-suave);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .rotulo-categoria::before {
@@ -475,45 +532,191 @@
   margin-bottom: var(--esp-3);
 }
 
-/* Celular: alterna entre Mapa e Lista */
+/* ─── Busca, "perto de mim" e filtros ────────────────────────────────────── */
+
+/* Busca: o campo e, no celular, o botão Filtros ao lado */
+.filtros__busca {
+  display: flex;
+  gap: var(--esp-2);
+  align-items: flex-start;
+}
+
+.filtros__busca .campo--busca {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+/* O botão Filtros, o fundo e o cabeçalho e rodapé da folha só existem no celular */
+.filtros__abrir,
+.filtros__fundo,
+.filtros__cabecalho,
+.filtros__rodape {
+  display: none;
+}
+
+/* Perto de mim: ordena a lista do mais perto ao mais longe */
+.perto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+  margin-top: var(--esp-2);
+}
+
+.perto:not(:has(> :not([hidden]))) {
+  display: none;
+}
+
+.perto__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0;
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+}
+
+/* Características mais procuradas, como atalhos (as mesmas caixas de marcar, em forma de chip) */
+.filtros__destaque {
+  min-width: 0;
+  margin: var(--esp-3) 0 var(--esp-2);
+  padding: 0;
+  border: 0;
+}
+
+.filtros__destaque legend {
+  margin-bottom: var(--esp-2);
+  padding: 0;
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+}
+
+.chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: var(--esp-1) var(--esp-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+}
+
+.chip:hover span {
+  border-color: var(--cor-primaria);
+}
+
+.chip input:checked + span {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+/* A marca de "ligado" não depende só da cor */
+.chip input:checked + span::before {
+  content: '✓';
+  margin-right: var(--esp-1);
+}
+
+.chip input:focus-visible + span {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.filtros__dica {
+  margin: 0 0 var(--esp-2);
+  color: var(--cor-suave);
+  font-size: var(--texto-pequeno);
+}
+
+.filtros__destaque .filtros__dica {
+  margin: var(--esp-2) 0 0;
+}
+
+/* Tipo sem nenhum local: aparece, mas não dá para marcar */
+.opcao--zerada {
+  color: var(--cor-suave);
+  cursor: not-allowed;
+}
+
+.opcao--zerada input {
+  cursor: not-allowed;
+}
+
+.cartao-local__distancia {
+  margin: 0 0 var(--esp-2);
+  color: var(--cor-primaria-escura);
+  font-size: var(--texto-pequeno);
+  font-weight: 700;
+}
+
+/* Celular: busca e atalhos sempre à vista sobre o mapa; os filtros viram uma folha que sobe por
+ * baixo; um botão flutuante alterna entre Mapa e Lista. */
 @media (max-width: 47.99rem) {
   .pagina--mapa > main.explorar {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
   }
 
-  .explorar__alternar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--esp-1);
+  /* Ordem na tela: busca (lateral), atalhos de tipo, mapa */
+  .lateral {
+    grid-row: 1;
+    overflow: visible;
+    border-right: 0;
+  }
+
+  .atalhos-tipo {
+    grid-row: 2;
+  }
+
+  .mapa {
+    grid-row: 3;
+  }
+
+  /* Modo mapa: da lateral só aparece a barra de busca */
+  .explorar[data-modo='mapa'] .lateral__topo {
     padding: var(--esp-2) var(--esp-3);
-    border-bottom: 1px solid var(--cor-borda);
-    background: var(--cor-superficie);
   }
 
-  .explorar__botao {
-    min-height: 2.5rem;
-    border: 1px solid var(--cor-borda-forte);
-    border-radius: var(--raio);
-    background: var(--cor-superficie);
-    font-weight: 700;
-    cursor: pointer;
+  .explorar[data-modo='mapa'] .lateral__titulo {
+    /* continua para leitores de tela, mas sai da vista */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
-  .explorar__botao[aria-pressed='true'] {
-    border-color: var(--cor-primaria);
-    background: var(--cor-primaria);
-    color: #fff;
-  }
-
-  .explorar[data-modo='mapa'] .lateral,
-  .explorar[data-modo='lista'] .mapa {
+  .explorar[data-modo='mapa'] .resultado,
+  .explorar[data-modo='mapa'] .perto,
+  .explorar[data-modo='mapa'] .lista-locais,
+  .explorar[data-modo='mapa'] #lista-vazia {
     display: none;
-  }
-
-  /* Modo mapa com os atalhos visíveis: mais uma linha entre os botões e o mapa */
-  .pagina--mapa > main.explorar[data-modo='mapa']:has(.atalhos-tipo:not([hidden])) {
-    grid-template-rows: auto auto 1fr;
   }
 
   .explorar[data-modo='mapa'] .atalhos-tipo {
@@ -523,8 +726,148 @@
     background: var(--cor-superficie);
   }
 
-  .lateral {
-    border-right: 0;
+  /* Modo lista: a lateral ocupa a tela toda e rola; sobra espaço embaixo para o botão flutuante */
+  .explorar[data-modo='lista'] .lateral {
+    grid-row: 1 / -1;
+    overflow-y: auto;
+    padding-bottom: 6rem;
+  }
+
+  .explorar[data-modo='lista'] .mapa,
+  .explorar[data-modo='lista'] .atalhos-tipo {
+    display: none;
+  }
+
+  .lateral__titulo {
+    margin-bottom: var(--esp-2);
+    font-size: var(--texto-base);
+  }
+
+  /* Botão flutuante Mapa | Lista */
+  .explorar__alternar {
+    position: fixed;
+    z-index: 1200;
+    bottom: calc(2.25rem + env(safe-area-inset-bottom));
+    left: 50%;
+    display: flex;
+    padding: 0.25rem;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-pilula);
+    background: var(--cor-superficie);
+    box-shadow: var(--sombra-forte);
+    transform: translateX(-50%);
+  }
+
+  .explorar__botao {
+    min-height: 2.75rem;
+    padding: 0 var(--esp-4);
+    border: 0;
+    border-radius: var(--raio-pilula);
+    background: none;
+    color: var(--cor-texto);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .explorar__botao[aria-pressed='true'] {
+    background: var(--cor-primaria);
+    color: #fff;
+  }
+
+  /* A atribuição do mapa fica pequena para não disputar espaço com o botão flutuante */
+  .leaflet-control-attribution {
+    font-size: 0.625rem;
+  }
+
+  /* Busca com o botão Filtros ao lado */
+  .filtros__busca {
+    align-items: stretch;
+  }
+
+  .filtros__abrir {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--esp-1);
+    min-height: 2.75rem;
+  }
+
+  /* Folha de filtros: escondida até a pessoa tocar em Filtros */
+  .filtros__corpo {
+    display: none;
+  }
+
+  .explorar[data-folha='aberta'] .filtros__fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: block;
+    background: rgb(31 29 36 / 55%);
+  }
+
+  .explorar[data-folha='aberta'] .filtros__corpo {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1400;
+    display: flex;
+    flex-direction: column;
+    max-height: min(85dvh, 40rem);
+    padding: 0 var(--esp-4);
+    overflow-y: auto;
+    border-radius: var(--raio-grande) var(--raio-grande) 0 0;
+    background: var(--cor-superficie);
+    box-shadow: var(--sombra-forte);
+  }
+
+  .filtros__cabecalho {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--esp-3) 0 var(--esp-2);
+    background: var(--cor-superficie);
+  }
+
+  .filtros__titulo {
+    margin: 0;
+    font-size: var(--texto-grande);
+  }
+
+  .filtros__fechar {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--raio);
+    background: none;
+    color: var(--cor-suave);
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .filtros__fechar:hover {
+    background: var(--cor-primaria-clara);
+  }
+
+  .filtros__rodape {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--esp-2);
+    margin-top: auto;
+    padding: var(--esp-3) 0;
+    border-top: 1px solid var(--cor-borda);
+    background: var(--cor-superficie);
+  }
+
+  .filtros__rodape .botao:last-child {
+    margin-left: auto;
   }
 }
 
@@ -641,5 +984,12 @@
 
   .mapa-local {
     min-height: 14rem;
+  }
+}
+
+/* Animação do pino só para quem não pediu movimento reduzido */
+@media (prefers-reduced-motion: no-preference) {
+  .marcador__pino {
+    transition: transform 0.15s;
   }
 }

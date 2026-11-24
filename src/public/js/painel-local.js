@@ -1,6 +1,8 @@
 // Painel · posicionar o local no mapa (busca de endereço + pino arrastável).
 // Sem JavaScript, os campos de latitude/longitude continuam editáveis à mão.
 
+import { adicionarMapaBase } from './mapa-base.js';
+
 const PORTO_ALEGRE = [-30.0346, -51.2177];
 const elementoMapa = document.getElementById('mapa-form');
 
@@ -18,17 +20,14 @@ if (elementoMapa) {
   };
 
   const inicial = posicaoInicial();
-  const mapa = L.map(elementoMapa, { scrollWheelZoom: false }).setView(
+  const mapa = L.map(elementoMapa, { scrollWheelZoom: false, maxZoom: 19 }).setView(
     inicial ?? PORTO_ALEGRE,
     inicial ? 17 : 12,
   );
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(mapa);
+  adicionarMapaBase(mapa);
 
   const icone = L.divIcon({
-    className: 'marcador marcador--ambulatorio',
+    className: 'marcador marcador--padrao',
     html: '<span class="marcador__pino" aria-hidden="true"></span>',
     iconSize: [28, 36],
     iconAnchor: [14, 34],

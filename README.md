@@ -5,7 +5,7 @@ Mapa de espaços de cuidado em saúde para a população LGBTQIA+ de Porto Alegr
 ## Stack
 
 - **Node.js 24** + **Express 5**, páginas renderizadas com **EJS**
-- **Leaflet** + tiles do OpenStreetMap para o mapa
+- **Leaflet** + **MapLibre**, com tiles vetoriais do OpenFreeMap (dados do OpenStreetMap, sem ícones de comércio), para o mapa
 - **PostgreSQL 17** (via Docker) com **Prisma 7**
 - Segurança: helmet (CSP), express-rate-limit, sessões salvas no Postgres
 - Qualidade: ESLint, Prettier, testes com `node:test` + supertest
@@ -124,23 +124,26 @@ dados inválidos, `400`. O schema existente é reutilizado, sem nova migration.
 
 ## Scripts
 
-| Comando                    | O que faz                                               |
-| -------------------------- | ------------------------------------------------------- |
-| `npm run dev`              | Servidor com recarga automática ao salvar               |
-| `npm start`                | Servidor sem recarga (produção)                         |
-| `npm test`                 | Roda os testes (não precisa do banco)                   |
-| `npm run lint`             | Verifica o código com ESLint                            |
-| `npm run format`           | Formata o código com Prettier                           |
-| `npm run db:up`            | Sobe o Postgres no Docker                               |
-| `npm run db:down`          | Para o Postgres (os dados ficam salvos no volume)       |
-| `npm run db:local`         | Sobe o Postgres embutido do Prisma (sem Docker)         |
-| `npm run db:local:stop`    | Para o Postgres embutido                                |
-| `npm run db:migrate`       | Cria/aplica migrations depois de alterar o schema       |
-| `npm run db:seed`          | Insere categorias e características (pode repetir)      |
-| `npm run db:seed:exemplos` | Insere locais fictícios de teste (`-- --remover` apaga) |
-| `npm run admin:criar`      | Cria uma conta do painel (veja acima)                   |
-| `npm run db:deploy`        | Aplica migrations existentes (produção)                 |
-| `npm run db:studio`        | Abre o Prisma Studio para ver e editar os dados         |
+| Comando                    | O que faz                                                                |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`              | Servidor com recarga automática ao salvar                                |
+| `npm start`                | Servidor sem recarga (produção)                                          |
+| `npm test`                 | Roda os testes (não precisa do banco)                                    |
+| `npm run lint`             | Verifica o código com ESLint                                             |
+| `npm run format`           | Formata o código com Prettier                                            |
+| `npm run db:up`            | Sobe o Postgres no Docker                                                |
+| `npm run db:down`          | Para o Postgres (os dados ficam salvos no volume)                        |
+| `npm run db:local`         | Sobe o Postgres embutido do Prisma (sem Docker)                          |
+| `npm run db:local:stop`    | Para o Postgres embutido                                                 |
+| `npm run db:migrate`       | Cria/aplica migrations depois de alterar o schema                        |
+| `npm run db:seed`          | Insere categorias e características (pode repetir)                       |
+| `npm run db:seed:exemplos` | Insere locais fictícios de teste (`-- --remover` apaga)                  |
+| `npm run admin:criar`      | Cria uma conta do painel (veja acima)                                    |
+| `npm run db:deploy`        | Aplica migrations existentes (produção)                                  |
+| `npm run db:studio`        | Abre o Prisma Studio para ver e editar os dados                          |
+| `npm run limpar:dados`     | Apaga códigos e registros de limite vencidos (o servidor já faz sozinho) |
+| `npm run teste:carga`      | Teste de carga (veja docs/TESTE-DE-CARGA.md)                             |
+| `npm run teste:sobrecarga` | Teste de sobrecarga, de 10 a 400 conexões                                |
 
 ### Verificações automáticas
 
@@ -158,6 +161,13 @@ O servidor roda em Docker no Render e o banco no Neon, ambos no plano gratuito. 
 Para testar a imagem localmente: `wsl docker build -t queermap .` (ou `docker build -t queermap .` com o Docker Desktop).
 
 No banco de demonstração, use `npm run db:seed:exemplos -- --sem-contas`: sem essa opção, o seed cria as contas de teste, cujas senhas estão neste repositório.
+
+## Mais documentação
+
+- [docs/DEPLOY.md](docs/DEPLOY.md): publicação e variáveis de produção.
+- [docs/PRIVACIDADE.md](docs/PRIVACIDADE.md): revisão de privacidade, mapa dos dados e prazos de guarda propostos.
+- [docs/TESTE-DE-CARGA.md](docs/TESTE-DE-CARGA.md): como rodar o teste de carga e os resultados.
+- `docs/custos-mensais.xlsx`: planilha com o custo mensal de manter o site no ar.
 
 ## Estrutura
 
@@ -191,7 +201,7 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 
 - **Local**: serviço no mapa, com uma **Categoria** (ambulatório trans, ONG, saúde sexual, abrigo, casa de acolhimento) e várias **Características** ("respeita o nome social", "oferece PrEP"...). Só aparece no mapa com `publicado = true`; exclusão é lógica (`arquivadoEm`).
 - **Envio**: sugestão de local ou relato (elogio, reclamação, discriminação) enviado pelo público. Vai só para o painel. O e-mail só é salvo se a pessoa pedir contato.
-- **VerificacaoEmail** / **RegistroEnvio**: código de confirmação e limite de envios por pessoa, guardando apenas o hash do e-mail. Os registros são apagados após 30 dias e não têm ligação com os envios.
+- **VerificacaoEmail** / **RegistroEnvio**: código de confirmação e limite de envios por pessoa, guardando apenas o hash do e-mail. Uma rotina (ao iniciar o servidor, a cada 6 h, ou `npm run limpar:dados`) apaga os códigos vencidos e os registros com mais de 30 dias. O registro do limite tem id aleatório e só a data, sem ligação com os envios.
 - **Admin** / **LogAuditoria**: pessoas da ONG com acesso ao painel e registro de cada ação feita nele.
 
 ## Observações
@@ -199,6 +209,9 @@ Para apagar tudo e recomeçar do zero: `npx prisma migrate reset` (roda o seed n
 - O `.env` nunca vai para o git. Variáveis novas devem ser adicionadas também ao `.env.example`.
 - O Prisma 7 gera o client em TypeScript (`src/generated/prisma`). O Node 24 executa esses arquivos direto, sem etapa de build.
 - O Leaflet é servido pelo próprio servidor (`/vendor/leaflet`), sem CDN, por causa da política de segurança de conteúdo (CSP).
+- O MapLibre também é servido localmente (`/vendor/maplibre`) e só é baixado quando um mapa é aberto. O estilo do mapa (`positron`, do OpenFreeMap) não tem camada de comércios, e por isso nenhum ícone comercial aparece. Sem WebGL, o mapa cai para os tiles raster do OpenStreetMap (que mostram comércios). O código fica em `src/public/js/mapa-base.js`.
+- Cada categoria tem uma bandeira do orgulho no pino e nos filtros (o campo "Bandeira no mapa" em _Tipos e características_ do painel). As bandeiras e as cores sólidas ficam no topo de `src/public/css/mapa.css`.
+- Tela inicial: no computador, busca e filtros ficam na lateral; no celular, a busca fica sempre no topo e os filtros abrem numa folha pelo botão "Filtros", e um botão flutuante alterna entre Mapa e Lista. As características que viram atalhos (chips) em "Mais procuradas" são escolhidas em `CARACTERISTICAS_EM_DESTAQUE`, em `src/controllers/homeController.js`. Tipos sem locais aparecem desabilitados. "Perto de mim" (ou um endereço digitado) ordena a lista do mais perto ao mais longe; a posição fica só no navegador.
 - Visual: cores, espaços e fontes ficam em variáveis no topo de `src/public/css/base.css`. Em desenvolvimento, `/dev/componentes` mostra todos os componentes.
 - `GET /health` verifica se o servidor e o banco estão respondendo.
 - A página inicial já vem com a lista de locais pronta do servidor (funciona sem JavaScript); o `mapa.js` só filtra e desenha os marcadores. Os filtros ficam na URL, então dá para compartilhar um link como `/?car=oferece-prep`.

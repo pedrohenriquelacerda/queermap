@@ -1,6 +1,6 @@
 <%- include('../../partials/head') %>
 <main id="conteudo" class="painel-conteudo">
-  <div class="cabecalho-pagina"><h1>Envios</h1><p>Sugestões e relatos recebidos pela ONG</p></div>
+  <div class="cabecalho-pagina"><h1>Envios</h1><p>Sugestões e relatos recebidos pela ONG Somos</p></div>
   <form method="get" class="cartao filtros-envios">
     <div class="campo">
       <label for="tipo" class="campo__rotulo">Tipo</label>
@@ -19,10 +19,10 @@
       </select>
     </div>
     <button class="botao" type="submit">Filtrar</button>
-    <a class="botao botao--fantasma" href="/painel/envios">Limpar</a>
+    <a class="botao botao--fantasma" href="/painel/envios">Limpar filtros</a>
   </form>
   <% if (!envios.length) { %>
-  <div class="cartao estado-vazio"><p>Nenhum envio encontrado para estes filtros.</p></div>
+  <div class="cartao estado-vazio"><p>Nenhum envio encontrado. Se estiver usando filtros, tente outros ou use Limpar filtros.</p></div>
   <% } else { %>
   <div class="tabela-rolagem">
     <table class="tabela">

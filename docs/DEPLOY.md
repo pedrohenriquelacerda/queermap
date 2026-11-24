@@ -139,3 +139,11 @@ Preencha com o que for **medido** no ambiente publicado:
 | Outros problemas encontrados                                                                                        |                    |
 
 Para uso real pela ONG, um plano pago no Render (sem "dormir") e um domínio próprio resolvem as principais limitações.
+
+## 8. Limpeza de privacidade
+
+O servidor apaga sozinho os códigos de confirmação vencidos e os registros do limite de envios com mais de 30 dias: roda ao iniciar e a cada 6 h (`src/services/limpezaService.js`).
+
+No plano gratuito do Render o servidor dorme sem tráfego, e o temporizador só roda com ele acordado. Por isso a limpeza também roda ao iniciar. Para garantir a rotina diária mesmo sem acessos, crie um **Cron Job** no Render (ou outro agendador) que execute `npm run limpar:dados` uma vez por dia, com as mesmas variáveis de ambiente do servidor. O comando pode rodar quantas vezes for preciso.
+
+Os prazos de guarda dos envios e dos e-mails de contato dependem de decisão da ONG: veja [PRIVACIDADE.md](PRIVACIDADE.md).

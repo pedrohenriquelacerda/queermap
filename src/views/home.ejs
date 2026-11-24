@@ -1,76 +1,124 @@
 <%- include('partials/head') %>
 <main id="conteudo" class="explorar" data-modo="mapa">
+  <%# Celular: botão flutuante que alterna entre o mapa e a lista (no computador fica escondido). %>
   <div class="explorar__alternar" role="group" aria-label="Modo de visualização">
     <button type="button" class="explorar__botao" data-ir-para="mapa" aria-pressed="true">Mapa</button>
     <button type="button" class="explorar__botao" data-ir-para="lista" aria-pressed="false">
-      Lista e filtros
+      Lista <span class="explorar__total">(<span data-contagem-numero><%= locais.length %></span>)</span>
     </button>
   </div>
-
-  <% if (locais.length > 0) { %>
-  <%# Atalhos do filtro de tipo sobre o mapa, no celular (o mapa.js mostra e liga às caixas). %>
-  <div class="atalhos-tipo" id="atalhos-tipo" hidden>
-    <div class="atalhos-tipo__botoes" role="group" aria-label="Filtrar por tipo de serviço">
-      <% for (const c of categorias) { %>
-      <button type="button" class="atalho-tipo" data-atalho-tipo="<%= c.slug %>" aria-pressed="false">
-        <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
-        <%= c.nome %>
-      </button>
-      <% } %>
-    </div>
-    <%# A lista fica escondida no modo mapa: o aviso de "nenhum local" aparece aqui também. %>
-    <p class="atalhos-tipo__vazio" data-aviso-vazio role="status" hidden></p>
-  </div>
-  <% } %>
 
   <aside class="lateral" aria-labelledby="titulo-lista">
     <div class="lateral__topo">
       <h1 id="titulo-lista" class="lateral__titulo">Espaços de cuidado em Porto Alegre</h1>
 
       <% if (locais.length > 0) { %>
-      <form class="filtros" role="search" action="/" id="filtros">
-        <div class="campo campo--busca">
-          <label class="visualmente-oculto" for="busca">Buscar por nome, bairro ou serviço</label>
-          <input
-            type="search"
-            id="busca"
-            name="q"
-            placeholder="Buscar por nome, bairro ou serviço"
-            autocomplete="off"
-          />
+      <form class="filtros" action="/" id="filtros" aria-label="Filtros">
+        <%# Busca na lista (nome, bairro, tipo ou característica). No celular fica sempre à vista, ao lado do botão Filtros. %>
+        <div class="filtros__busca" role="search">
+          <div class="campo campo--busca">
+            <label class="visualmente-oculto" for="busca">Buscar local ou serviço</label>
+            <input
+              type="search"
+              id="busca"
+              name="q"
+              placeholder="Buscar local ou serviço"
+              autocomplete="off"
+            />
+          </div>
+          <button
+            type="button"
+            class="botao botao--secundario filtros__abrir"
+            id="abrir-filtros"
+            aria-expanded="false"
+            aria-controls="filtros-corpo"
+          >
+            Filtros <span class="filtros__contador" data-contador="total"></span>
+          </button>
         </div>
 
-        <%# Aberto por padrão: o tipo de serviço é o filtro principal. %>
-        <details class="filtros__grupo" open>
-          <summary>Tipo de serviço <span class="filtros__contador" data-contador="tipo"></span></summary>
-          <% for (const c of categorias) { %>
-          <label class="opcao">
-            <input type="checkbox" name="tipo" value="<%= c.slug %>" />
-            <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
-            <%= c.nome %>
-            <span class="opcao__total">(<%= c.total %>)</span>
-          </label>
-          <% } %>
-        </details>
+        <%# Ordena a lista pelo mais perto (o mapa.js mostra o botão e usa a posição só no navegador). %>
+        <div class="perto">
+          <button type="button" class="botao botao--fantasma botao--pequeno" id="perto-de-mim" hidden>
+            Perto de mim
+          </button>
+          <p class="perto__status" id="perto-status" role="status" aria-live="polite" hidden>
+            <span id="perto-texto"></span>
+            <button type="button" class="botao botao--fantasma botao--pequeno" id="perto-limpar">
+              Ordem padrão
+            </button>
+          </p>
+        </div>
 
-        <% if (caracteristicas.length > 0) { %>
-        <details class="filtros__grupo">
-          <summary>Características <span class="filtros__contador" data-contador="car"></span></summary>
-          <% for (const c of caracteristicas) { %>
-          <label class="opcao">
-            <input type="checkbox" name="car" value="<%= c.slug %>" />
-            <%= c.nome %>
-          </label>
+        <div class="filtros__fundo" data-fechar-folha></div>
+        <div class="filtros__corpo" id="filtros-corpo">
+          <div class="filtros__cabecalho">
+            <h2 class="filtros__titulo" id="filtros-titulo">Filtros</h2>
+            <button type="button" class="filtros__fechar" data-fechar-folha aria-label="Fechar filtros">
+              &times;
+            </button>
+          </div>
+
+          <% if (destaque.length > 0) { %>
+          <fieldset class="filtros__destaque">
+            <legend>Mais procuradas</legend>
+            <div class="chips">
+              <% for (const c of destaque) { %>
+              <label class="chip">
+                <input type="checkbox" name="car" value="<%= c.slug %>" />
+                <span><%= c.nome %></span>
+              </label>
+              <% } %>
+            </div>
+            <p class="filtros__dica">Mostra só os locais que têm todas as marcadas.</p>
+          </fieldset>
           <% } %>
-        </details>
-        <% } %>
+
+          <%# Aberto por padrão: o tipo de serviço é o filtro principal. %>
+          <details class="filtros__grupo" open>
+            <summary>Tipo de serviço <span class="filtros__contador" data-contador="tipo"></span></summary>
+            <p class="filtros__dica">Marque mais de um para ver todos eles.</p>
+            <% for (const c of categorias) { %>
+            <label class="opcao<%= c.total === 0 ? ' opcao--zerada' : '' %>"<%- c.total === 0 ? ' title="Ainda não há locais deste tipo"' : '' %>>
+              <input type="checkbox" <%- c.total === 0 ? 'disabled ' : '' %>name="tipo" value="<%= c.slug %>" />
+              <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
+              <%= c.nome %>
+              <span class="opcao__total">(<%= c.total %>)</span>
+            </label>
+            <% } %>
+          </details>
+
+          <% if (outras.length > 0) { %>
+          <details class="filtros__grupo filtros__mais">
+            <summary>
+              <%= destaque.length > 0 ? 'Mais características' : 'Características' %>
+              <span class="filtros__contador" data-contador="car-mais"></span>
+            </summary>
+            <p class="filtros__dica">Mostra só os locais que têm todas as marcadas.</p>
+            <% for (const c of outras) { %>
+            <label class="opcao">
+              <input type="checkbox" name="car" value="<%= c.slug %>" />
+              <%= c.nome %>
+            </label>
+            <% } %>
+          </details>
+          <% } %>
+
+          <div class="filtros__rodape">
+            <button type="button" class="botao botao--fantasma" data-limpar hidden>Limpar filtros</button>
+            <button type="button" class="botao" data-fechar-folha>
+              Ver <span data-contagem-numero><%= locais.length %></span>
+              <span data-contagem-rotulo><%= locais.length === 1 ? 'local' : 'locais' %></span>
+            </button>
+          </div>
+        </div>
       </form>
 
       <div class="resultado">
         <p id="contagem" role="status" aria-live="polite">
           <%= locais.length %> <%= locais.length === 1 ? 'local' : 'locais' %>
         </p>
-        <button type="button" class="botao botao--fantasma botao--pequeno" id="limpar" hidden>
+        <button type="button" class="botao botao--fantasma botao--pequeno" id="limpar" data-limpar hidden>
           Limpar filtros
         </button>
       </div>
@@ -78,7 +126,10 @@
     </div>
 
     <% if (locais.length === 0) { %>
-    <p class="lateral__vazio">Nenhum local cadastrado ainda.</p>
+    <p class="lateral__vazio">
+      Nenhum local cadastrado ainda. Conhece um serviço que deveria estar aqui?
+      <a href="/enviar">Envie uma sugestão de local</a>.
+    </p>
     <% } else { %>
     <ul class="lista-locais" id="lista-locais">
       <% for (const l of locais) { %>
@@ -101,7 +152,7 @@
           <% } %>
         </ul>
         <% } %>
-        <button type="button" class="botao botao--secundario botao--pequeno" data-mostrar="<%= l.id %>">
+        <button type="button" class="botao botao--secundario botao--pequeno" data-mostrar="<%= l.id %>" aria-label="Ver no mapa: <%= l.nome %>">
           Ver no mapa
         </button>
       </li>
@@ -112,6 +163,22 @@
     </p>
     <% } %>
   </aside>
+
+  <% if (locais.length > 0) { %>
+  <%# Atalhos do filtro de tipo sobre o mapa, no celular (o mapa.js mostra e liga às caixas). Tipos sem locais ficam escondidos. %>
+  <div class="atalhos-tipo" id="atalhos-tipo" hidden>
+    <div class="atalhos-tipo__botoes" role="group" aria-label="Filtrar por tipo de serviço">
+      <% for (const c of categorias) { %>
+      <button type="button" class="atalho-tipo" data-atalho-tipo="<%= c.slug %>" aria-pressed="false"<%- c.total === 0 ? ' hidden' : '' %>>
+        <span class="bolinha <%= fmt.classeCategoria(c) %>" aria-hidden="true"></span>
+        <%= c.nome %>
+      </button>
+      <% } %>
+    </div>
+    <%# A lista fica escondida no modo mapa: o aviso de "nenhum local" aparece aqui também. %>
+    <p class="atalhos-tipo__vazio" data-aviso-vazio role="status" hidden></p>
+  </div>
+  <% } %>
 
   <div id="mapa" class="mapa" role="region" aria-label="Mapa de Porto Alegre"></div>
 
@@ -132,7 +199,7 @@
           maxlength="300"
           required
         />
-        <button type="submit" class="botao botao--pequeno">Buscar</button>
+        <button type="submit" class="botao botao--pequeno" aria-label="Buscar endereço">Buscar</button>
       </div>
     </form>
     <div class="painel-localizacao__opcoes"></div>

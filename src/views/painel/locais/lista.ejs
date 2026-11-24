@@ -35,8 +35,8 @@
 
   <% if (locais.length === 0) { %>
   <div class="cartao estado-vazio">
-    <p><%= busca ? 'Nenhum local encontrado para essa busca.' : 'Nenhum local nesta lista.' %></p>
-    <% if (!busca && filtro !== 'arquivado') { %><a class="botao" href="/painel/locais/novo">Cadastrar o primeiro</a><% } %>
+    <p><%= busca ? 'Nenhum local encontrado para essa busca. Tente outro nome ou bairro.' : 'Nenhum local nesta lista.' %></p>
+    <% if (!busca && filtro !== 'arquivado') { %><a class="botao" href="/painel/locais/novo">Cadastrar o primeiro local</a><% } %>
   </div>
   <% } else { %>
   <div class="tabela-rolagem">

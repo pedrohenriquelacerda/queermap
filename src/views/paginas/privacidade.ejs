@@ -14,10 +14,20 @@
     ferramentas de publicidade ou estatísticas de acesso.
   </p>
   <p>
-    As imagens do mapa são carregadas dos servidores do
+    O mapa usa imagens do
+    <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a>,
+    feitas com dados do
     <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer"
       >OpenStreetMap</a
-    >, que recebem o endereço IP do seu dispositivo para enviar essas imagens.
+    >. Se o seu navegador não for compatível com elas, usamos as imagens do OpenStreetMap. O seu
+    navegador se conecta direto a esses serviços, que recebem o endereço IP do seu dispositivo, a
+    região do mapa que você está vendo e o endereço do nosso site. Nós não temos acesso a esses
+    registros.
+  </p>
+  <p>
+    O botão <strong>Como chegar</strong> abre o Google Maps em outra aba, já com o local como
+    destino. A partir daí valem as regras de privacidade do Google. Nós não sabemos de onde você
+    sai nem recebemos nada do que acontece lá.
   </p>
 
   <h2>Sua localização</h2>
@@ -25,26 +35,34 @@
     <li>
       Ao abrir o mapa, o navegador pergunta se você permite usar sua localização. Se você permitir,
       ela é usada <strong>só no seu dispositivo</strong>, para centralizar o mapa: nunca é enviada
-      ao nosso servidor nem guardada.
+      ao nosso servidor nem guardada. Ao mover o mapa, as imagens da região são pedidas aos serviços
+      acima, que podem deduzir a área aproximada em que você está.
     </li>
     <li>
-      Se você preferir digitar um endereço, ele passa pelo nosso servidor e é consultado no
-      serviço de busca do OpenStreetMap (Nominatim) para encontrar o ponto no mapa. O endereço não
-      é guardado nem registrado.
+      Se você preferir digitar um endereço, o texto passa pelo nosso servidor e é enviado ao serviço
+      de busca do OpenStreetMap (Nominatim), sem o seu endereço IP, para encontrar o ponto no mapa.
+      Nós não guardamos nem registramos o endereço; o Nominatim pode registrar a consulta.
     </li>
   </ul>
 
   <h2>Ao enviar uma sugestão ou relato</h2>
   <ul>
     <li>
-      O endereço IP é usado apenas durante a requisição, para limitar abusos e realizar a
-      verificação anti-robô. <strong>Ele não é salvo no banco de dados</strong> nem associado ao
-      conteúdo enviado.
+      O endereço IP é usado só para limitar abusos e para a verificação anti-robô. Para limitar
+      abusos, o servidor mantém contadores na memória por até 1 hora.
+      <strong>O IP não é salvo no banco de dados</strong> nem associado ao conteúdo enviado.
     </li>
     <li>
-      Você confirma seu e-mail com um código. <strong>O e-mail não é guardado</strong>: o sistema
-      mantém apenas um código embaralhado (hash), que não permite descobrir o endereço, por até 30
-      dias, só para limitar a quantidade de envios por pessoa.
+      Você confirma seu e-mail com um código. <strong>O e-mail não é guardado em texto</strong>: o
+      sistema mantém apenas um código embaralhado (hash), calculado com uma chave secreta do
+      servidor, por até 30 dias, só para limitar a quantidade de envios por pessoa. Esse registro não
+      tem ligação com o que você enviou. Já o código de confirmação, que fica guardado junto com o
+      mesmo código embaralhado, é apagado em poucas horas; nesse intervalo, quem tivesse acesso ao
+      banco poderia relacioná-lo ao envio pelo horário.
+    </li>
+    <li>
+      Para entregar o código, o seu e-mail passa pelo nosso serviço de envio de e-mails, que pode
+      guardar o endereço e o horário do envio, conforme a política dele.
     </li>
     <li>
       Se você pedir que a ONG entre em contato, aí sim o e-mail é salvo junto com o envio, e
@@ -55,8 +73,25 @@
     </li>
     <li>
       A verificação anti-robô é feita pelo Cloudflare Turnstile, que processa dados técnicos do
-      navegador, incluindo o endereço IP, para diferenciar pessoas de robôs. Esses dados seguem
-      também as práticas de privacidade da Cloudflare.
+      navegador, incluindo o endereço IP, para diferenciar pessoas de robôs. Ele é carregado assim
+      que você abre o formulário, antes de enviar. Esses dados seguem também as práticas de
+      privacidade da Cloudflare.
+    </li>
+  </ul>
+
+  <h2>Onde ficam os dados e por quanto tempo</h2>
+  <ul>
+    <li>
+      Os dados ficam em serviços de hospedagem e de banco de dados que podem estar fora do Brasil
+      (hoje, nos Estados Unidos).
+    </li>
+    <li>
+      Códigos de confirmação e o hash do e-mail usado no limite de envios: apagados
+      automaticamente, em poucas horas e em 30 dias, respectivamente.
+    </li>
+    <li>
+      Sugestões, relatos e e-mails de contato: o prazo de guarda está sendo definido junto com a
+      ONG Somos e será informado aqui.
     </li>
   </ul>
 
@@ -69,8 +104,10 @@
   <h2>Cookies</h2>
   <p>
     Quem só visita o mapa não recebe nenhum cookie. O site usa um único cookie de sessão, e só em
-    dois casos: durante um envio (para guardar o texto entre o formulário e a confirmação do
-    código; o e-mail só entra nele se você pediu contato) e no login da equipe da ONG no painel.
+    dois casos: durante um envio e no login da equipe da ONG no painel. O cookie guarda apenas um
+    identificador. Durante o envio, o texto fica guardado no servidor, ligado a essa sessão, por até
+    30 minutos sem uso, só para você conseguir confirmar o código (o e-mail só entra se você pediu
+    contato).
   </p>
 </main>
 <%- include('../partials/foot') %>

@@ -28,18 +28,29 @@
 /* ─── 2. Tokens ──────────────────────────────────────────────────────────── */
 
 :root {
-  /* Cores principais */
-  --cor-primaria: #6b3fa0;
-  --cor-primaria-escura: #54307f;
-  --cor-primaria-clara: #f1ebf8;
+  /* Identidade da ONG Somos: roxo #7d4c98, rosa #e63087, turquesa #5ac0d0, creme #f7f5dd.
+   * Contrastes (WCAG): roxo e roxo-escuro servem para texto e botões (AA).
+   * Rosa e turquesa puros ficam abaixo de 4,5:1 sobre branco, então são só detalhe,
+   * fundo e texto grande; para texto pequeno use as versões "-escura". */
+  --cor-primaria: #7d4c98;
+  --cor-primaria-escura: #5f3877;
+  --cor-primaria-clara: #f0e8f5;
+  --cor-destaque: #e63087;
+  --cor-destaque-escura: #b8246c;
+  --cor-destaque-clara: #fde7f1;
+  --cor-destaque-forte: #961d57;
+  --cor-apoio: #5ac0d0;
+  --cor-apoio-escura: #17707d;
+  --cor-apoio-clara: #e3f4f7;
+  --cor-creme: #f7f5dd;
 
   /* Superfícies e texto */
-  --cor-fundo: #faf9fb;
+  --cor-fundo: var(--cor-creme);
   --cor-superficie: #fff;
   --cor-texto: #1f1d24;
   --cor-suave: #5c5768;
-  --cor-borda: #e2dde8;
-  --cor-borda-forte: #b9b1c4;
+  --cor-borda: #e0dcc0;
+  --cor-borda-forte: #857d92;
   --cor-foco: #1f1d24;
 
   /* Estados (texto escuro sobre fundo claro: contraste AA) */
@@ -349,15 +360,18 @@ textarea {
   color: var(--cor-primaria-escura);
 }
 
+/* Chamada principal do site: o rosa da ONG, o único bloco de cor cheia no topo */
 .nav a.nav__destaque {
   margin-left: var(--esp-1);
-  border: 1px solid var(--cor-primaria);
-  color: var(--cor-primaria);
+  border: 1px solid var(--cor-destaque-escura);
+  background: var(--cor-destaque-escura);
+  color: #fff;
 }
 
 .nav a.nav__destaque:hover,
 .nav a.nav__destaque[aria-current='page'] {
-  background: var(--cor-primaria);
+  border-color: var(--cor-destaque-forte);
+  background: var(--cor-destaque-forte);
   color: #fff;
   box-shadow: none;
   border-radius: var(--raio);
@@ -586,12 +600,13 @@ textarea {
 }
 
 /* Etiqueta */
+/* Características do local: turquesa da ONG, para não se confundir com ações e categorias (roxo) */
 .etiqueta {
   display: inline-block;
   padding: 0.125rem var(--esp-2);
   border-radius: var(--raio-pilula);
-  background: var(--cor-primaria-clara);
-  color: var(--cor-primaria-escura);
+  background: var(--cor-apoio-clara);
+  color: var(--cor-apoio-escura);
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1.5;
