@@ -6,7 +6,7 @@
   const temContato = telefone || whatsapp || local.email || site;
 %>
 <main id="conteudo" class="conteudo conteudo--largo local">
-  <p><a class="voltar" href="/">← Voltar para o mapa</a></p>
+  <p><a class="voltar" href="/"><span aria-hidden="true">←</span> Voltar para o mapa</a></p>
 
   <header class="local__cabecalho">
     <p class="rotulo-categoria <%= fmt.classeCategoria(local.categoria) %>"><%= local.categoria.nome %></p>
@@ -24,7 +24,7 @@
           <%= fmt.endereco(local) %><% if (local.cep) { %><br />CEP <%= local.cep %><% } %>
         </p>
         <p>
-          <a class="botao botao--secundario botao--pequeno" href="<%= fmt.linkComoChegar(local) %>" target="_blank" rel="noopener noreferrer">Como chegar</a>
+          <a class="botao botao--secundario botao--pequeno" href="<%= fmt.linkComoChegar(local) %>" target="_blank" rel="noopener noreferrer" aria-label="Como chegar a <%= local.nome %> (abre em nova aba)">Como chegar</a>
         </p>
       </section>
 
@@ -40,9 +40,9 @@
         <h2>Contato</h2>
         <div class="acoes">
           <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>">Ligar <%= local.telefone %></a><% } %>
-          <% if (whatsapp) { %><a class="botao botao--pequeno botao--secundario" href="<%= whatsapp %>" target="_blank" rel="noopener noreferrer">WhatsApp</a><% } %>
-          <% if (local.email) { %><a class="botao botao--pequeno botao--secundario" href="mailto:<%= local.email %>">E-mail</a><% } %>
-          <% if (site) { %><a class="botao botao--pequeno botao--secundario" href="<%= site %>" target="_blank" rel="noopener noreferrer">Site</a><% } %>
+          <% if (whatsapp) { %><a class="botao botao--pequeno botao--secundario" href="<%= whatsapp %>" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp de <%= local.nome %> (abre em nova aba)">WhatsApp</a><% } %>
+          <% if (local.email) { %><a class="botao botao--pequeno botao--secundario" href="mailto:<%= local.email %>" aria-label="E-mail de <%= local.nome %>">E-mail</a><% } %>
+          <% if (site) { %><a class="botao botao--pequeno botao--secundario" href="<%= site %>" target="_blank" rel="noopener noreferrer" aria-label="Site de <%= local.nome %> (abre em nova aba)">Site</a><% } %>
         </div>
       </section>
       <% } %>
@@ -51,7 +51,7 @@
     <div
       id="mapa-local"
       class="mapa-local"
-      role="img"
+      role="group"
       aria-label="Localização de <%= local.nome %> no mapa"
       data-lat="<%= local.latitude %>"
       data-lng="<%= local.longitude %>"

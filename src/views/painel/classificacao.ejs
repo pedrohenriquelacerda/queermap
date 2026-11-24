@@ -5,7 +5,8 @@
   </div>
   <p class="campo__ajuda">
     Itens desativados deixam de aparecer no formulário de locais e nos filtros do mapa, mas o
-    histórico é mantido. O endereço usado nos links de filtro não muda ao renomear.
+    histórico é mantido. Ao renomear um item, os links de filtro que já existem continuam
+    funcionando.
   </p>
 
   <section class="cartao">
@@ -16,7 +17,7 @@
           <tr>
             <th scope="col" class="celula-reordenar"><span class="visualmente-oculto">Ordem</span></th>
             <th scope="col">Nome</th>
-            <th scope="col">Cor no mapa</th>
+            <th scope="col">Bandeira no mapa</th>
             <th scope="col">Ativo</th>
             <th scope="col">Locais</th>
             <th scope="col"><span class="visualmente-oculto">Ações</span></th>
@@ -26,7 +27,7 @@
           <% categorias.forEach((c, idx) => { const f = `cat-${c.id}`; %>
           <tr draggable="true" data-id="<%= c.id %>" class="linha-arrastavel">
             <td class="celula-reordenar">
-              <span class="alca-arrasto" title="Arraste para reordenar" aria-hidden="true" tabindex="0" role="button" aria-label="Arraste para reordenar <%= c.nome %>">⠿</span>
+              <span class="alca-arrasto" title="Arraste para reordenar" aria-hidden="true">⠿</span>
               <div class="botoes-reordenar">
                 <form method="post" action="/painel/classificacao/categoria/<%= c.id %>/mover" class="form-mover">
                   <input type="hidden" name="direcao" value="subir">
@@ -42,7 +43,7 @@
             <td>
               <span class="tipo-celula">
                 <span class="bolinha marcador--<%= c.icone || 'padrao' %>" aria-hidden="true"></span>
-                <select form="<%= f %>" name="icone" aria-label="Cor no mapa">
+                <select form="<%= f %>" name="icone" aria-label="Bandeira no mapa">
                   <% for (const cor of cores) { %>
                   <option value="<%= cor.valor %>" <%= c.icone === cor.valor ? 'selected' : '' %>><%= cor.texto %></option>
                   <% } %>
@@ -53,7 +54,7 @@
             <td><%= c._count.locais %></td>
             <td>
               <form id="<%= f %>" method="post" action="/painel/classificacao/categoria/<%= c.id %>">
-                <button class="botao botao--secundario botao--pequeno">Salvar</button>
+                <button class="botao botao--secundario botao--pequeno" aria-label="Salvar <%= c.nome %>">Salvar</button>
               </form>
             </td>
           </tr>
@@ -66,12 +67,12 @@
       <h3>Novo tipo de serviço</h3>
       <div class="form-inline__campos form-inline__campos--dois">
         <%- include('../partials/campo', { id: 'nova-categoria-nome', nome: 'nome', rotulo: 'Nome', valor: novo_categoria.nome, erros: erros_categoria, attrs: { required: true, maxlength: 80 } }) %>
-        <%- include('../partials/campo', { id: 'nova-categoria-icone', nome: 'icone', rotulo: 'Cor no mapa', tipo: 'select', valor: novo_categoria.icone, opcoes: cores, erros: erros_categoria }) %>
+        <%- include('../partials/campo', { id: 'nova-categoria-icone', nome: 'icone', rotulo: 'Bandeira no mapa', tipo: 'select', valor: novo_categoria.icone, opcoes: cores, ajuda: 'A bandeira do orgulho que identifica este tipo de serviço no mapa e nos filtros.', erros: erros_categoria }) %>
       </div>
       <p class="campo__ajuda">
         Novos tipos de serviço são adicionados ao final da lista e podem ser reordenados arrastando ou usando as setas.
       </p>
-      <button class="botao">Adicionar</button>
+      <button class="botao">Adicionar tipo de serviço</button>
     </form>
   </section>
 
@@ -97,7 +98,7 @@
             <td><%= c._count.locais %></td>
             <td>
               <form id="<%= f %>" method="post" action="/painel/classificacao/caracteristica/<%= c.id %>">
-                <button class="botao botao--secundario botao--pequeno">Salvar</button>
+                <button class="botao botao--secundario botao--pequeno" aria-label="Salvar <%= c.nome %>">Salvar</button>
               </form>
             </td>
           </tr>
@@ -112,7 +113,7 @@
         <%- include('../partials/campo', { id: 'nova-car-nome', nome: 'nome', rotulo: 'Nome', valor: novo_caracteristica.nome, erros: erros_caracteristica, attrs: { required: true, maxlength: 80 } }) %>
         <%- include('../partials/campo', { id: 'nova-car-descricao', nome: 'descricao', rotulo: 'Descrição', valor: novo_caracteristica.descricao, opcional: true, erros: erros_caracteristica, ajuda: 'Explica o critério, se precisar.', attrs: { maxlength: 200 } }) %>
       </div>
-      <button class="botao">Adicionar</button>
+      <button class="botao">Adicionar característica</button>
     </form>
   </section>
 </main>

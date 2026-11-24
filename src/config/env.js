@@ -52,4 +52,9 @@ export const env = {
   // Ambiente de demonstração (Render): mostra em todas as páginas que os dados são fictícios,
   // para ninguém enviar um relato real a um banco de teste.
   demonstracao: process.env.AMBIENTE_DEMONSTRACAO === 'true',
+
+  // Usada só por `npm run teste:carga` / `teste:sobrecarga` (scripts/teste-carga.js): desliga o
+  // limitador global de requisições e liga o cache de views, para medir a capacidade do
+  // servidor em vez do limite por IP. É ignorada em produção.
+  testeDeCarga: !isProduction && process.env.TESTE_DE_CARGA === 'true',
 };

@@ -54,3 +54,35 @@ test('erro interno não leva dados do usuário para o log', async (t) => {
   assert.match(log, /at /); // onde aconteceu continua no log
   assert.doesNotMatch(log, /Sofri preconceito|pessoa@teste\.test/);
 });
+
+test('mapa base sem ícones de comércio: OpenFreeMap na CSP e MapLibre servido localmente', async () => {
+  const res = await request(app).get('/sobre');
+  const csp = res.headers['content-security-policy'];
+  assert.match(csp, /connect-src[^;]*https:\/\/tiles\.openfreemap\.org/);
+  assert.match(csp, /worker-src 'self'/);
+  assert.doesNotMatch(csp, /cartocdn/);
+
+  for (const arquivo of [
+    '/vendor/maplibre/maplibre-gl.mjs',
+    '/vendor/maplibre/maplibre-gl-worker.mjs',
+    '/vendor/maplibre/maplibre-gl.css',
+    '/vendor/maplibre-leaflet/leaflet-maplibre-gl.js',
+  ]) {
+    const resposta = await request(app).get(arquivo);
+    assert.equal(resposta.status, 200, arquivo);
+  }
+  const modulo = await request(app).get('/vendor/maplibre/maplibre-gl.mjs');
+  assert.match(modulo.headers['content-type'], /javascript/);
+});
+
+test('arquivos estáticos são comprimidos, mas o HTML não', async () => {
+  const js = await request(app)
+    .get('/vendor/maplibre/maplibre-gl.mjs')
+    .set('Accept-Encoding', 'gzip');
+  assert.equal(js.status, 200);
+  assert.equal(js.headers['content-encoding'], 'gzip');
+
+  const pagina = await request(app).get('/sobre').set('Accept-Encoding', 'gzip');
+  assert.equal(pagina.status, 200);
+  assert.equal(pagina.headers['content-encoding'], undefined);
+});

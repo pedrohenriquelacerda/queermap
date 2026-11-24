@@ -1,13 +1,13 @@
 <%- include('../../partials/head') %>
 <%
   const opcoesPapel = [
-    { valor: 'EDITOR', texto: 'Edição: cadastra locais e lê envios' },
-    { valor: 'ADMIN', texto: 'Administração: tudo, inclusive pessoas' },
+    { valor: 'EDITOR', texto: 'Edição: cadastra locais e lê os envios' },
+    { valor: 'ADMIN', texto: 'Administração: faz tudo, inclusive gerenciar pessoas' },
   ];
   const ehVoce = editando && pessoa.id === admin.id;
 %>
 <main id="conteudo" class="painel-conteudo painel-conteudo--estreito">
-  <p><a class="voltar" href="/painel/pessoas">← Pessoas</a></p>
+  <p><a class="voltar" href="/painel/pessoas"><span aria-hidden="true">←</span> Voltar para Pessoas</a></p>
   <div class="cabecalho-pagina">
     <h1><%= editando ? pessoa.nome : 'Nova pessoa' %></h1>
   </div>
@@ -44,13 +44,13 @@
     </div>
     <% } else { %>
     <p class="campo__ajuda">
-      O sistema vai gerar uma senha provisória para você repassar. No primeiro acesso, a pessoa
-      cria a própria senha.
+      O sistema vai gerar uma senha provisória para você repassar a essa pessoa. No primeiro acesso,
+      ela cria a própria senha.
     </p>
     <% } %>
 
     <div class="acoes">
-      <button type="submit" class="botao"><%= editando ? 'Salvar' : 'Cadastrar e gerar senha' %></button>
+      <button type="submit" class="botao"><%= editando ? 'Salvar alterações' : 'Cadastrar e gerar senha' %></button>
       <a class="botao botao--fantasma" href="/painel/pessoas">Cancelar</a>
     </div>
   </form>
@@ -59,10 +59,10 @@
   <form class="cartao zona-perigo" method="post" action="/painel/pessoas/<%= pessoa.id %>/2fa">
     <h2>Redefinir verificação em duas etapas</h2>
     <p>
-      Remove o aplicativo autenticador e os códigos de recuperação. No próximo login, a pessoa
+      Remove o aplicativo autenticador e os códigos de recuperação. No próximo acesso, a pessoa
       ativa de novo.
     </p>
-    <button type="submit" class="botao botao--secundario">Redefinir 2FA</button>
+    <button type="submit" class="botao botao--secundario">Redefinir verificação em duas etapas</button>
   </form>
   <% } %>
 

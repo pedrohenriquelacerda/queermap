@@ -4,8 +4,9 @@
     <h1>Canais de denúncia</h1>
   </div>
   <p class="campo__ajuda">
-    Atualize os contatos oficiais exibidos no formulário de discriminação e na página pública.
-    Canais inativos deixam de aparecer para o público, mas podem ser reativados depois.
+    Atualize os contatos oficiais que o público vê na página Canais de denúncia e no formulário de
+    envio, quando a pessoa escolhe relatar discriminação. Canais inativos deixam de aparecer para o
+    público, mas podem ser reativados depois.
   </p>
 
   <% if (emEdicao) { %>
@@ -32,14 +33,14 @@
         <div class="form-inline__campos">
           <%- campoCanal({ nome: 'telefone', rotulo: 'Telefone', valor: v.telefone, attrs: { required: true, maxlength: 40 } }) %>
           <%- campoCanal({ nome: 'link', rotulo: 'Link oficial', tipo: 'url', valor: v.link, ajuda: 'Começa com http:// ou https://', attrs: { required: true, maxlength: 500 } }) %>
-          <%- campoCanal({ nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: v.ordem, attrs: { min: 0, max: 99 } }) %>
+          <%- campoCanal({ nome: 'ordem', rotulo: 'Ordem', tipo: 'number', valor: v.ordem, ajuda: 'Quanto menor o número, mais acima o canal aparece.', attrs: { min: 0, max: 99 } }) %>
         </div>
         <label class="opcao">
           <input type="checkbox" name="ativo" <%= v.ativo ? 'checked' : '' %> />
           <span>Exibir para o público</span>
         </label>
       </div>
-      <button class="botao">Salvar canal</button>
+      <button class="botao" aria-label="Salvar canal <%= canal.nome %>">Salvar canal</button>
     </form>
     <% } %>
   </div>

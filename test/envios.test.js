@@ -136,7 +136,11 @@ test('fluxo completo: formulário, código por e-mail e confirmação', async ()
   assert.equal(envios[0].tipo, 'RECLAMACAO');
   assert.equal(envios[0].localId, 4);
   assert.equal(envios[0].emailContato, null); // não pediu contato: e-mail não é salvo
-  assert.deepEqual(registros, [{ emailHash: hashEmail('pessoa@teste.test') }]);
+  // O registro do limite guarda o hash e só a data (meia-noite UTC), nunca o horário do envio.
+  assert.equal(registros.length, 1);
+  assert.deepEqual(Object.keys(registros[0]).sort(), ['criadoEm', 'emailHash']);
+  assert.equal(registros[0].emailHash, hashEmail('pessoa@teste.test'));
+  assert.equal(registros[0].criadoEm.getTime() % (24 * 60 * 60 * 1000), 0);
   assert.ok(!JSON.stringify(verificacoes).includes(codigoDoEmail())); // só o hash do código
 
   const persistido = JSON.stringify({ envios, registros, verificacoes });

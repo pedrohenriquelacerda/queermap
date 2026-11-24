@@ -50,7 +50,8 @@
 
     <div class="alerta alerta--aviso" data-se-tipo="DISCRIMINACAO" hidden>
       <p>
-        Se você está em perigo imediato, ligue <a href="tel:190">190</a> ou <a href="tel:192">192</a>.
+        Se você está em perigo imediato, ligue <a href="tel:190">190</a> (Polícia Militar) ou
+        <a href="tel:192">192</a> (SAMU).
         <%# Botão, e não link: sair da página faria perder o relato já escrito. %>
         <button type="button" class="botao-link" data-abrir-canais>Ver os canais oficiais de denúncia</button>.
       </p>
@@ -66,20 +67,20 @@
     <div data-se-tipo="ELOGIO RECLAMACAO DISCRIMINACAO">
       <%- campo({ nome: 'localId', rotulo: 'Sobre qual local?', tipo: 'select', valor: valores.localId, opcoes: opcoesLocal, attrs: { required: true } }) %>
       <div data-se-outro-lugar>
-        <%- campo({ nome: 'nomeLocalRelato', rotulo: 'Nome do lugar', valor: valores.nomeLocalRelato, ajuda: 'Só se escolheu "Outro lugar". Ex.: UBS Santa Cecília, Hospital X.', attrs: { maxlength: 150 } }) %>
+        <%- campo({ nome: 'nomeLocalRelato', rotulo: 'Nome do lugar', valor: valores.nomeLocalRelato, ajuda: 'Preencha só se escolheu "Outro lugar". Ex.: UBS Santa Cecília.', attrs: { maxlength: 150 } }) %>
       </div>
     </div>
 
     <%- campo({ nome: 'mensagem', rotulo: 'Sua mensagem', tipo: 'textarea', valor: valores.mensagem, ajuda: 'Conte o que aconteceu ou por que o local deveria estar no mapa. Até 2.000 caracteres.', attrs: { required: true, minlength: 10, maxlength: 2000, rows: 6 } }) %>
 
-    <%- campo({ nome: 'email', rotulo: 'Seu e-mail', tipo: 'email', valor: '', ajuda: 'Para enviar um código de confirmação. O e-mail não fica guardado.', attrs: { required: true, autocomplete: 'email' } }) %>
+    <%- campo({ nome: 'email', rotulo: 'Seu e-mail', tipo: 'email', valor: '', ajuda: 'Usamos para enviar um código de confirmação. O e-mail só é guardado se você marcar a opção de contato abaixo.', attrs: { required: true, autocomplete: 'email' } }) %>
 
     <div class="campo">
       <label class="opcao">
         <input type="checkbox" name="desejaContato" <%= valores.desejaContato === 'on' || valores.desejaContato === true ? 'checked' : '' %> />
         <span>
-          Quero que a ONG entre em contato comigo
-          <span class="campo__ajuda">Só nesse caso o e-mail é salvo, e apenas a equipe da ONG tem acesso.</span>
+          Quero que a ONG Somos possa entrar em contato comigo
+          <span class="campo__ajuda">Se marcar, guardamos seu e-mail para isso. Só a equipe da ONG Somos tem acesso.</span>
         </span>
       </label>
     </div>
@@ -87,11 +88,14 @@
     <div class="campo">
       <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-language="pt-br"></div>
       <noscript>
-        <p class="campo__erro">A verificação anti-robô precisa de JavaScript ativado.</p>
+        <p class="campo__erro">Ative o JavaScript do navegador para fazer a verificação anti-robô e conseguir enviar.</p>
       </noscript>
     </div>
 
-    <button type="submit" class="botao">Continuar</button>
+    <p class="campo__ajuda">
+      Você termina o envio na próxima etapa, com o código que mandaremos para o seu e-mail.
+    </p>
+    <button type="submit" class="botao">Continuar e receber o código</button>
     <p class="campo__ajuda form-envio__privacidade">
       Veja como tratamos seus dados na página de <a href="/privacidade">Privacidade</a>.
     </p>

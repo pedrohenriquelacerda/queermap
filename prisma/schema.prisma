@@ -246,10 +246,12 @@ model VerificacaoEmail {
   @@map("verificacao_email")
 }
 
-// Conta envios por e-mail (hash) para o limite por pessoa. Apagado após 30 dias.
-// Propositalmente sem ligação com Envio: não dá para saber quem enviou o quê.
+// Conta envios por e-mail (hash) para o limite por pessoa. Apagado após 30 dias
+// (src/services/limpezaService.js).
+// Propositalmente sem ligação com Envio: o id é aleatório (um id sequencial seguiria a ordem
+// dos envios) e criadoEm guarda só a data, à meia-noite UTC (o horário exato casaria com o do envio).
 model RegistroEnvio {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid()) @db.Uuid
   emailHash String   @map("email_hash")
   criadoEm  DateTime @default(now()) @map("criado_em")
 

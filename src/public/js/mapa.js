@@ -1,9 +1,9 @@
 // Mapa SerQueer · mapa da página inicial (com busca/filtros) e mapa da página do local.
 // Os dados e a lista vêm prontos do servidor; aqui só filtramos e desenhamos marcadores.
 
+import { adicionarMapaBase } from './mapa-base.js';
+
 const PORTO_ALEGRE = [-30.0346, -51.2177];
-const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const ATRIBUICAO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 const celular = window.matchMedia('(max-width: 47.99rem)');
 
 // Localização de quem usa o mapa
@@ -60,13 +60,35 @@ function iniciarExplorar(locais) {
   let centroPessoa = null;
   const visaoInicial = () => (centroPessoa ? centralizar(mapa, centroPessoa) : enquadrar());
   const { marcarInteracao, interagiu } = reajustarAoRedimensionar(mapa, visaoInicial);
-  configurarLocalizacao(mapa, {
+
+  // Os filtros são ligados logo abaixo; a posição só chega quando o navegador responde.
+  let filtros = null;
+  const { buscarPerto } = configurarLocalizacao(mapa, {
     interagiu,
     aoCentralizar: (posicao) => (centroPessoa = posicao),
+    aoLocalizar: (posicao, origem) => filtros?.definirPosicao(posicao, origem),
   });
 
   const alternarModo = configurarModos();
-  configurarFiltros({ marcadores, camada, enquadrar });
+  filtros = configurarFiltros({ locais, marcadores, camada, enquadrar });
+  configurarFolhaFiltros();
+
+  // "Perto de mim": no celular leva ao mapa, onde o navegador pede a permissão (ou aparece o
+  // campo de endereço). A lista passa a ficar do mais perto ao mais longe.
+  const perto = document.getElementById('perto-de-mim');
+  if (perto) {
+    perto.hidden = false; // só funciona com JavaScript
+    perto.addEventListener('click', () => {
+      if (celular.matches) {
+        alternarModo('mapa');
+        mapa.invalidateSize();
+      }
+      buscarPerto();
+    });
+    document
+      .getElementById('perto-limpar')
+      .addEventListener('click', () => filtros?.limparPosicao());
+  }
 
   // "Ver no mapa": abre o popup do local (no celular, troca para o modo mapa antes).
   document.getElementById('lista-locais')?.addEventListener('click', (evento) => {
@@ -94,22 +116,24 @@ function configurarModos() {
   return alternar;
 }
 
-function configurarFiltros({ marcadores, camada, enquadrar }) {
+function configurarFiltros({ locais, marcadores, camada, enquadrar }) {
   const form = document.getElementById('filtros');
-  if (!form) return;
+  if (!form) return null;
   const busca = form.elements.q;
   const itens = [...document.querySelectorAll('.cartao-local')];
   const contagem = document.getElementById('contagem');
+  const numeros = document.querySelectorAll('[data-contagem-numero]');
+  const rotulos = document.querySelectorAll('[data-contagem-rotulo]');
   const avisosVazio = document.querySelectorAll('[data-aviso-vazio]');
-  const limpar = document.getElementById('limpar');
+  const botoesLimpar = document.querySelectorAll('[data-limpar]');
   const atalhos = document.querySelectorAll('[data-atalho-tipo]');
   const caixaDoTipo = (slug) => form.querySelector(`input[name=tipo][value="${slug}"]`);
 
-  // Restaura filtros da URL (link compartilhável).
+  // Restaura filtros da URL (link compartilhável). Tipos sem locais ficam desabilitados.
   const params = new URLSearchParams(location.search);
   busca.value = params.get('q') ?? '';
   for (const caixa of form.querySelectorAll('input[type=checkbox]')) {
-    caixa.checked = params.getAll(caixa.name).includes(caixa.value);
+    caixa.checked = !caixa.disabled && params.getAll(caixa.name).includes(caixa.value);
   }
 
   const aplicar = ({ reenquadrar = true } = {}) => {
@@ -136,7 +160,10 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
       }
     }
 
-    contagem.textContent = `${visiveis} ${visiveis === 1 ? 'local' : 'locais'}`;
+    const rotulo = visiveis === 1 ? 'local' : 'locais';
+    contagem.textContent = `${visiveis} ${rotulo}`;
+    for (const n of numeros) n.textContent = String(visiveis);
+    for (const r of rotulos) r.textContent = rotulo;
     const mensagem = mensagemVazio({ termos, tipos, caracteristicas });
     for (const aviso of avisosVazio) {
       aviso.textContent = mensagem;
@@ -146,9 +173,13 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
       atalho.setAttribute('aria-pressed', String(tipos.includes(atalho.dataset.atalhoTipo)));
     }
     const temFiltro = termos.length > 0 || tipos.length > 0 || caracteristicas.length > 0;
-    limpar.hidden = !temFiltro;
+    for (const botao of botoesLimpar) botao.hidden = !temFiltro;
     atualizarContador('tipo', tipos.length);
-    atualizarContador('car', caracteristicas.length);
+    atualizarContador(
+      'car-mais',
+      form.querySelectorAll('.filtros__mais input[name=car]:checked').length,
+    );
+    atualizarContador('total', tipos.length + caracteristicas.length);
     atualizarUrl(busca.value.trim(), tipos, caracteristicas);
     if (reenquadrar) enquadrar();
   };
@@ -175,19 +206,128 @@ function configurarFiltros({ marcadores, camada, enquadrar }) {
     faixaRolavel(barraAtalhos.querySelector('.atalhos-tipo__botoes'));
   }
 
-  limpar.addEventListener('click', () => {
-    form.reset();
-    busca.value = '';
-    for (const caixa of form.querySelectorAll('input[type=checkbox]')) caixa.checked = false;
-    aplicar();
-    busca.focus();
-  });
+  for (const botao of botoesLimpar) {
+    botao.addEventListener('click', () => {
+      form.reset();
+      busca.value = '';
+      for (const caixa of form.querySelectorAll('input[type=checkbox]')) caixa.checked = false;
+      aplicar();
+      // Com a folha de filtros aberta (celular), o foco fica nela.
+      if (document.querySelector('.explorar').dataset.folha !== 'aberta') busca.focus();
+    });
+  }
 
   // Abre os grupos que já vêm com filtro marcado pela URL.
   for (const grupo of form.querySelectorAll('details')) {
     if (grupo.querySelector('input:checked')) grupo.open = true;
   }
   aplicar({ reenquadrar: params.size > 0 });
+
+  // ─── Ordem por proximidade ────────────────────────────────────────────────
+  // A posição de quem usa fica só no navegador: aqui ela só ordena a lista.
+  const lista = document.getElementById('lista-locais');
+  const ordemOriginal = [...itens];
+  const coordenadas = new Map(locais.map((l) => [String(l.id), L.latLng(l.lat, l.lng)]));
+  const status = document.getElementById('perto-status');
+  const statusTexto = document.getElementById('perto-texto');
+
+  const distanciaDo = (item) => {
+    let el = item.querySelector('.cartao-local__distancia');
+    if (!el) {
+      el = criar('p', 'cartao-local__distancia');
+      item.querySelector('.cartao-local__endereco').after(el);
+    }
+    return el;
+  };
+
+  return {
+    definirPosicao(posicao, origem) {
+      const doEndereco = origem === 'endereco';
+      const porDistancia = itens
+        .map((item) => ({ item, metros: posicao.distanceTo(coordenadas.get(item.dataset.id)) }))
+        .sort((a, b) => a.metros - b.metros);
+      lista.append(...porDistancia.map(({ item }) => item));
+      for (const { item, metros } of porDistancia) {
+        const referencia = doEndereco ? 'do endereço informado' : 'de você';
+        distanciaDo(item).textContent = `A ${formatarDistancia(metros)} ${referencia}`;
+      }
+      statusTexto.textContent = doEndereco
+        ? 'Do mais perto ao mais longe do endereço informado.'
+        : 'Do mais perto ao mais longe de você.';
+      status.hidden = false;
+    },
+    limparPosicao() {
+      lista.append(...ordemOriginal);
+      for (const item of itens) item.querySelector('.cartao-local__distancia')?.remove();
+      status.hidden = true;
+    },
+  };
+}
+
+// Celular: os filtros viram uma folha que sobe por baixo. No computador ficam sempre na lateral
+// e nada disto é usado (o botão e o fundo ficam escondidos pelo CSS).
+function configurarFolhaFiltros() {
+  const principal = document.querySelector('.explorar');
+  const abrir = document.getElementById('abrir-filtros');
+  const corpo = document.getElementById('filtros-corpo');
+  if (!abrir || !corpo) return;
+
+  const aberta = () => principal.dataset.folha === 'aberta';
+
+  const abrirFolha = () => {
+    principal.dataset.folha = 'aberta';
+    abrir.setAttribute('aria-expanded', 'true');
+    corpo.setAttribute('role', 'dialog');
+    corpo.setAttribute('aria-modal', 'true');
+    corpo.setAttribute('aria-labelledby', 'filtros-titulo');
+    corpo.querySelector('[data-fechar-folha]').focus();
+  };
+  const fecharFolha = ({ devolverFoco = true } = {}) => {
+    if (!aberta()) return;
+    delete principal.dataset.folha;
+    abrir.setAttribute('aria-expanded', 'false');
+    for (const atributo of ['role', 'aria-modal', 'aria-labelledby']) {
+      corpo.removeAttribute(atributo);
+    }
+    if (devolverFoco) abrir.focus();
+  };
+
+  abrir.addEventListener('click', abrirFolha);
+  for (const el of principal.querySelectorAll('[data-fechar-folha]')) {
+    el.addEventListener('click', () => fecharFolha());
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!aberta()) return;
+    if (e.key === 'Escape') return fecharFolha();
+    if (e.key !== 'Tab') return;
+    // Mantém o Tab dentro da folha enquanto ela está aberta.
+    const focaveis = [...corpo.querySelectorAll('button, summary, input:not([disabled])')].filter(
+      (el) => el.offsetParent !== null,
+    );
+    const primeiro = focaveis[0];
+    const ultimo = focaveis.at(-1);
+    if (e.shiftKey && document.activeElement === primeiro) {
+      ultimo.focus();
+      e.preventDefault();
+    } else if (!e.shiftKey && document.activeElement === ultimo) {
+      primeiro.focus();
+      e.preventDefault();
+    }
+  });
+
+  // Se a tela passa a ser larga (girar o aparelho, redimensionar), a folha não faz mais sentido.
+  celular.addEventListener('change', () => {
+    if (!celular.matches) fecharFolha({ devolverFoco: false });
+  });
+}
+
+// 850 m, 1,2 km, 12 km
+function formatarDistancia(metros) {
+  const arredondado = Math.max(10, Math.round(metros / 10) * 10);
+  if (arredondado < 1000) return `${arredondado} m`;
+  const km = metros / 1000;
+  return `${km.toLocaleString('pt-BR', { maximumFractionDigits: km < 10 ? 1 : 0 })} km`;
 }
 
 function faixaRolavel(faixa) {
@@ -275,10 +415,11 @@ function atualizarUrl(q, tipos, caracteristicas) {
 // A posição do GPS fica só no navegador: nunca é enviada ao servidor. Só o endereço
 // digitado (quando a pessoa não libera o GPS) passa pelo servidor, a caminho do Nominatim.
 
-function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
+function configurarLocalizacao(mapa, { interagiu, aoCentralizar, aoLocalizar }) {
   const regiao = L.latLngBounds(GRANDE_POA);
   const painel = configurarPainelEndereco(mapa, (posicao) => {
     mostrarPessoa(posicao, 'Endereço informado');
+    aoLocalizar(posicao, 'endereco');
     irPara(posicao);
   });
   let marcador = null;
@@ -328,9 +469,11 @@ function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
         mostrarPessoa(posicao, 'Você está aqui', coords.accuracy);
         if (!automatico) {
           painel.fechar();
+          aoLocalizar(posicao, 'gps');
           return irPara(posicao);
         }
         if (!regiao.contains(posicao)) return painel.abrir(AVISOS.foraDaRegiao);
+        aoLocalizar(posicao, 'gps');
         if (!interagiu()) irPara(posicao);
       },
       (erro) => {
@@ -355,6 +498,7 @@ function configurarLocalizacao(mapa, { interagiu, aoCentralizar }) {
   adicionarControle(mapa, barra, 'topleft');
 
   localizar({ automatico: true });
+  return { buscarPerto: () => localizar({ automatico: false }) };
 }
 
 // Campo para digitar o endereço, sobre o mapa. aoEscolher recebe um L.LatLng.
@@ -440,8 +584,8 @@ function iniciarMapaLocal(el) {
 // ─── Comum ──────────────────────────────────────────────────────────────────
 
 function criarMapa(elemento, opcoes = {}) {
-  const mapa = L.map(elemento, opcoes).setView(PORTO_ALEGRE, 13);
-  L.tileLayer(TILES, { maxZoom: 19, attribution: ATRIBUICAO }).addTo(mapa);
+  const mapa = L.map(elemento, { maxZoom: 19, ...opcoes }).setView(PORTO_ALEGRE, 13);
+  adicionarMapaBase(mapa);
   return mapa;
 }
 

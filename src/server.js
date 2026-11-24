@@ -3,6 +3,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { prisma } from './db/prisma.js';
+import { agendarLimpeza } from './services/limpezaService.js';
 
 const PgStore = connectPgSimple(session);
 // A tabela "session" é criada pelas migrations do Prisma (model Session).
@@ -14,8 +15,12 @@ const server = app.listen(env.port, () => {
   console.log(`Servidor rodando em http://localhost:${env.port}`);
 });
 
+// Apaga códigos de confirmação e registros de limite vencidos (ao iniciar e a cada 6 h).
+const pararLimpeza = agendarLimpeza();
+
 async function shutdown(signal) {
   console.log(`${signal} recebido, encerrando...`);
+  pararLimpeza();
   server.close(async () => {
     sessionStore.close();
     await prisma.$disconnect();

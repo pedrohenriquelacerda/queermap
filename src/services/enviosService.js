@@ -48,11 +48,16 @@ export async function conferirCodigo(verificacaoId, emailHash, codigo) {
   return null;
 }
 
-// Grava o envio e conta mais um para o limite (sem ligação entre os dois registros).
+// Meia-noite (UTC) do dia: o registro do limite guarda só a data, nunca o horário do envio.
+const inicioDoDia = (data = new Date()) =>
+  new Date(Date.UTC(data.getUTCFullYear(), data.getUTCMonth(), data.getUTCDate()));
+
+// Grava o envio e conta mais um para o limite. O registro do limite tem id aleatório e só a data
+// (sem horário), para não dar para casar um envio com o hash de e-mail de quem o mandou.
 export function registrar(dados, emailHash) {
   return prisma.$transaction([
     prisma.envio.create({ data: dados }),
-    prisma.registroEnvio.create({ data: { emailHash } }),
+    prisma.registroEnvio.create({ data: { emailHash, criadoEm: inicioDoDia() } }),
   ]);
 }
 

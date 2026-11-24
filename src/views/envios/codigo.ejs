@@ -7,13 +7,14 @@
   </p>
 
   <form class="cartao" method="post" action="/enviar/confirmar" novalidate>
-    <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 7, pattern: '[0-9 ]*', autofocus: true, class: 'entrada-codigo' } }) %>
+    <%- include('../partials/campo', { nome: 'codigo', rotulo: 'Código de 6 números', valor: '', erros: erro ? { codigo: erro } : {}, attrs: { required: true, inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 7, pattern: '[0-9 ]*', autofocus: true, class: 'entrada-codigo' } }) %>
     <button type="submit" class="botao">Confirmar e enviar</button>
   </form>
 
   <p class="campo__ajuda">
-    Não chegou? Confira a caixa de spam ou <a href="/enviar">volte e envie de novo</a> (o texto que
-    você escreveu continua lá).
+    Não chegou? Olhe também a caixa de spam. Se continuar sem chegar,
+    <a href="/enviar">volte ao formulário e envie de novo</a>. O texto que você escreveu continua
+    lá.
   </p>
 </main>
 <%- include('../partials/foot') %>

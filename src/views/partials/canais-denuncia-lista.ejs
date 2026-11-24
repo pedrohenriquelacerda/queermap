@@ -7,14 +7,17 @@
     <h3><%= canal.nome %></h3>
     <p><%= canal.descricao %></p>
     <div class="contatos__acoes">
-      <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>">Ligar <%= canal.telefone %></a><% } %>
+      <% if (telefone) { %><a class="botao botao--pequeno" href="<%= telefone %>" aria-label="Ligar <%= canal.telefone %> (<%= canal.nome %>)">Ligar <%= canal.telefone %></a><% } %>
       <% if (link) { %>
-      <a class="botao botao--pequeno botao--secundario" href="<%= link %>" target="_blank" rel="noopener noreferrer">Acessar canal oficial</a>
+      <a class="botao botao--pequeno botao--secundario" href="<%= link %>" target="_blank" rel="noopener noreferrer" aria-label="Acessar canal oficial: <%= canal.nome %> (abre em nova aba)">Acessar canal oficial</a>
       <% } %>
     </div>
   </li>
   <% } %>
 </ul>
 <% } else { %>
-<p>Os canais oficiais estão temporariamente indisponíveis. Consulte a equipe da ONG Somos.</p>
+<p>
+  Os canais oficiais não estão disponíveis agora. Se precisar de ajuda para denunciar, procure a
+  equipe da ONG Somos.
+</p>
 <% } %>

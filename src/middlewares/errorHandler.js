@@ -3,11 +3,15 @@ export function errorHandler(err, req, res, _next) {
   if (status >= 500) console.error(resumoDoErro(err, req));
 
   // Detalhes de erros internos nunca vão para o usuário.
-  const mensagem = status >= 500 ? 'Algo deu errado. Tente novamente mais tarde.' : err.message;
+  const mensagem =
+    status >= 500
+      ? 'Não foi possível concluir o que você pediu. Tente novamente em alguns minutos.'
+      : err.message;
 
   res.status(status);
   if (req.accepts('html')) {
-    return res.render('erro', { title: 'Erro', status, mensagem });
+    const title = status >= 500 ? 'Algo deu errado' : 'Não foi possível continuar';
+    return res.render('erro', { title, status, mensagem });
   }
   res.json({ erro: mensagem });
 }

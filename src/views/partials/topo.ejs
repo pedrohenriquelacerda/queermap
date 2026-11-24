@@ -31,6 +31,7 @@
         href="<%= l.href %>"
         <% if (l.classe) { %>class="<%= l.classe %>"<% } %>
         <% if (caminho === l.href) { %>aria-current="page"<% } %>
+        <% if (l.curto) { %>aria-label="<%= l.texto %>"<% } %>
       >
         <% if (l.curto) { %>
         <span class="so-computador"><%= l.texto %></span><span class="so-celular"><%= l.curto %></span>

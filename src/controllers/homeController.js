@@ -1,6 +1,15 @@
 import * as locaisService from '../services/locaisService.js';
 import * as fmt from '../utils/formatadores.js';
 
+// Características que viram atalhos (chips) no topo dos filtros: as que mais pesam na hora de
+// decidir ir a um local. Para mudar, troque os slugs aqui; as demais ficam em "Mais características".
+export const CARACTERISTICAS_EM_DESTAQUE = [
+  'nome-social',
+  'gratuito-sus',
+  'oferece-prep',
+  'sem-agendamento',
+];
+
 export async function index(req, res) {
   const [locais, todasCategorias] = await Promise.all([
     locaisService.listarPublicados(),
@@ -16,6 +25,11 @@ export async function index(req, res) {
   const caracteristicas = unicos(locais.flatMap((l) => l.caracteristicas)).sort((a, b) =>
     a.nome.localeCompare(b.nome, 'pt-BR'),
   );
+
+  const destaque = CARACTERISTICAS_EM_DESTAQUE.map((slug) =>
+    caracteristicas.find((c) => c.slug === slug),
+  ).filter(Boolean);
+  const outras = caracteristicas.filter((c) => !CARACTERISTICAS_EM_DESTAQUE.includes(c.slug));
 
   // Só o que o mapa precisa, já formatado.
   const dadosMapa = locais.map((l) => ({
@@ -36,6 +50,8 @@ export async function index(req, res) {
     locais,
     categorias,
     caracteristicas,
+    destaque,
+    outras,
     dadosMapa,
   });
 }

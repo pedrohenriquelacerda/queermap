@@ -5,16 +5,20 @@ import { validar, texto, caixa, z } from '../../utils/validacao.js';
 
 // Cores disponíveis para os marcadores (definidas em mapa.css).
 // Mantém compatibilidade com categorias antigas e com valores desconhecidos.
+// Cada valor é uma bandeira do orgulho no mapa (veja as variáveis --bandeira-* e --cat-* em
+// src/public/css/mapa.css). As chaves já existiam no banco e não mudam; só o visual.
 export const CORES = [
-  { valor: 'ambulatorio', texto: 'Roxo' },
-  { valor: 'ong', texto: 'Rosa' },
-  { valor: 'saude-sexual', texto: 'Verde-azulado' },
-  { valor: 'abrigo', texto: 'Laranja' },
-  { valor: 'albergue', texto: 'Laranja escuro' },
-  { valor: 'centro-pop', texto: 'Roxo escuro' },
-  { valor: 'casa-cidadania', texto: 'Azul ciano' },
-  { valor: 'acolhimento', texto: 'Azul legado' },
-  { valor: 'padrao', texto: 'Cinza' },
+  { valor: 'ong', texto: 'Arco-íris (LGBTQIA+)' },
+  { valor: 'abrigo', texto: 'Bandeira lésbica' },
+  { valor: 'albergue', texto: 'Bandeira não-binária' },
+  { valor: 'centro-pop', texto: 'Bandeira aromântica' },
+  { valor: 'ambulatorio', texto: 'Bandeira trans' },
+  { valor: 'casa-cidadania', texto: 'Bandeira pansexual' },
+  { valor: 'saude-sexual', texto: 'Bandeira bissexual' },
+  { valor: 'acolhimento', texto: 'Orgulho progresso' },
+  { valor: 'assexual', texto: 'Bandeira assexual' },
+  { valor: 'intersexo', texto: 'Bandeira intersexo' },
+  { valor: 'padrao', texto: 'Cinza (sem bandeira)' },
 ];
 
 const cor = z.enum(
