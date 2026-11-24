@@ -180,6 +180,13 @@ test('ao criar um tipo, aceita cores lisas e bandeiras novas', async () => {
 });
 
 test('ao editar um tipo, dá para trocar para uma cor lisa', async () => {
+  // O controller confere se o nome já existe em outro tipo antes de salvar.
+  mockPrisma(
+    prisma.categoria,
+    'findFirst',
+    async ({ where }) =>
+      categorias.find((c) => c.nome === where.nome && c.id !== where.id.not) ?? null,
+  );
   const admin = await logar(app, 'admin@teste.test');
   const res = await enviar(admin, '/painel/classificacao/categoria/1', {
     nome: 'Ambulatório',
@@ -188,10 +195,17 @@ test('ao editar um tipo, dá para trocar para uma cor lisa', async () => {
   });
 
   assert.equal(res.status, 302);
+  assert.equal(res.headers.location, '/painel/classificacao');
   assert.equal(categorias.find((c) => c.id === 1).icone, 'cor-vermelho');
+  assert.ok(auditoria.some((l) => l.acao === 'categoria.atualizar' && l.entidadeId === 1));
 });
 
 test('cor ou bandeira inventada é recusada', async () => {
+  // Ao recusar, a tela é desenhada de novo com os tipos e as características.
+  mockPrisma(prisma.categoria, 'findMany', async () =>
+    categorias.map((c) => ({ ...c, _count: { locais: 0 } })),
+  );
+  mockPrisma(prisma.caracteristica, 'findMany', async () => []);
   const admin = await logar(app, 'admin@teste.test');
   const antes = categorias.length;
   const res = await enviar(admin, '/painel/classificacao/categoria', {
@@ -199,8 +213,10 @@ test('cor ou bandeira inventada é recusada', async () => {
     icone: 'cor-inexistente',
   });
 
-  assert.notEqual(res.status, 302);
+  assert.equal(res.status, 400);
+  assert.match(res.text, /Escolha uma cor/);
   assert.equal(categorias.length, antes);
+  assert.ok(!auditoria.some((l) => l.acao === 'categoria.criar'));
 });
 
 test('a tela de tipos oferece cores lisas e bandeiras ao editar e ao criar', async () => {
