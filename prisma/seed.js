@@ -5,17 +5,17 @@
 import { prisma } from '../src/db/prisma.js';
 
 const categorias = [
-  { slug: 'ambulatorio-trans', nome: 'Ambulatório trans', icone: 'ambulatorio' },
-  { slug: 'ong', nome: 'ONG / coletivo LGBTQIA+', icone: 'ong' },
+  { slug: 'ambulatorio-trans', nome: 'Ambulatório trans', icone: 'trans' },
+  { slug: 'ong', nome: 'ONG / coletivo LGBTQIA+', icone: 'arco-iris' },
   {
     slug: 'saude-sexual',
     nome: 'Saúde sexual e prevenção (SAE, PEP, PrEP)',
-    icone: 'saude-sexual',
+    icone: 'bissexual',
   },
-  { slug: 'abrigo', nome: 'Abrigo', icone: 'abrigo' },
-  { slug: 'albergue', nome: 'Albergue', icone: 'albergue' },
-  { slug: 'centro-pop', nome: 'Centros POP', icone: 'centro-pop' },
-  { slug: 'casa-cidadania', nome: 'Casas de Cidadania', icone: 'casa-cidadania' },
+  { slug: 'abrigo', nome: 'Abrigo', icone: 'lesbica' },
+  { slug: 'albergue', nome: 'Albergue', icone: 'nao-binaria' },
+  { slug: 'centro-pop', nome: 'Centros POP', icone: 'aromantica' },
+  { slug: 'casa-cidadania', nome: 'Casas de Cidadania', icone: 'pansexual' },
 ];
 
 // Lista provisória: a definitiva será combinada com a ONG.

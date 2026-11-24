@@ -1,0 +1,7 @@
+<%# Opções de um <select>. Se as opções trazem "grupo", elas saem dentro de <optgroup>. %>
+<% let grupoAtual; %>
+<% for (const o of opcoes) { %>
+<% if (o.grupo !== grupoAtual) { %><% if (grupoAtual) { %></optgroup><% } %><% if (o.grupo) { %><optgroup label="<%= o.grupo %>"><% } %><% grupoAtual = o.grupo; } %>
+<option value="<%= o.valor %>" <%= String(o.valor) === String(selecionado) ? 'selected' : '' %>><%= o.texto %></option>
+<% } %>
+<% if (grupoAtual) { %></optgroup><% } %>

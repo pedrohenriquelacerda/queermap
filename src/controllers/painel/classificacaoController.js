@@ -3,22 +3,58 @@ import * as auditoria from '../../services/auditoriaService.js';
 import { slugUnico } from '../../utils/slug.js';
 import { validar, texto, caixa, z } from '../../utils/validacao.js';
 
-// Cores disponíveis para os marcadores (definidas em mapa.css).
-// Mantém compatibilidade com categorias antigas e com valores desconhecidos.
-// Cada valor é uma bandeira do orgulho no mapa (veja as variáveis --bandeira-* e --cat-* em
-// src/public/css/mapa.css). As chaves já existiam no banco e não mudam; só o visual.
+// Cores disponíveis para os marcadores (definidas em src/public/css/mapa.css: variáveis --cat-* e
+// --bandeira-*, e uma classe .marcador--<valor> para cada uma). Há dois grupos: cores lisas e
+// bandeiras do orgulho. Cada chave é o nome da cor ou da bandeira (ex.: "lesbica", "cor-azul");
+// as chaves antigas gravadas no banco foram convertidas pela migration
+// 20261124130000_renomear_cores_dos_marcadores. Para criar uma opção nova,
+// acrescente a classe no CSS e uma linha aqui (o teste confere que as duas existem).
+const LISAS = 'Cores lisas';
+const BANDEIRAS = 'Bandeiras do orgulho';
+
 export const CORES = [
-  { valor: 'ong', texto: 'Arco-íris (LGBTQIA+)' },
-  { valor: 'abrigo', texto: 'Bandeira lésbica' },
-  { valor: 'albergue', texto: 'Bandeira não-binária' },
-  { valor: 'centro-pop', texto: 'Bandeira aromântica' },
-  { valor: 'ambulatorio', texto: 'Bandeira trans' },
-  { valor: 'casa-cidadania', texto: 'Bandeira pansexual' },
-  { valor: 'saude-sexual', texto: 'Bandeira bissexual' },
-  { valor: 'acolhimento', texto: 'Orgulho progresso' },
-  { valor: 'assexual', texto: 'Bandeira assexual' },
-  { valor: 'intersexo', texto: 'Bandeira intersexo' },
-  { valor: 'padrao', texto: 'Cinza (sem bandeira)' },
+  { valor: 'cor-roxo', texto: 'Roxo (ONG Somos)', grupo: LISAS },
+  { valor: 'cor-rosa', texto: 'Rosa (ONG Somos)', grupo: LISAS },
+  { valor: 'cor-turquesa', texto: 'Turquesa (ONG Somos)', grupo: LISAS },
+  { valor: 'cor-vermelho', texto: 'Vermelho', grupo: LISAS },
+  { valor: 'cor-vinho', texto: 'Vinho', grupo: LISAS },
+  { valor: 'cor-coral', texto: 'Coral', grupo: LISAS },
+  { valor: 'cor-laranja', texto: 'Laranja', grupo: LISAS },
+  { valor: 'cor-mostarda', texto: 'Mostarda', grupo: LISAS },
+  { valor: 'cor-amarelo', texto: 'Amarelo', grupo: LISAS },
+  { valor: 'cor-verde-limao', texto: 'Verde-limão', grupo: LISAS },
+  { valor: 'cor-verde', texto: 'Verde', grupo: LISAS },
+  { valor: 'cor-esmeralda', texto: 'Esmeralda', grupo: LISAS },
+  { valor: 'cor-verde-agua', texto: 'Verde-água', grupo: LISAS },
+  { valor: 'cor-azul-claro', texto: 'Azul-claro', grupo: LISAS },
+  { valor: 'cor-azul', texto: 'Azul', grupo: LISAS },
+  { valor: 'cor-azul-marinho', texto: 'Azul-marinho', grupo: LISAS },
+  { valor: 'cor-indigo', texto: 'Índigo', grupo: LISAS },
+  { valor: 'cor-violeta', texto: 'Violeta', grupo: LISAS },
+  { valor: 'cor-lilas', texto: 'Lilás', grupo: LISAS },
+  { valor: 'cor-magenta', texto: 'Magenta', grupo: LISAS },
+  { valor: 'cor-marrom', texto: 'Marrom', grupo: LISAS },
+  { valor: 'cor-areia', texto: 'Areia', grupo: LISAS },
+  { valor: 'cor-grafite', texto: 'Grafite', grupo: LISAS },
+  { valor: 'cor-preto', texto: 'Preto', grupo: LISAS },
+  { valor: 'cor-cinza', texto: 'Cinza', grupo: LISAS },
+
+  { valor: 'arco-iris', texto: 'Arco-íris (LGBTQIA+)', grupo: BANDEIRAS },
+  { valor: 'progresso', texto: 'Orgulho progresso', grupo: BANDEIRAS },
+  { valor: 'trans', texto: 'Trans', grupo: BANDEIRAS },
+  { valor: 'lesbica', texto: 'Lésbica', grupo: BANDEIRAS },
+  { valor: 'gay', texto: 'Gay', grupo: BANDEIRAS },
+  { valor: 'bissexual', texto: 'Bissexual', grupo: BANDEIRAS },
+  { valor: 'pansexual', texto: 'Pansexual', grupo: BANDEIRAS },
+  { valor: 'polissexual', texto: 'Polissexual', grupo: BANDEIRAS },
+  { valor: 'omnissexual', texto: 'Omnissexual', grupo: BANDEIRAS },
+  { valor: 'assexual', texto: 'Assexual', grupo: BANDEIRAS },
+  { valor: 'aromantica', texto: 'Aromântica', grupo: BANDEIRAS },
+  { valor: 'nao-binaria', texto: 'Não-binária', grupo: BANDEIRAS },
+  { valor: 'genero-fluido', texto: 'Gênero fluido', grupo: BANDEIRAS },
+  { valor: 'agenero', texto: 'Agênero', grupo: BANDEIRAS },
+  { valor: 'genero-queer', texto: 'Gênero queer', grupo: BANDEIRAS },
+  { valor: 'intersexo', texto: 'Intersexo', grupo: BANDEIRAS },
 ];
 
 const cor = z.enum(
@@ -210,9 +246,9 @@ async function renderizar(res, extras) {
     cores: CORES,
     erros_categoria: {},
     erros_caracteristica: {},
-    novo_categoria: { icone: 'padrao' },
+    novo_categoria: { icone: 'cor-cinza' },
     novo_caracteristica: {},
-    scripts: ['/js/reordenar-categorias.js'],
+    scripts: ['/js/reordenar-categorias.js', '/js/classificacao-cores.js'],
     ...extras,
   });
 }

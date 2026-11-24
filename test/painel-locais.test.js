@@ -77,11 +77,11 @@ afterEach(() => {
 
 test('paleta de cores inclui as categorias da Sprint 5', async () => {
   const valores = CORES.map((cor) => cor.valor);
-  assert.ok(valores.includes('centro-pop'));
-  assert.ok(valores.includes('casa-cidadania'));
-  assert.ok(valores.includes('albergue'));
-  assert.ok(valores.includes('abrigo'));
-  assert.ok(valores.includes('padrao'));
+  assert.ok(valores.includes('aromantica'));
+  assert.ok(valores.includes('pansexual'));
+  assert.ok(valores.includes('nao-binaria'));
+  assert.ok(valores.includes('lesbica'));
+  assert.ok(valores.includes('cor-cinza'));
 });
 
 test('cria local como rascunho, com slug e características', async () => {
