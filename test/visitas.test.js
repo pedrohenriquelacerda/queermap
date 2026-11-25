@@ -16,6 +16,8 @@ beforeEach(() => {
   mockPrisma(prisma.canalDenuncia, 'findMany', async () => []);
   mockPrisma(prisma.categoria, 'findMany', async () => []);
   mockPrisma(prisma.local, 'findMany', async () => []);
+  mockPrisma(prisma.local, 'findFirst', async () => null); // local inexistente -> 404
+  mockPrisma(prisma, '$queryRaw', async () => [{ ok: 1 }]); // health check
 });
 afterEach(restaurarPrisma);
 
@@ -55,14 +57,18 @@ test('robôs, requisições sem User-Agent, HEAD e erro 404 não contam', async 
   await request(app).get('/sobre').set('User-Agent', 'Googlebot/2.1');
   await request(app).get('/sobre').set('User-Agent', '');
   await request(app).head('/sobre').set('User-Agent', NAVEGADOR);
-  await request(app).get('/nao-existe').set('User-Agent', NAVEGADOR);
-  await request(app).get('/locais/nao-existe').set('User-Agent', NAVEGADOR);
+  const naoExiste = await request(app).get('/nao-existe').set('User-Agent', NAVEGADOR);
+  const semLocal = await request(app).get('/locais/nao-existe').set('User-Agent', NAVEGADOR);
+  assert.equal(naoExiste.status, 404);
+  assert.equal(semLocal.status, 404);
   assert.equal(upserts.length, 0);
 });
 
 test('health check e painel não contam', async () => {
-  await request(app).get('/health').set('User-Agent', NAVEGADOR);
-  await request(app).get('/painel/entrar').set('User-Agent', NAVEGADOR);
+  const saude = await request(app).get('/health').set('User-Agent', NAVEGADOR);
+  const painel = await request(app).get('/painel/entrar').set('User-Agent', NAVEGADOR);
+  assert.equal(saude.status, 200);
+  assert.equal(painel.status, 200);
   assert.equal(upserts.length, 0);
 });
 
