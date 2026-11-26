@@ -4,11 +4,15 @@ Mapa de espaços de cuidado em saúde para a população LGBTQIA+ de Porto Alegr
 
 ## Stack
 
-- **Node.js 24** + **Express 5**, páginas renderizadas com **EJS**
-- **Leaflet** + **MapLibre**, com tiles vetoriais do OpenFreeMap (dados do OpenStreetMap, sem ícones de comércio), para o mapa
-- **PostgreSQL 17** (via Docker) com **Prisma 7**
-- Segurança: helmet (CSP), express-rate-limit, sessões salvas no Postgres
-- Qualidade: ESLint, Prettier, testes com `node:test` + supertest
+- *Front-End*: Páginas renderizadas no servidor (EJS) e JavaScript puro; interface responsiva, mobile-first.
+- *Backend*: **Node.js 24** + **Express 5**.
+- *Mapa*: **Leaflet** + **MapLibre**, com tiles vetoriais do OpenFreeMap (dados do OpenStreetMap, sem ícones de comércio), para o mapa.
+- *Banco de Dados*: **PostgreSQL 17** (via Neon) com **ORM Prisma 7**.
+- *Autenticação*: Email e senha, com hash scrypt, sessões guardadas no banco.
+- *Hospedagem e CI*: Render (Docker), com deploy automático e GitHub Actions (lint, testes, migrations e verificação de segredos).
+- *Segurança*: anti-robô Cloudflare Turnstile, cabeçalhos de segurança (Helmet), limite de tentativas e confirmação de e-mail por código.
+- *Padrões*: arquitetura em camadas (rotas → controllers → services), validação com Zod e adaptador do Prisma para o PostgreSQL.
+
 
 ## Pré-requisitos
 
