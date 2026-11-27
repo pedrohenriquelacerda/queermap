@@ -86,7 +86,7 @@ Conferido no código. Se a ONG quiser que isso passe a existir, vira uma melhori
 
 ## Execução local de 27/11/2026 (computador)
 
-Feita em `http://localhost:3000`, com o código da `main` (`7bc817a`), Postgres 17 local e contas de teste novas. É um ensaio: **não substitui** a rodada no ambiente publicado. Os passos foram feitos pelo navegador e por requisições HTTP; os prints ficam em `evidencias-testes/` (fora do Git).
+Feita em `http://localhost:3000`, com o código da `main` (`7bc817a`), Postgres 17 local e contas de teste novas. É um ensaio: **não substitui** a rodada no ambiente publicado. Os passos foram feitos pelo navegador e por requisições HTTP; os prints ficam em `evidencias-testes/`, nomeados pelo passo do roteiro (prefixo `M-` para a largura de celular, 390 px).
 
 | Item                                             | Resultado                                                                                                |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
