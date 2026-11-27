@@ -86,23 +86,24 @@ Conferido no código. Se a ONG quiser que isso passe a existir, vira uma melhori
 
 ## Execução local de 27/11/2026 (computador)
 
-Feita em `http://localhost:3000`, com o código da `main` (`7bc817a`), Postgres 17 local e contas de teste novas. É um ensaio: **não substitui** a rodada no ambiente publicado nem no Android.
+Feita em `http://localhost:3000`, com o código da `main` (`7bc817a`), Postgres 17 local e contas de teste novas. É um ensaio: **não substitui** a rodada no ambiente publicado. Os passos foram feitos pelo navegador e por requisições HTTP; os prints ficam em `evidencias-testes/` (fora do Git).
 
-| Item                                             | Resultado                                                                                                 |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| A1, A2, A3 (mapa, lista, filtro, limpar filtros) | ok                                                                                                        |
-| A4 (busca por endereço)                          | não testado (depende do serviço externo Nominatim)                                                        |
-| A5, A9, A10 (local, canais, sobre, privacidade)  | só conferido o status HTTP (200, e 404 para local inexistente)                                            |
-| A6, A7 (sugestão e código por e-mail)            | ok: campos vazios dão 400, código errado dá erro, código certo grava o envio. Código vencido não testado. |
-| A8 (relato)                                      | não testado                                                                                               |
-| B1, B2, B3, B4, B5, B8                           | ok                                                                                                        |
-| B6 (Métricas)                                    | n/a: a funcionalidade ainda não está na `main`                                                            |
-| B7 (Edição bloqueada)                            | não refeito à mão; coberto por teste automático (403)                                                     |
-| C1, C2, C3, C5, C6                               | ok (inclusive código de recuperação usado uma vez e recusado na segunda)                                  |
-| C4 (limite de tentativas)                        | não refeito à mão; coberto por teste automático (5 erros seguidos levam a 429)                            |
-| D1, D3, D4                                       | ok                                                                                                        |
-| D2 (filtros e paginação)                         | não testado à mão; coberto pelo E2E de PostgreSQL                                                         |
-| Testes automáticos                               | 174 passam, 0 falham, 2 pulados; os 2 E2E de PostgreSQL passam (10 testes)                                |
+| Item                                             | Resultado                                                                                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| A1, A2, A3 (mapa, lista, filtro, limpar filtros) | ok                                                                                                       |
+| A4 (busca por endereço)                          | ok: a busca por "Rua dos Andradas, Porto Alegre" devolveu endereços (usa o serviço externo Nominatim)    |
+| A5, A9, A10 (local, canais, sobre, privacidade)  | ok, com print em tela de computador e de 390 px; local inexistente dá 404                                |
+| A6, A7 (sugestão e código por e-mail)            | ok: campos vazios dão 400, código errado dá erro, código certo grava o envio                             |
+| Código de e-mail vencido                         | ok: com o código vencido no banco, a confirmação dá 400 ("O código expirou") e nada é gravado            |
+| A8 (relato)                                      | ok: relato de discriminação com local escolhido grava o envio; sem escolher o local dá 400               |
+| B1, B2, B3, B4, B5, B8                           | ok (prints do painel em computador e em 390 px)                                                          |
+| B6 (Métricas)                                    | n/a: `/painel/metricas` dá 404, a funcionalidade ainda não está na `main`                                |
+| B7 (Edição bloqueada)                            | ok: com conta de Edição, Pessoas e Histórico de ações dão 403 e o menu só mostra Início, Locais e Envios |
+| C1, C2, C3, C5, C6                               | ok (inclusive código de recuperação usado uma vez e recusado na segunda)                                 |
+| C4 (limite de tentativas)                        | ok: 5 códigos errados dão 401, o 6º dá 429, e o código certo logo depois também dá 429                   |
+| D1, D3, D4                                       | ok                                                                                                       |
+| D2 (filtros e paginação)                         | ok: filtros por pessoa, tipo de ação e período funcionam; período invertido e data inexistente dão 400   |
+| Testes automáticos                               | 174 passam, 0 falham, 2 pulados; os 2 E2E de PostgreSQL passam (10 testes)                               |
 
 **Ressalva do ensaio:** antes de testar localmente, rode `npm run db:deploy`. Com o banco local no esquema antigo, confirmar o código do envio deu erro 500 e **consumiu o código**: foi preciso mandar outro. No publicado isso não deve acontecer, porque o deploy aplica as migrations.
 
