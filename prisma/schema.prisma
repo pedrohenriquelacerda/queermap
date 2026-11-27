@@ -259,6 +259,17 @@ model RegistroEnvio {
   @@map("registro_envio")
 }
 
+// Visualizadores por mês (Brasília). Só um contador agregado: nenhum IP nem
+// identificador de quem acessou é guardado. Quem já tem o cookie do mês não conta de novo.
+model VisitaMensal {
+  ano   Int
+  mes   Int
+  total Int @default(0)
+
+  @@id([ano, mes])
+  @@map("visita_mensal")
+}
+
 // ─── Infraestrutura ─────────────────────────────────────────────────────────
 
 // Sessões do painel administrativo (usada pelo connect-pg-simple).

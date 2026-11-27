@@ -1,10 +1,12 @@
 import * as locaisService from '../services/locaisService.js';
 import * as geocodificacao from '../services/geocodificacaoService.js';
+import { registrarVisita } from '../middlewares/visitas.js';
 import * as fmt from '../utils/formatadores.js';
 
 export async function mostrar(req, res, next) {
   const local = await locaisService.buscarPublicadoPorSlug(req.params.slug);
   if (!local) return next(); // cai no 404
+  registrarVisita(req, res); // só locais que existem contam
 
   res.render('locais/mostrar', {
     title: local.nome,

@@ -627,3 +627,10 @@ fieldset.cartao legend + * {
   padding: 0;
   list-style: none;
 }
+
+/* Barras de proporção das métricas */
+.tabela progress {
+  width: 100%;
+  min-width: 6rem;
+  accent-color: var(--cor-primaria);
+}

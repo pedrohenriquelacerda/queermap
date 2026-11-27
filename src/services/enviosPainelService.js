@@ -103,3 +103,12 @@ export async function alterar(id, adminId, acao, valor, versaoEsperada) {
     throw erro;
   }
 }
+
+// Quantos envios há por tipo e situação, com período opcional ({ gte, lt } sobre criadoEm).
+export function contarPorTipoESituacao(periodo = {}) {
+  return prisma.envio.groupBy({
+    by: ['tipo', 'status'],
+    where: Object.keys(periodo).length ? { criadoEm: periodo } : {},
+    _count: { _all: true },
+  });
+}
