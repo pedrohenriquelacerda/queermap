@@ -106,6 +106,30 @@ Feita em `http://localhost:3000`, com o código da `main` (`7bc817a`), Postgres 
 
 **Ressalva do ensaio:** antes de testar localmente, rode `npm run db:deploy`. Com o banco local no esquema antigo, confirmar o código do envio deu erro 500 e **consumiu o código**: foi preciso mandar outro. No publicado isso não deve acontecer, porque o deploy aplica as migrations.
 
+## Execução local de 27/11/2026 (celular Android)
+
+Feita no Chrome de um Xiaomi/Poco (modelo 24129PN74G), ligado ao computador por USB, com `adb reverse tcp:3000 tcp:3000` (o site abre como `http://localhost:3000` no próprio celular, sem Wi-Fi). Mesmo servidor e banco locais da rodada do computador. Também é um ensaio: **não substitui** a rodada no ambiente publicado.
+
+Conferido pelo banco e pelo histórico de ações, além do relato de quem usou o celular:
+
+| Item                                                           | Resultado                                               |
+| -------------------------------------------------------------- | ------------------------------------------------------- |
+| Enviar sugestão com código por e-mail                          | ok: o envio chegou ao banco como "Novo"                 |
+| Enviar relato (discriminação) com código por e-mail            | ok: o envio chegou ao banco como "Novo"                 |
+| Ver canais de denúncia                                         | ok                                                      |
+| Entrar, trocar a senha provisória e ativar o 2FA               | ok                                                      |
+| Cadastrar local, publicar, editar                              | ok (nasce como rascunho; publicar e editar registrados) |
+| Criar local a partir da sugestão                               | ok (o local veio com o nome da sugestão)                |
+| Tirar do mapa, arquivar, restaurar, excluir                    | ok (excluir só com o local arquivado)                   |
+| Abrir envio, mudar situação, anotar                            | ok                                                      |
+| Código de verificação errado; entrar com código de recuperação | ok; o código de recuperação foi consumido               |
+| Reusar o mesmo código de recuperação                           | ok: recusado, e as falhas ficaram no histórico          |
+| Histórico de ações no celular                                  | ok, legível                                             |
+| Mapa, lista, filtros, página do local, privacidade             | não registrado nesta rodada (sem resultado informado)   |
+| Limite de tentativas e filtros do histórico                    | não refeitos à mão; cobertos por testes automáticos     |
+
+Nenhum bug foi encontrado nesta rodada, então nenhuma issue foi aberta. O login na primeira conta de teste do celular teve um problema que não foi esclarecido: o servidor não registrou erro e a conta foi trocada por outra, sem repetir.
+
 ## Registro da execução
 
 Preencha a cada rodada. Resultado: ok, falha (com o número da issue) ou n/a.
