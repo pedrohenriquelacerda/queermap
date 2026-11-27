@@ -131,6 +131,31 @@ Conferido pelo banco e pelo histórico de ações, além do relato de quem usou 
 
 Nenhum bug foi encontrado nesta rodada, então nenhuma issue foi aberta. O login na primeira conta de teste do celular teve um problema que não foi esclarecido: o servidor não registrou erro e a conta foi trocada por outra, sem repetir.
 
+## Verificação pública no ambiente publicado, 27/11/2026
+
+Feita em `https://queermap-s2ei.onrender.com`, no commit `7bc817a` (o mesmo da `main`; o deploy aparece como "success" no GitHub). **Só por leitura**: páginas abertas e consultadas, sem login, sem envio de formulário e sem criar nem alterar dados. É uma verificação parcial; **a rodada completa no publicado (painel, 2FA, envios e celular real) continua pendente**.
+
+| Item                                               | Resultado                                                                                                                          |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Saúde do serviço (`/health`)                       | ok: `status: ok` e `db: ok`. A primeira resposta levou 28 s (partida a frio do plano gratuito do Render)                           |
+| HTTPS                                              | ok: `http://` redireciona (301) para `https://`; HSTS, CSP, `X-Frame-Options`, `nosniff` e `Referrer-Policy` presentes; gzip ativo |
+| A1 (mapa)                                          | ok: abre com a base do mapa carregada, sem mensagem de erro no console; a lista mostra 12 locais                                   |
+| A5, A9, A10 (local, canais, sobre, privacidade)    | ok (200); local inexistente dá 404; prints em computador e em 390 px                                                               |
+| A6, A8 (formulário de envio)                       | só o formulário foi visto (campos e widget anti-robô presentes); **nada foi enviado**                                              |
+| Faixa "Ambiente de demonstração"                   | ok: aparece em todas as páginas e avisa para não enviar relatos reais nem dados pessoais                                           |
+| Cookie de visita                                   | ok: visita nova não recebe `Set-Cookie`, de acordo com a versão publicada e com o texto de privacidade                             |
+| Painel sem login (B1)                              | ok: `/painel/locais`, `/envios`, `/auditoria`, `/pessoas` e `/metricas` mandam para a tela de entrada (302)                        |
+| A2, A3, A4 (lista, filtros, busca por endereço)    | não testado (a busca por endereço envia o texto a um serviço externo)                                                              |
+| B2 a B8, C1 a C6, D1 a D4 (painel, 2FA, histórico) | não testado: exigem conta, e conta em produção só é criada por quem administra o ambiente                                          |
+| Celular real no site publicado                     | não testado                                                                                                                        |
+
+Observações, todas de severidade baixa:
+
+- `/robots.txt`, `/sitemap.xml` e `/favicon.ico` respondem 404.
+- O banco do ambiente publicado tem 12 locais e mais tipos de serviço do que o banco local de teste. É diferença de dados, não de código.
+
+Os prints desta verificação ficaram fora do repositório.
+
 ## Registro da execução
 
 Preencha a cada rodada. Resultado: ok, falha (com o número da issue) ou n/a.
